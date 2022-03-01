@@ -373,7 +373,7 @@
       (defvar lmm/leader-comma-map (make-sparse-keymap)
         "Keymap for \"leader key ,\" shortcuts.")
       (evil-define-key 'normal 'global
-        "," lmm/leader-comma-map)
+        ";" lmm/leader-comma-map)
       :bind
       (:map evil-insert-state-map
             ("C-." . nil)
@@ -421,6 +421,8 @@
                                                        dired-mode
                                                        Info-mode
                                                        undo-tree-mode))
+      (add-hook 'magit-mode-hook (lambda ()
+                                   (setq-local evil-escape-inhibit t)))
       ;; 当表中的函数返回非 nil 时禁止使用
       (setq evil-escape-inhibit-functions '(evil-visual-state-p))
       :diminish evil-escape-mode
@@ -436,7 +438,7 @@
       :after evil
       :bind
       (:map lmm/leader-comma-map
-            ("," . evilnc-comment-operator)
+            (";" . evilnc-comment-operator)
             ("l" . evilnc-comment-or-uncomment-lines)))
 
     (use-package evil-surround
@@ -1060,6 +1062,28 @@
     :init
     (setq recentf-max-saved-items 100))
 #+end_src
+
+* GIT
+#+begin_src emacs-lisp
+  (use-package magit
+    :ensure t
+    :init
+    (setq-default magit-diff-refine-hunk t)
+    :commands magit-status
+    )
+#+end_src
+
+* DIFF
+#+begin_src emacs-lisp
+  (use-package diff-hl
+    :ensure t
+    :hook
+    (after-init-hook . global-diff-hl-mode)
+    (dired-mode-hook . diff-hl-dired-mode-unless-remote)
+    (magit-pre-refresh-hook . diff-hl-magit-pre-refresh)
+    (magit-post-refresh-hook . diff-hl-magit-post-refresh))
+#+end_src
+
 * KEY LIST
 + word case
   - M-u upcase-dwim 转换单词或者标记区域为大写
