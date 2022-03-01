@@ -370,6 +370,10 @@
       (define-key lmm/leader-search-map "?" 'evil-search-backward)
       (define-key lmm/leader-search-map "l" 'consult-line)
       (define-key lmm/leader-search-map "i" 'consult-imenu)
+      (defvar lmm/leader-comma-map (make-sparse-keymap)
+        "Keymap for \"leader key ,\" shortcuts.")
+      (evil-define-key 'normal 'global
+        "," lmm/leader-comma-map)
       :bind
       (:map evil-insert-state-map
             ("C-." . nil)
@@ -426,6 +430,14 @@
       :ensure t
       :hook
       (evil-mode-hook . evil-collection-init))
+
+    (use-package evil-nerd-commenter
+      :ensure t
+      :after evil
+      :bind
+      (:map lmm/leader-comma-map
+            ("," . evilnc-comment-operator)
+            ("l" . evilnc-comment-or-uncomment-lines)))
 
     (use-package evil-surround
       :ensure t
@@ -1052,4 +1064,3 @@
 + word case
   - M-u upcase-dwim 转换单词或者标记区域为大写
   - C-U capitalize-dwim 转换单词或者标记区域所有单词首个字母为大写
-  - 
