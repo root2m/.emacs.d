@@ -2,6 +2,11 @@
 #+AUTHOR: Lmm
 #+STARTUP: content indent
 
+* OPEN DEBUG
+#+begin_src emacs-lisp
+(setq debug-on-error t)
+#+end_src
+
 * BOOT CONFIG
 ** Adjust garbage collection thresholds during startup, and thereafter
    垃圾回收
@@ -305,13 +310,14 @@
 
 ** Fonts
   #+begin_src emacs-lisp
-    (set-face-attribute 'default nil
-                        :font "Sarasa Mono SC Nerd"
-                        :slant 'normal
-                        :weight 'normal
-                        :height 130
-                        :width 'normal)
-    (add-to-list 'default-frame-alist '(font . "Sarasa Mono SC Nerd"))
+        (set-face-attribute 'default nil
+                            :font "Sarasa Mono SC Nerd"
+                            ;; :slant 'normal
+                            ;; :weight 'normal
+                            :height 130
+                            ;; :width 'normal
+                            )
+        (add-to-list 'default-frame-alist '(font . "Sarasa Mono SC Nerd"))
   #+end_src
 
 ** Whitespace Config
@@ -370,6 +376,7 @@
       (define-key lmm/leader-search-map "?" 'evil-search-backward)
       (define-key lmm/leader-search-map "l" 'consult-line)
       (define-key lmm/leader-search-map "i" 'consult-imenu)
+      (define-key lmm/leader-search-map "o" 'consult-outline)
       (defvar lmm/leader-comma-map (make-sparse-keymap)
         "Keymap for \"leader key ,\" shortcuts.")
       (evil-define-key 'normal 'global
@@ -570,15 +577,23 @@
   #+begin_src emacs-lisp
     ;; minibuffer命令记录数量
     (setq-default history-length 1000)
-    (add-hook 'after-init-hook 'savehist-mode) ;;命令历史
+    ;;命令历史
+    (use-package savehist
+      :ensure nil
+      :hook
+      (after-init-hook . savehist-mode))
     (use-package vertico  ;;命令补全
       :ensure t
       :hook
       (after-init-hook . vertico-mode)
       :bind
       (:map vertico-map
-            ("C-w" . backward-kill-word))
-      )
+            ("C-w" . backward-kill-word)
+            ("C-r" . consult-history)
+            ("C-h" . vertico-directory-delete-char)
+            ("C-w" . vertico-directory-delete-word)
+            ("M-<backspace>" . vertico-directory-up)
+            ("C-<backspace>" . vertico-directory-up)))
     (use-package orderless  ;;搜索排序
       :ensure t
       :after vertico
@@ -635,8 +650,6 @@
       :hook
       (embark-collect-mode . consult-preview-at-point-mode))
     (use-package consult-flycheck
-      :disabled
-      :no-require t
       :ensure t
       :after consult
       )
