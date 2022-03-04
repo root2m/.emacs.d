@@ -635,6 +635,8 @@
       :hook
       (embark-collect-mode . consult-preview-at-point-mode))
     (use-package consult-flycheck
+      :disabled
+      :no-require t
       :ensure t
       :after consult
       )
@@ -784,6 +786,10 @@
        :hook
        (prog-mode-hook . smartparens-mode)
        (org-mode-hook . smartparens-mode)
+       :init
+       (setq sp-highlight-wrap-overlay nil
+             sp-highlight-pair-overlay nil
+             sp-highlight-wrap-tag-overlay nil)
        :bind
        (:map evil-normal-state-map
              (")" . sp-up-sexp)
@@ -992,12 +998,34 @@
 #+begin_src emacs-lisp
   (use-package rust-mode
     :ensure t
+    :commands rust-mode
     )
+  (use-package rustic
+    :ensure t
+    :defer t
+    :init
+    (setq rustic-lsp-server 'rust-analyzer)
+    (setq rustic-lsp-client 'lsp)
+    :commands rustic-mode)
+  (use-package eglot
+    :ensure t
+    :commands eglot)
 
   (use-package flycheck-rust
+    :no-require t
+    :disabled
     :ensure t
     :hook
     (rust-mode-hook . flycheck-rust-setup))
+#+end_src
+*** emacs-lisp
+#+begin_src emacs-lisp
+  (add-hook 'emacs-lisp-mode-hook (lambda ()
+                                    (setq-local company-backends '(company-elisp
+                                                                   company-files
+                                                                   (company-dabbrev-code company-keywords)
+                                                                   company-dabbrev
+                                                                   company-capf))))
 #+end_src
 
 * PROJECT CONFIG
