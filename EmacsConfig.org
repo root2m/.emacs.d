@@ -2,7 +2,7 @@
 #+AUTHOR: Lmm
 #+STARTUP: content indent
 
-* OPEN DEBUG
+* COMMENT OPEN DEBUG
 #+begin_src emacs-lisp
 (setq debug-on-error t)
 #+end_src
@@ -103,14 +103,6 @@
   (put 'narrow-to-region 'disabled nil)
 #+end_src
 
-* GENERAL KEYBINDINGS
-#+begin_src emacs-lisp
-  ;; ESC Cancels All
-  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-
-  ;; Rebind C-u
-  (global-set-key (kbd "C-M-u") 'universal-argument)
-#+end_src
 * PACKAGE MANAGEMENT
 ** Setup package.el to work with MELPA.
    修改国内镜像源
@@ -150,6 +142,7 @@
         )
     #+end_src
 
+
 ** Install diminish, bind-key
    #+begin_src emacs-lisp
      (use-package diminish
@@ -158,8 +151,25 @@
      (use-package bind-key
        :ensure t)
    #+end_src
+* KEY BIND
+** Simple Key Bind
+[[https://github.com/noctuid/general.el][General]] 直观的按键绑定
+#+begin_src emacs-lisp
+  (use-package general
+    :ensure t
+    :config
+    (general-evil-setup t))
+#+end_src
+#+begin_src emacs-lisp
+  ;; ESC Cancels All
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
-* GRAPHICAL USER INTERFACE SETTINGS
+  ;; Rebind C-u
+  (global-set-key (kbd "C-M-u") 'universal-argument)
+#+end_src
+
+
+* UI
 
 ** Disable Menu, Toolbar, Scrollbar, Starup Screen
    #+begin_src emacs-lisp
@@ -195,7 +205,7 @@
 #+end_src
 
 ** Bell
-*** bell modeline color
+*** COMMENT bell modeline color
    #+begin_src emacs-lisp
      (setq ring-bell-function
            (lambda ()
@@ -358,32 +368,53 @@
       :hook
       (after-init-hook . evil-mode)
       :config
+
+      (setq evil-emacs-state-modes nil)
+      (setq evil-insert-state-modes nil)
+      (setq evil-motion-state-modes nil)
+
+      (setq evil-visual-state-cursor 'hollow)
       ;;清空插入模式的按键
       ;; (setcdr evil-insert-state-map nil)
       ;; 定制ex命令
       (evil-ex-define-cmd "q" 'kill-this-buffer)
       ;; (evil-set-leader 'normal (kbd "<SPC>"))
-      (evil-set-leader '(normal motion) (kbd "SPC"))
+
+      (general-create-definer lmm/evil-space-leader-def
+        :states '(normal motion)
+        :keymaps 'override
+        :prefix "SPC")
+      (lmm/evil-space-leader-def
+        "w" 'evil-window-map
+        "," 'switch-to-buffer
+        "si" 'imenu
+        "ff" 'find-file)
+      (evil-set-leader '(normal motion) (kbd "C-SPC"))
+
       ;; (evil-define-key '(normal motion) 'global (kbd ""))
-      (evil-define-key '(normal motion) 'global
-        (kbd "<leader>w") 'evil-window-map)
-      (defvar lmm/leader-search-map (make-sparse-keymap)
-        "Keymap for \"leader key /\" shortcuts.")
+
+      ;; (evil-define-key '(normal motion) 'global
+      ;;   (kbd "<leader>w") 'evil-window-map)
+
+      ;; (defvar lmm/leader-search-map (make-sparse-keymap)
+      ;;   "Keymap for \"leader key /\" shortcuts.")
       ;; (define-key lmm/leader-search-map "/" evil-search-forward)
-      (evil-define-key '(normal motion visual) 'global
-        "/" lmm/leader-search-map)
-      (define-key lmm/leader-search-map "/" 'evil-search-forward)
-      (define-key lmm/leader-search-map "?" 'evil-search-backward)
-      (define-key lmm/leader-search-map "l" 'consult-line)
-      (define-key lmm/leader-search-map "i" 'consult-imenu)
-      (define-key lmm/leader-search-map "o" 'consult-outline)
+
+      ;; (evil-define-key '(normal motion visual) 'global
+      ;;   "/" lmm/leader-search-map)
+
+      ;; (define-key lmm/leader-search-map "/" 'evil-search-forward)
+      ;; (define-key lmm/leader-search-map "?" 'evil-search-backward)
+      ;; (define-key lmm/leader-search-map "l" 'consult-line)
+      ;; (define-key lmm/leader-search-map "i" 'consult-imenu)
+      ;; (define-key lmm/leader-search-map "o" 'consult-outline)
+
       (defvar lmm/leader-comma-map (make-sparse-keymap)
         "Keymap for \"leader key ,\" shortcuts.")
       (evil-define-key 'normal 'global
         ";" lmm/leader-comma-map)
       :bind
       (:map evil-insert-state-map
-            ("C-." . nil)
             ("C-a" . beginning-of-visual-line)
             ("C-e" . end-of-visual-line)
             ("C-h" . backward-delete-char)
@@ -392,17 +423,16 @@
             ;; ("C-n" . next-line)
             ("C-g" . evil-normal-state)
             :map evil-normal-state-map
-            ("C-." . nil)
             ("f" . evil-avy-goto-char-in-line)
             ("F" . evil-avy-goto-word-1)
-            ("<leader>ff" . find-file)
-            ("<leader>bb" . switch-to-buffer)
-            ("<leader>bs" . evil-split-buffer)
-            ("<leader>bl" . ibuffer)
-            ("<leader>bd" . evil-delete-buffer)
-            ("<leader>bk" . kill-buffer)
-            ("<leader>bp" . previous-buffer)
-            ("<leader>bn" . next-buffer)
+            ;; ("<leader>ff" . find-file)
+            ;; ("<leader>bb" . switch-to-buffer)
+            ;; ("<leader>bs" . evil-split-buffer)
+            ;; ("<leader>bl" . ibuffer)
+            ;; ("<leader>bd" . evil-delete-buffer)
+            ;; ("<leader>bk" . kill-buffer)
+            ;; ("<leader>bp" . previous-buffer)
+            ;; ("<leader>bn" . next-buffer)
             ;; ("<leader>w" . evil-window-map)
             :map evil-motion-state-map
             ("f" . evil-avy-goto-char-in-line)
@@ -428,6 +458,7 @@
                                                        dired-mode
                                                        Info-mode
                                                        undo-tree-mode))
+
       (add-hook 'magit-mode-hook (lambda ()
                                    (setq-local evil-escape-inhibit t)))
       ;; 当表中的函数返回非 nil 时禁止使用
@@ -443,6 +474,7 @@
     (use-package evil-nerd-commenter
       :ensure t
       :after evil
+      :commands evilnc-comment-operator
       :bind
       (:map lmm/leader-comma-map
             (";" . evilnc-comment-operator)
@@ -451,6 +483,7 @@
     (use-package evil-surround
       :ensure t
       :hook
+      (org-mode-hook . evil-surround-mode)
       (prog-mode-hook . evil-surround-mode))
 
     (use-package undo-tree
@@ -466,15 +499,31 @@
   #+end_src
 
 * WINDOW AND BUFFER AND FRAME
+** Utils Functions
+#+begin_src emacs-lisp
+  (defun lmm/kill-current-buffer-and-window ()
+    "kill current buffer and window, if just one window, kill current buffer"
+    (interactive)
+    (if (and (window-full-width-p) (window-full-height-p))
+        (kill-current-buffer)
+      (kill-buffer-and-window)))
+
+  (use-package evil
+    :ensure nil
+    :bind
+    (:map evil-window-map
+          ("d" . lmm/kill-current-buffer-and-window)))
+#+end_src
 ** Window Split Config
 #+begin_src emacs-lisp
-;; 窗口布局历史切换
+  ;; 窗口布局历史切换
   (use-package winner
+    :ensure nil
     :after evil
     :config
     (winner-mode)
-  (define-key evil-window-map "u" 'winner-undo)
-  (define-key evil-window-map "U" 'winner-redo))
+    (define-key evil-window-map "u" 'winner-undo)
+    (define-key evil-window-map "U" 'winner-redo))
 #+end_src
 ** Window Jump Config
 #+begin_src emacs-lisp
@@ -573,6 +622,11 @@
   #+end_src
 
 * MINIBUFFER
+** Minibuffer
+#+begin_src emacs-lisp
+  ;; 在 minibuffer 中执行 minibuffer
+  (setq enable-recursive-minibuffers t)
+#+end_src
 ** Vertico -- 命令完成
 #+begin_src emacs-lisp
   ;; minibuffer命令记录数量
@@ -613,13 +667,18 @@
 #+begin_src emacs-lisp
   (use-package consult
     :ensure t
+    :after vertico
     :config
     (global-set-key (kbd "M-Y") 'consult-yank-from-kill-ring)
     (global-set-key [remap switch-to-buffer] 'consult-buffer)
     (global-set-key [remap switch-to-buffer-other-window] 'consult-buffer-other-window)
     (global-set-key [remap switch-to-buffer-other-frame] 'consult-buffer-other-frame)
     (global-set-key [remap goto-line] 'consult-goto-line)
-    (global-set-key (kbd "<leader>/" ) 'consult-line)
+    (lmm/evil-space-leader-def
+      "sb" 'consult-line
+      "sB" 'consult-line-multi
+      "si" 'consult-imenu
+      "sI" 'consult-imenu-multi)
     (consult-customize
      consult-ripgrep consult-git-grep consult-grep
      consult-bookmark consult-recent-file consult-xref
@@ -703,6 +762,12 @@
 
 * ORG MODE CONFIG
 #+begin_src emacs-lisp
+  (use-package org
+    :ensure nil
+    :defer t
+    :config
+    (require 'org-tempo))
+
   (use-package org-superstar
     :ensure t
     :hook
@@ -1063,7 +1128,7 @@
     :ensure t
     :defer t
     :init
-    (setq rustic-lsp-server 'rust-analyzer)
+    (setq rustic-lsp-server 'rls)
     (setq rustic-lsp-client 'lsp)
     :commands rustic-mode)
   (use-package eglot
@@ -1169,6 +1234,24 @@
     (dired-mode-hook . diff-hl-dired-mode-unless-remote)
     (magit-pre-refresh-hook . diff-hl-magit-pre-refresh)
     (magit-post-refresh-hook . diff-hl-magit-post-refresh))
+#+end_src
+
+* WORKSPACE
+#+begin_src emacs-lisp
+  (use-package persp-mode
+    :ensure t
+    :hook
+    (after-init-hook . persp-mode)
+    :config
+    (lmm/evil-space-leader-def
+      "<tab>n" 'persp-frame-switch))
+#+end_src
+
+* POPUP
+#+begin_src emacs-lisp
+  (use-package popup
+    :ensure t
+    :no-require t)
 #+end_src
 
 * KEY LIST
