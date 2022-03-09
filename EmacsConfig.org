@@ -344,8 +344,6 @@
   #+begin_src emacs-lisp
     (use-package evil
       :ensure t
-      ;; :hook
-      ;; (after-init-hook . evil-mode)
       :init
       ;;
       (setq evil-want-integration t
@@ -388,8 +386,11 @@
         "w" 'evil-window-map
         "," 'switch-to-buffer
         "si" 'imenu
-        "ff" 'find-file)
-      (evil-set-leader '(normal motion) (kbd "C-SPC"))
+        "ff" 'find-file
+        "fb" 'switch-to-buffer
+        "qq" 'save-buffers-kill-terminal
+        "qs" 'evil-save-and-quit)
+      ;; (evil-set-leader '(normal motion) (kbd "C-SPC"))
 
       ;; (evil-define-key '(normal motion) 'global (kbd ""))
 
@@ -409,10 +410,10 @@
       ;; (define-key lmm/leader-search-map "i" 'consult-imenu)
       ;; (define-key lmm/leader-search-map "o" 'consult-outline)
 
-      (defvar lmm/leader-comma-map (make-sparse-keymap)
-        "Keymap for \"leader key ,\" shortcuts.")
-      (evil-define-key 'normal 'global
-        ";" lmm/leader-comma-map)
+      ;; (defvar lmm/leader-comma-map (make-sparse-keymap)
+      ;;   "Keymap for \"leader key ,\" shortcuts.")
+      ;; (evil-define-key 'normal 'global
+      ;;   ";" lmm/leader-comma-map)
       :bind
       (:map evil-insert-state-map
             ("C-a" . beginning-of-visual-line)
@@ -474,11 +475,26 @@
     (use-package evil-nerd-commenter
       :ensure t
       :after evil
-      :commands evilnc-comment-operator
-      :bind
-      (:map lmm/leader-comma-map
-            (";" . evilnc-comment-operator)
-            ("l" . evilnc-comment-or-uncomment-lines)))
+      ;; :bind
+      ;; (:map lmm/leader-comma-map
+      ;;       (";" . evilnc-comment-operator)
+      ;;       ("l" . evilnc-comment-or-uncomment-lines))
+      :config
+      (defun lmm/comment-dwim-auto-insert (arg)
+        "comment line or mark region, if evil normal state auto toggle insert state"
+        (interactive "*P")
+        (comment-dwim arg)
+        (if evil-normal-state-minor-mode
+          (evil-append 0)))
+
+      (general-define-key
+       :states 'normal
+       "M-;" 'comment-dwim)
+
+      (general-define-key
+       :states 'normal
+       "gc" (general-key-dispatch 'evilnc-comment-operator
+              "l" 'evilnc-comment-or-uncomment-lines)))
 
     (use-package evil-surround
       :ensure t
@@ -677,6 +693,8 @@
     (lmm/evil-space-leader-def
       "sb" 'consult-line
       "sB" 'consult-line-multi
+      "ss" 'consult-line
+      "sS" 'consult-line-multi
       "si" 'consult-imenu
       "sI" 'consult-imenu-multi)
     (consult-customize
@@ -684,8 +702,6 @@
      consult-bookmark consult-recent-file consult-xref
      consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
      :preview-key (kbd "M-."))
-    (add-hook 'org-mode-hook (lambda ()
-                               (define-key evil-normal-state-local-map (kbd "<leader>osh") 'consult-imenu)))
     (advice-add #'completing-read-multiple
                 :override #'consult-completing-read-multiple)
     ;; 替换系统完成
@@ -871,7 +887,6 @@
          (call-interactively 'kill-ring-save)
          (avy-pop-mark)
          (yank))
-       (evil-define-key 'normal 'global (kbd "<leader>acp") 'lmm/avy-goto-word-1-regexp-and-inside-pairs)
        )
    #+end_src
 
@@ -921,7 +936,7 @@
        :config
        (require 'smartparens-config))
    #+end_src
-*** Show Paren Mode
+*** COMMENT Show Paren Mode
 开启括号配对显示
 #+begin_src emacs-lisp
   ;; evil normal模式下不起作用
@@ -955,7 +970,7 @@
                                     ))
 #+end_src
 
-*** COMMENT Highlight-parentheses
+*** Highlight-parentheses
 #+begin_src emacs-lisp
   ;; 关闭自带的括号显示
   (show-paren-mode 0)
@@ -968,14 +983,19 @@
        (prog-mode-hook . highlight-parentheses-mode)
        (org-mode-hook . highlight-parentheses-mode)
        :init
-       (setq hl-paren-highlight-adjacent t)
-       (setq hl-paren-delay 0)
-       (setq hl-paren-colors '("firebrick1"))
+       (setq highlight-parentheses-delay 0)
+       (setq highlight-parentheses-colors '("red" "gold"))
+       (setq highlight-parentheses-highlight-adjacent t)
+       (setq highlight-parentheses-attributes '((:underline (:color "red" :position 0))))
+       :config
+       ;; (set-face-attribute 'highlight-parentheses-highlight nil
+       ;;                     :underline '(:color "red" :position 0)
+       ;;                     :weight 'extra-bold)
        :diminish highlight-parentheses-mode
        )
    #+end_src
 
-** Symbol-overlay
+** COMMENT Symbol-overlay
    同词高亮显示
    #+begin_src emacs-lisp
      (use-package symbol-overlay
@@ -1237,14 +1257,101 @@
 #+end_src
 
 * WORKSPACE
+** Install Persp
 #+begin_src emacs-lisp
   (use-package persp-mode
     :ensure t
-    :hook
-    (after-init-hook . persp-mode)
+    :after evil
+    :init
+    (setq persp-autokill-buffer-on-remove 'kill-weak
+          persp-reset-windows-on-nil-window-conf nil
+          persp-nil-hidden t
+          persp-set-last-persp-for-new-frames t
+          persp-switch-to-added-buffer nil
+          persp-kill-foreign-buffer-behaviour 'kill
+          persp-remove-buffers-from-nil-persp-behaviour nil
+          persp-auto-resume-time -1 ; Don't auto-load on startup
+          )
     :config
+    (persp-mode 1)
     (lmm/evil-space-leader-def
-      "<tab>n" 'persp-frame-switch))
+      "<tab>" 'persp-key-map
+      "," 'persp-switch-to-buffer
+      "<" 'switch-to-buffer)
+    (general-define-key
+     :keymaps 'persp-key-map
+     "n" 'persp-window-switch))
+#+end_src
+** Hack Persp
+#+begin_src emacs-lisp
+  (use-package persp-mode
+    :ensure nil
+    :config
+    (progn
+
+      ;; progn start:
+
+      (defvar lmm/workspace-main-name "main")
+
+
+      (defun lmm/get-current-workspace-name ()
+        "Get current workspace in persp-mode"
+        (safe-persp-name (get-current-persp)))
+
+      (defun lmm/get-workspace-names ()
+        "Get all workspace name"
+        persp-names-cache)
+
+
+      (defun lmm/workspace-delete(name)
+        "删除当前工作区，如果加上 C-u 前缀，从 minibuffer 读取。"
+        (interactive
+         (let ((current-name (lmm/get-current-workspace-name)))
+           (list
+            (if current-prefix-arg
+                (completing-read (format "Delete workspace (default: %s): " current-name)
+                                 (lmm/get-workspace-names)
+                                 nil nil nil nil current-name)
+              current-name))))
+        (let ((workspaces (lmm/get-workspace-names)))
+          (if (not (member name workspaces))
+              (message (format "Warning: '%s' workspace delete filed" name))
+            (persp-kill name))))
+
+      (defun lmm/init-startup-workspace (&rest _)
+        "启动时的主工作区"
+        (when persp-mode
+          (let (persp-before-switch-functions)
+            ;; 尝试删除默认无工作区时的 "none"
+            (when (equal (car persp-names-cache) persp-nil-name)
+              (pop persp-names-cache))
+            ;; 当存在主工作区时或工作区大于2时不重复添加主工作区
+            (unless (or (member lmm/workspace-main-name persp-names-cache)
+                        (> (hash-table-count *persp-hash*) 2))
+              (persp-add-new lmm/workspace-main-name)))))
+
+      (defun lmm/init-main-workspace-if-workspace-nil (&rest _)
+        "如果主工作区不存在，则创建并切换至主工作区."
+        (when persp-mode
+          (dolist (frame (frame-list))
+            (when (string= (safe-persp-name (get-current-persp frame)) persp-nil-name)
+              ;; 是否最后工作区，不是就删除当前工作区并至切换下一个，否则创建主工作区
+              (persp-frame-switch (or (cadr (hash-table-keys *persp-hash*))
+                                      lmm/workspace-main-name)
+                                  frame)))))
+      ;; progn end:
+      )
+
+
+    (add-hook 'persp-mode-hook #'lmm/init-startup-workspace)
+    (add-hook 'persp-mode-hook #'lmm/init-main-workspace-if-workspace-nil)
+    (add-hook 'persp-after-load-state-functions (lambda () (message "loaded!!!")))
+
+    (general-define-key
+     :keymaps 'persp-key-map
+     "d" 'lmm/workspace-delete)
+    )
+
 #+end_src
 
 * POPUP
