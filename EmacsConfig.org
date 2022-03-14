@@ -8,6 +8,7 @@
 #+end_src
 
 * BOOT CONFIG
+* GLOBAL SETTINGS
 ** Adjust garbage collection thresholds during startup, and thereafter
    垃圾回收
    #+begin_src emacs-lisp
@@ -17,7 +18,6 @@
                (lambda () (setq gc-cons-threshold (* 30 1024 1024))))
    #+end_src
 
-* GLOBAL SETTINGS
 ** Fast Read
 #+begin_src emacs-lisp
   ;; Increase how much is read from processes in a single chunk (default is 4kb)
@@ -60,22 +60,22 @@
 #+begin_src emacs-lisp
   (use-package server
     :ensure nil
-    :defer 1
-    :config
-    (unless (server-running-p)
-      (server-start)))
+    :hook
+    (after-init-hook . server-start)
+    )
 #+end_src
 
 ** Native Comp Support
 #+begin_src emacs-lisp
-    ;; 判断是否支持native-comp
+  ;; 判断是否支持native-comp
   (when (featurep 'native-compile)
     ;; 关闭native-comp 生成的警告
     (setq native-comp-async-report-warnings-errors nil)
     ;; 同步编译
     (setq native-comp-deferred-compilation t)
     ;; 自定义 native comp 缓存生成路径
-    (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory)))
+    (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
+    (setq package-native-compile t))
 #+end_src
 
 ** Yes Or No
@@ -83,8 +83,8 @@
   (setq use-short-answers t)
   (unless (>= emacs-major-version 28)
     (fset 'yes-or-no-p 'y-or-n-p))
-  ;;禁止切换从选择中出来
   (setq y-or-n-p-use-read-key t
+  ;;禁止切换从选择中出来
         read-char-choice-use-read-key t)
 #+end_src
 
@@ -117,16 +117,18 @@
    #+end_src
 
 ** Installing use-package
-   包管理器
-   #+begin_src emacs-lisp
-          (unless (package-installed-p 'use-package)
-            (package-initialize)
-            (package-refresh-contents)
-            (package-install 'use-package))
-          (setq use-package-hook-name-suffix nil) ;;停止在:hook 当中添加-hook后缀
-          (eval-when-compile
-            (require 'use-package))
-   #+end_src
+包管理器
+#+begin_src emacs-lisp
+  (unless (package-installed-p 'use-package)
+    (package-initialize)
+    (package-refresh-contents)
+    (package-install 'use-package))
+  (setq use-package-hook-name-suffix nil) ;;停止在:hook 当中添加-hook后缀
+  ;; 启动时显示包加载信息至 *Message*
+  (setq use-package-verbose t)
+  (eval-when-compile
+    (require 'use-package))
+#+end_src
 
 ** COMMENT Use-Package Man
     #+begin_src emacs-lisp
@@ -141,7 +143,6 @@
         :commands command-example ;;延迟加载，命令触发
         )
     #+end_src
-
 
 ** Install diminish, bind-key
    #+begin_src emacs-lisp
@@ -170,13 +171,13 @@
 
 
 * UI
-
 ** Disable Menu, Toolbar, Scrollbar, Starup Screen
    #+begin_src emacs-lisp
      (menu-bar-mode -1)
      (tool-bar-mode -1)
      (scroll-bar-mode -1)
      (tooltip-mode -1)
+     ;; 禁止启动屏幕
      (setq inhibit-startup-message t)
    #+end_src
 
@@ -202,6 +203,10 @@
 ** Cursor Face
 #+begin_src emacs-lisp
   (setq blink-cursor-mode nil)
+  (defun lmm/cursor-I-am-here ()
+    "cursor, where are you ???"
+    (interactive)
+    )
 #+end_src
 
 ** Bell
@@ -223,7 +228,7 @@
 ** 80 line
 #+begin_src emacs-lisp
   (when (boundp 'display-fill-column-indicator)
-    (setq-default indicate-buffer-boundaries 'left)
+    (setq-default indicate-buffer-boundaries 't)
     (setq-default fill-column 80)
     (add-hook 'prog-mode-hook 'display-fill-column-indicator-mode))
 #+end_src
@@ -276,20 +281,14 @@
     )
 #+end_src
 
-** Unicode
-#+begin_src emacs-lisp
-  (use-package list-unicode-display
-    :ensure t)
-#+end_src
-
 ** Posframe
 #+begin_src emacs-lisp
   (use-package posframe
     :ensure t
+    :defer t
     )
 #+end_src
-* THEME
-** Source Color Config
+** Face Theme
 #+begin_src emacs-lisp
   (use-package doom-themes
     :ensure t
@@ -354,9 +353,9 @@
             evil-want-C-u-delete t
             evil-want-C-u-scroll t
             evil-want-C-w-delete t
-            evil-want-C-i-jump nil
+            evil-want-C-i-jump t
             evil-want-Y-yank-to-eol t
-            evil-undo-system 'undo-tree
+            evil-undo-system 'undo-redo
             ;; 禁止在 ex 命令当中补全 emacs 命令
             evil-ex-complete-emacs-commands nil
             ;; 使用 emacs 本身的撤销模式
@@ -366,7 +365,23 @@
       :hook
       (after-init-hook . evil-mode)
       :config
-
+      ;; 自定义 escape
+      (defun lmm/evil-escape ()
+        (when (evil-insert-state-p)
+          (let* ((modified (buffer-modified-p))
+                 (fkey "j")
+                 (skey "k")
+                 (evt (read-event nil nil 0.2)))
+            (cond ((and (characterp evt)
+                        (equal fkey (this-command-keys))
+                        (equal skey (char-to-string evt)))
+                   (delete-char -1)
+                   (set-buffer-modified-p modified)
+                   (evil-normal-state))
+                  ((null evt))
+                  (t (setq unread-command-events
+                           (append unread-command-events (list evt))))))))
+      (buffer-modified-p)
       (setq evil-emacs-state-modes nil)
       (setq evil-insert-state-modes nil)
       (setq evil-motion-state-modes nil)
@@ -388,8 +403,16 @@
         "si" 'imenu
         "ff" 'find-file
         "fb" 'switch-to-buffer
+        "fw" 'save-buffer
+        "fs" 'save-buffer
         "qq" 'save-buffers-kill-terminal
-        "qs" 'evil-save-and-quit)
+        "qs" 'evil-save-and-quit
+        "es" 'eval-last-sexp
+        "ed" 'eval-defun
+        "er" 'eval-region
+        "eb" 'eval-buffer
+        "ep" 'eval-print-last-sexp
+        "bk" 'kill-current-buffer)
       ;; (evil-set-leader '(normal motion) (kbd "C-SPC"))
 
       ;; (evil-define-key '(normal motion) 'global (kbd ""))
@@ -485,7 +508,7 @@
         (interactive "*P")
         (comment-dwim arg)
         (if evil-normal-state-minor-mode
-          (evil-append 0)))
+            (evil-append 0)))
 
       (general-define-key
        :states 'normal
@@ -560,7 +583,8 @@
 ** Buffers Config
 #+begin_src emacs-lisp
   (use-package fullframe
-    :ensure t
+    :disabled
+    :no-require t
     :after
     (fullframe ibuffer ibuffer-quit))
   (use-package ibuffer
@@ -611,7 +635,10 @@
   (use-package popwin
     :ensure t
     :hook
-    (after-init-hook . popwin-mode))
+    (after-init-hook . popwin-mode)
+    :config
+    (push '("^\\*Org Src.*\\*$" :regexp t :position bottom) popwin:special-display-config)
+    )
 #+end_src
 ** Frame Config
 #+begin_src emacs-lisp
@@ -663,7 +690,8 @@
           ("C-h" . vertico-directory-delete-char)
           ("C-w" . vertico-directory-delete-word)
           ("M-<backspace>" . vertico-directory-up)
-          ("C-<backspace>" . vertico-directory-up)))
+          ("C-<backspace>" . vertico-directory-up)
+          ("C-u" . evil-delete-back-to-indentation)))
   (use-package orderless  ;;搜索排序
     :ensure t
     :after vertico
@@ -690,13 +718,6 @@
     (global-set-key [remap switch-to-buffer-other-window] 'consult-buffer-other-window)
     (global-set-key [remap switch-to-buffer-other-frame] 'consult-buffer-other-frame)
     (global-set-key [remap goto-line] 'consult-goto-line)
-    (lmm/evil-space-leader-def
-      "sb" 'consult-line
-      "sB" 'consult-line-multi
-      "ss" 'consult-line
-      "sS" 'consult-line-multi
-      "si" 'consult-imenu
-      "sI" 'consult-imenu-multi)
     (consult-customize
      consult-ripgrep consult-git-grep consult-grep
      consult-bookmark consult-recent-file consult-xref
@@ -711,6 +732,48 @@
                        #'consult-completion-in-region
                      #'completion--in-region)
                    args)))
+
+    (defun lmm/consult-symbol-at-point (&optional n)
+      "get symbol at current point, search geted symbol at consult-line"
+      (interactive)
+      (consult-line (thing-at-point 'symbol)))
+    (defun lmm/consult-symbol-at-point-multi (&optional n)
+      "get symbol at current point, search geted symbol at consult-line-multi"
+      (interactive)
+      (consult-line-multi nil (thing-at-point 'symbol)))
+
+    (defun lmm/consult-word-at-point (&optional n)
+      "get word at current point, search geted word at consult-line"
+      (interactive)
+      (consult-line (thing-at-point 'word)))
+    (defun lmm/consult-word-at-point-multi (&optional n)
+      "get word at current point, search geted word at consult-line-multi"
+      (interactive)
+      (consult-line-multi nil (thing-at-point 'word)))
+
+    (defun lmm/consult-number-at-point (&optional n)
+      "get number at current point, search geted number at consult-line"
+      (interactive)
+      (consult-line (if-let ((n (number-at-point)))
+                        (number-to-string n)
+                      nil)))
+    (defun lmm/consult-number-at-point-multi (&optional n)
+      "get number at current point, search geted number at consult-line-multi"
+      (interactive)
+      (consult-line-multi nil (if-let ((n (number-at-point)))
+                        (number-to-string n)
+                      nil)))
+    (lmm/evil-space-leader-def
+      "sb" 'consult-line
+      "sB" 'consult-line-multi
+      "s.s" 'lmm/consult-symbol-at-point
+      "s.S" 'lmm/consult-symbol-at-point-multi
+      "s.w" 'lmm/consult-word-at-point
+      "s.W" 'lmm/consult-word-at-point-multi
+      "s.n" 'lmm/consult-number-at-point
+      "s.N" 'lmm/consult-number-at-point-multi
+      "si" 'consult-imenu
+      "sI" 'consult-imenu-multi)
     )
   (use-package consult-flycheck
     :ensure t
@@ -724,8 +787,9 @@
     :ensure t
     :after vertico
     :bind
-    (:map vertico-map
-          ("C-c C-c" . embark-act)
+    (("C-;". embark-act)
+     :map vertico-map
+          ("C-;" . embark-act)
           ("C-c C-o" . embark-export)
           )
     :config
@@ -780,15 +844,20 @@
 #+begin_src emacs-lisp
   (use-package org
     :ensure nil
-    :defer t
+    :commands org-mode
+    )
+
+  (use-package tempo
+    :ensure nil
     :config
-    (require 'org-tempo))
+    (require 'org-tempo)
+    (tempo-define-template "org-src"
+                           '("#+begin_src " p '> n nil "#+end_src" >)))
 
   (use-package org-superstar
     :ensure t
     :hook
-    (org-mode-hook . org-superstar-mode)
-    )
+    (org-mode-hook . org-superstar-mode))
 
   (use-package evil-org
     :ensure t
@@ -805,7 +874,59 @@
     (setq default-input-method "pyim")
     :config
     (pyim-default-scheme 'quanpin)
-    (setq pyim-dicts '((:name "myselfdict" :file "~/.emacs.d/pyim-dicts/useCustomDict.pyim"))))
+    ;; (setq pyim-dicts
+    ;;       `((:name "Greatdict" :file ,(concat user-emacs-directory "pyim/dicts/pyim-greatdict.pyim"))))
+
+    (general-define-key
+     :keymaps 'pyim-mode-map
+     "," 'pyim-previous-page
+     "." 'pyim-next-page
+     "j" (general-key-dispatch (lambda () (interactive)
+                                 (pyim-self-insert-command))
+           :timeout 0.1
+           "k" (lambda () (interactive)
+                 (pyim-quit-clear)
+                 (evil-normal-state))))
+
+    (general-define-key
+     :keymaps 'pyim-mode-map
+     "k" (general-key-dispatch (lambda () (interactive)
+                                 (pyim-self-insert-command))
+           :timeout 0.1
+           "j" (lambda () (interactive)
+                 (pyim-quit-clear)
+                 (toggle-input-method))))
+    ;; (general-define-key
+    ;;  :keymaps 'evil-insert-state-map
+    ;;  "k" (general-key-dispatch 'self-insert-command
+    ;;        :timeout 0.1
+    ;;        "j" 'toggle-input-method))
+
+    ;; (general-define-key
+    ;;  :states 'insert
+    ;;  "j" (general-key-dispatch 'self-insert-command
+    ;;        :timeout 0.1
+    ;;        "k" 'evil-normal-state))
+
+    (let* ((file (concat user-emacs-directory "pyim/dicts/pyim-greatdict.pyim.gz")))
+      (if (file-exists-p file)
+          (if (featurep 'pyim)
+              (pyim-extra-dicts-add-dict
+               `(:name "Greatdict"
+                       :file ,file
+                       :coding utf-8-unix
+                       :dict-type pinyin-dict
+                       ))
+            (message "pyim not install !!!"))
+        (message (format "pyim dict file \"%s\" not found !!!" file))))
+
+
+  ;; (let* ((dictspath (concat user-emacs-directory "pyim/dicts"))
+  ;;        (dictfiles (directory-files dictspath)))
+  ;;   (if dictfiles
+  ;;       ()))
+  )
+
 #+end_src
 ** Default Variable -- 系统默认变量
    #+begin_src emacs-lisp
@@ -867,7 +988,6 @@
        :ensure t
        :after evil
        :config
-       (global-set-key (kbd "C-;") 'avy-goto-word-1)
        (defun lmm/avy-goto-word-1-regexp-and-inside-pairs (pairch &optional arg)
          "复制指定位置括号内容并粘贴"
          (interactive (list (read-char "char: " t)
@@ -936,64 +1056,28 @@
        :config
        (require 'smartparens-config))
    #+end_src
-*** COMMENT Show Paren Mode
+*** Show Paren Mode
 开启括号配对显示
 #+begin_src emacs-lisp
-  ;; evil normal模式下不起作用
-  ;; (use-package paren
-  ;;   :after evil
-  ;;   :config
-  ;;   ;; 括号内显示配对括号
-  ;;   (show-paren-mode t)
-  ;;   (define-advice show-paren-function (:around (fn) fix-show-paren-function)
-  ;;     "Highlight enclosing parens."
-  ;;     (cond ((looking-at-p "\\s(") (funcall fn))
-  ;;           (t (save-excursion
-  ;;                (ignore-errors (backward-up-list))
-  ;;                (funcall fn)))))
-  ;;   ;; 显示开括号所在的一行
-  ;;   ;; (setq show-paren-context-when-offscreen 'child-frame)
-  ;;   (setq show-paren-delay 0))
-  (setq show-paren-delay 0)
-  (add-hook 'after-init-hook 'show-paren-mode)
-  (add-hook 'show-paren-mode-hook (lambda ()
-                                    (define-advice show-paren-function (:around (fn) fix-show-paren-function)
-                                      "Highlight enclosing parens."
-                                      (cond ((looking-at-p "\\s(") (funcall fn))
-                                            (t (save-excursion
-                                                 (ignore-errors (backward-up-list))
-                                                 (funcall fn)))))
-                                    (custom-set-faces
-                                     `(show-paren-match ((t (:background ,
-                                                             (face-attribute 'default :background)
-                                                             :foreground "red")))))
-                                    ))
+  (use-package paren
+    :ensure nil
+    :hook
+    (after-init-hook . show-paren-mode))
+  ;; (setq show-paren-delay 0)
+  ;; (add-hook 'after-init-hook 'show-paren-mode)
+  ;; (add-hook 'show-paren-mode-hook (lambda ()
+  ;;                                   (define-advice show-paren-function (:around (fn) fix-show-paren-function)
+  ;;                                     "Highlight enclosing parens."
+  ;;                                     (cond ((looking-at-p "\\s(") (funcall fn))
+  ;;                                           (t (save-excursion
+  ;;                                                (ignore-errors (backward-up-list))
+  ;;                                                (funcall fn)))))
+  ;;                                   (custom-set-faces
+  ;;                                    `(show-paren-match ((t (:background ,
+  ;;                                                            (face-attribute 'default :background)
+  ;;                                                            :foreground "red")))))
+  ;;                                   ))
 #+end_src
-
-*** Highlight-parentheses
-#+begin_src emacs-lisp
-  ;; 关闭自带的括号显示
-  (show-paren-mode 0)
-#+end_src
-   高亮括号
-   #+begin_src emacs-lisp
-     (use-package highlight-parentheses
-       :ensure t
-       :hook
-       (prog-mode-hook . highlight-parentheses-mode)
-       (org-mode-hook . highlight-parentheses-mode)
-       :init
-       (setq highlight-parentheses-delay 0)
-       (setq highlight-parentheses-colors '("red" "gold"))
-       (setq highlight-parentheses-highlight-adjacent t)
-       (setq highlight-parentheses-attributes '((:underline (:color "red" :position 0))))
-       :config
-       ;; (set-face-attribute 'highlight-parentheses-highlight nil
-       ;;                     :underline '(:color "red" :position 0)
-       ;;                     :weight 'extra-bold)
-       :diminish highlight-parentheses-mode
-       )
-   #+end_src
 
 ** COMMENT Symbol-overlay
    同词高亮显示
@@ -1064,6 +1148,7 @@
     :ensure t
     :after yasnippet)
 #+end_src
+
 * LANGUAGE CONFIG
 ** Complete Config
 #+begin_src emacs-lisp
@@ -1090,7 +1175,9 @@
                   company-show-numbers t
                   company-require-match nil
                   company-dabbrev-ignore-case nil
-                  company-dabbrev-downcase nil)
+                  company-dabbrev-downcase nil
+                  company-tooltip-maximum-width 80
+                  company-tooltip-minimum-width 50)
     ;; 优先考虑匹配前缀的候选者
     (setq company-transformers '(company-sort-prefer-same-case-prefix
                                  company-sort-by-occurrence))
@@ -1146,21 +1233,25 @@
     )
   (use-package rustic
     :ensure t
-    :defer t
+    :mode
+    ("\\.rs$" . rustic-mode)
     :init
     (setq rustic-lsp-server 'rls)
     (setq rustic-lsp-client 'lsp)
-    :commands rustic-mode)
-  (use-package eglot
-    :ensure t
-    :commands eglot)
-
-  (use-package flycheck-rust
-    :no-require t
-    :disabled
-    :ensure t
-    :hook
-    (rust-mode-hook . flycheck-rust-setup))
+    :commands rustic-mode
+    :config
+    (setq rustic-indent-method-chain t)
+    (setq rustic-babel-format-src-block nil
+          rustic-format-trigger nil)
+    ;; hook 引入太早容易出现问题
+    (remove-hook 'rustic-mode-hook #'flycheck-mode)
+    (remove-hook 'rustic-mode-hook #'flymake-mode-off)
+    (unless (featurep 'lsp)
+      (add-to-list 'flycheck-checker 'rustic-clippy))
+    (when (featurep 'lsp)
+      (remove-hook 'rustic-mode-hook #'rustic-setup-lsp)
+      (add-hook 'rustic-mode-local-vars-hook #'rustic-setup-lsp))
+    )
 #+end_src
 *** emacs-lisp
 #+begin_src emacs-lisp
@@ -1345,7 +1436,8 @@
 
     (add-hook 'persp-mode-hook #'lmm/init-startup-workspace)
     (add-hook 'persp-mode-hook #'lmm/init-main-workspace-if-workspace-nil)
-    (add-hook 'persp-after-load-state-functions (lambda () (message "loaded!!!")))
+    (add-hook 'persp-after-load-state-functions 'lmm/init-main-workspace-if-workspace-nil)
+    (add-hook 'persp-before-deactivate-functions 'lmm/init-main-workspace-if-workspace-nil)
 
     (general-define-key
      :keymaps 'persp-key-map
@@ -1359,6 +1451,37 @@
   (use-package popup
     :ensure t
     :no-require t)
+#+end_src
+
+* UTILS
+#+begin_src emacs-lisp
+  (defun lmm/translate-word-at-point (p)
+    (interactive "P")
+    (let ((word (word-at-point p))
+          valuestr)
+      (if word
+          (setq valuestr (shell-command-to-string (concat "sdcv -e -u 朗道英汉字典5.0 " word)))
+        (setq valuestr "word not found at point"))
+      (if (featurep 'popup)
+          (popup-tip valuestr)
+        (message valuestr)))
+    )
+  (use-package evil
+    :ensure nil
+    :config
+    (lmm/evil-space-leader-def
+      "tw" 'lmm/translate-word-at-point))
+
+  (defun lmm/consult-display-unicode ()
+    "display unicode by consult"
+    (interactive)
+    (let ((names (ucs-names))
+          (char-alias ()))
+      (maphash (lambda (name char)
+                 (push (cons (format "0x%06X\t%s\t%s" char (char-to-string char) name) char) char-alias))
+               names)
+      (completing-read "Unicode Display: " (sort char-alias (lambda (a b)
+                                                              (< (cdr a) (cdr b)))))))
 #+end_src
 
 * KEY LIST
