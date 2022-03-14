@@ -10,13 +10,13 @@
 * BOOT CONFIG
 * GLOBAL SETTINGS
 ** Adjust garbage collection thresholds during startup, and thereafter
-   垃圾回收
-   #+begin_src emacs-lisp
-     (setq gc-cons-threshold (* 128 1024 1024))
-     (setq gc-cons-percentage 0.6)
-     (add-hook 'emacs-startup-hook
-               (lambda () (setq gc-cons-threshold (* 30 1024 1024))))
-   #+end_src
+垃圾回收
+#+begin_src emacs-lisp
+  (setq gc-cons-threshold (* 128 1024 1024))
+  (setq gc-cons-percentage 0.6)
+  (add-hook 'emacs-startup-hook
+            (lambda () (setq gc-cons-threshold (* 20 1024 1024))))
+#+end_src
 
 ** Fast Read
 #+begin_src emacs-lisp
@@ -339,202 +339,214 @@
           (add-hook hook 'Lmm/show-trailing-whitespace))
 #+end_src
 * EVIL MODE
+** Evil Core
+#+begin_src emacs-lisp
+  (use-package evil
+    :ensure t
+    :init
+    ;;
+    (setq evil-want-integration t
+          ;; 在其他模式加载vim默认键绑定
+          evil-want-keybinding nil
+          evil-vsplit-window-right t
+          evil-split-window-below t
+          evil-want-C-u-delete t
+          evil-want-C-u-scroll t
+          evil-want-C-w-delete t
+          evil-want-C-i-jump t
+          evil-want-Y-yank-to-eol t
+          ;; undo-tree时会出现未知卡顿
+          evil-undo-system 'undo-redo
+          ;; 禁止在 ex 命令当中补全 emacs 命令
+          evil-ex-complete-emacs-commands nil
+          ;; 使用 emacs 本身的撤销模式
+          evil-want-fine-undo t
+          ;; 粘贴替换选中文本不加入 kill ring 中
+          evil-kill-on-visual-paste nil)
+    :hook
+    (after-init-hook . evil-mode)
+    :config
+    ;; 自定义 escape
+    (defun lmm/evil-escape ()
+      (when (evil-insert-state-p)
+        (let* ((modified (buffer-modified-p))
+               (fkey "j")
+               (skey "k")
+               (evt (read-event nil nil 0.2)))
+          (cond ((and (characterp evt)
+                      (equal fkey (this-command-keys))
+                      (equal skey (char-to-string evt)))
+                 (delete-char -1)
+                 (set-buffer-modified-p modified)
+                 (evil-normal-state))
+                ((null evt))
+                (t (setq unread-command-events
+                         (append unread-command-events (list evt))))))))
 
-  #+begin_src emacs-lisp
-    (use-package evil
-      :ensure t
-      :init
-      ;;
-      (setq evil-want-integration t
-            ;; 在其他模式加载vim默认键绑定
-            evil-want-keybinding nil
-            evil-vsplit-window-right t
-            evil-split-window-below t
-            evil-want-C-u-delete t
-            evil-want-C-u-scroll t
-            evil-want-C-w-delete t
-            evil-want-C-i-jump t
-            evil-want-Y-yank-to-eol t
-            evil-undo-system 'undo-redo
-            ;; 禁止在 ex 命令当中补全 emacs 命令
-            evil-ex-complete-emacs-commands nil
-            ;; 使用 emacs 本身的撤销模式
-            evil-want-fine-undo t
-            ;; 粘贴替换选中文本不加入 kill ring 中
-            evil-kill-on-visual-paste nil)
-      :hook
-      (after-init-hook . evil-mode)
-      :config
-      ;; 自定义 escape
-      (defun lmm/evil-escape ()
-        (when (evil-insert-state-p)
-          (let* ((modified (buffer-modified-p))
-                 (fkey "j")
-                 (skey "k")
-                 (evt (read-event nil nil 0.2)))
-            (cond ((and (characterp evt)
-                        (equal fkey (this-command-keys))
-                        (equal skey (char-to-string evt)))
-                   (delete-char -1)
-                   (set-buffer-modified-p modified)
-                   (evil-normal-state))
-                  ((null evt))
-                  (t (setq unread-command-events
-                           (append unread-command-events (list evt))))))))
-      (buffer-modified-p)
-      (setq evil-emacs-state-modes nil)
-      (setq evil-insert-state-modes nil)
-      (setq evil-motion-state-modes nil)
+    (setq evil-emacs-state-modes nil)
+    (setq evil-insert-state-modes nil)
+    (setq evil-motion-state-modes nil)
 
-      (setq evil-visual-state-cursor 'hollow)
-      ;;清空插入模式的按键
-      ;; (setcdr evil-insert-state-map nil)
-      ;; 定制ex命令
-      (evil-ex-define-cmd "q" 'kill-this-buffer)
-      ;; (evil-set-leader 'normal (kbd "<SPC>"))
+    (setq evil-visual-state-cursor 'hollow)
+    ;;清空插入模式的按键
+    ;; (setcdr evil-insert-state-map nil)
+    ;; 定制ex命令
+    (evil-ex-define-cmd "q" 'kill-this-buffer)
+    ;; (evil-set-leader 'normal (kbd "<SPC>"))
 
-      (general-create-definer lmm/evil-space-leader-def
-        :states '(normal motion)
-        :keymaps 'override
-        :prefix "SPC")
-      (lmm/evil-space-leader-def
-        "w" 'evil-window-map
-        "," 'switch-to-buffer
-        "si" 'imenu
-        "ff" 'find-file
-        "fb" 'switch-to-buffer
-        "fw" 'save-buffer
-        "fs" 'save-buffer
-        "qq" 'save-buffers-kill-terminal
-        "qs" 'evil-save-and-quit
-        "es" 'eval-last-sexp
-        "ed" 'eval-defun
-        "er" 'eval-region
-        "eb" 'eval-buffer
-        "ep" 'eval-print-last-sexp
-        "bk" 'kill-current-buffer)
-      ;; (evil-set-leader '(normal motion) (kbd "C-SPC"))
+    (general-create-definer lmm/evil-space-leader-def
+      :states '(normal motion)
+      :keymaps 'override
+      :prefix "SPC")
+    (lmm/evil-space-leader-def
+      "w" 'evil-window-map
+      "," 'switch-to-buffer
+      "si" 'imenu
+      "ff" 'find-file
+      "fb" 'switch-to-buffer
+      "fw" 'save-buffer
+      "fs" 'save-buffer
+      "qq" 'save-buffers-kill-terminal
+      "qs" 'evil-save-and-quit
+      "es" 'eval-last-sexp
+      "ed" 'eval-defun
+      "er" 'eval-region
+      "eb" 'eval-buffer
+      "ep" 'eval-print-last-sexp
+      "bk" 'kill-current-buffer)
+    ;; (evil-set-leader '(normal motion) (kbd "C-SPC"))
 
-      ;; (evil-define-key '(normal motion) 'global (kbd ""))
+    ;; (evil-define-key '(normal motion) 'global (kbd ""))
 
-      ;; (evil-define-key '(normal motion) 'global
-      ;;   (kbd "<leader>w") 'evil-window-map)
+    ;; (evil-define-key '(normal motion) 'global
+    ;;   (kbd "<leader>w") 'evil-window-map)
 
-      ;; (defvar lmm/leader-search-map (make-sparse-keymap)
-      ;;   "Keymap for \"leader key /\" shortcuts.")
-      ;; (define-key lmm/leader-search-map "/" evil-search-forward)
+    ;; (defvar lmm/leader-search-map (make-sparse-keymap)
+    ;;   "Keymap for \"leader key /\" shortcuts.")
+    ;; (define-key lmm/leader-search-map "/" evil-search-forward)
 
-      ;; (evil-define-key '(normal motion visual) 'global
-      ;;   "/" lmm/leader-search-map)
+    ;; (evil-define-key '(normal motion visual) 'global
+    ;;   "/" lmm/leader-search-map)
 
-      ;; (define-key lmm/leader-search-map "/" 'evil-search-forward)
-      ;; (define-key lmm/leader-search-map "?" 'evil-search-backward)
-      ;; (define-key lmm/leader-search-map "l" 'consult-line)
-      ;; (define-key lmm/leader-search-map "i" 'consult-imenu)
-      ;; (define-key lmm/leader-search-map "o" 'consult-outline)
+    ;; (define-key lmm/leader-search-map "/" 'evil-search-forward)
+    ;; (define-key lmm/leader-search-map "?" 'evil-search-backward)
+    ;; (define-key lmm/leader-search-map "l" 'consult-line)
+    ;; (define-key lmm/leader-search-map "i" 'consult-imenu)
+    ;; (define-key lmm/leader-search-map "o" 'consult-outline)
 
-      ;; (defvar lmm/leader-comma-map (make-sparse-keymap)
-      ;;   "Keymap for \"leader key ,\" shortcuts.")
-      ;; (evil-define-key 'normal 'global
-      ;;   ";" lmm/leader-comma-map)
-      :bind
-      (:map evil-insert-state-map
-            ("C-a" . beginning-of-visual-line)
-            ("C-e" . end-of-visual-line)
-            ("C-h" . backward-delete-char)
-            ("C-d" . delete-char)
-            ;; ("C-p" . previous-line)
-            ;; ("C-n" . next-line)
-            ("C-g" . evil-normal-state)
-            :map evil-normal-state-map
-            ("f" . evil-avy-goto-char-in-line)
-            ("F" . evil-avy-goto-word-1)
-            ;; ("<leader>ff" . find-file)
-            ;; ("<leader>bb" . switch-to-buffer)
-            ;; ("<leader>bs" . evil-split-buffer)
-            ;; ("<leader>bl" . ibuffer)
-            ;; ("<leader>bd" . evil-delete-buffer)
-            ;; ("<leader>bk" . kill-buffer)
-            ;; ("<leader>bp" . previous-buffer)
-            ;; ("<leader>bn" . next-buffer)
-            ;; ("<leader>w" . evil-window-map)
-            :map evil-motion-state-map
-            ("f" . evil-avy-goto-char-in-line)
-            ("F" . evil-avy-goto-word-1)
-            :map evil-window-map
-            ("d" . kill-buffer-and-window)))
+    ;; (defvar lmm/leader-comma-map (make-sparse-keymap)
+    ;;   "Keymap for \"leader key ,\" shortcuts.")
+    ;; (evil-define-key 'normal 'global
+    ;;   ";" lmm/leader-comma-map)
+    :bind
+    (:map evil-insert-state-map
+          ("C-a" . beginning-of-visual-line)
+          ("C-e" . end-of-visual-line)
+          ("C-h" . backward-delete-char)
+          ("C-d" . delete-char)
+          ;; ("C-p" . previous-line)
+          ;; ("C-n" . next-line)
+          ("C-g" . evil-normal-state)
+          :map evil-normal-state-map
+          ("f" . evil-avy-goto-char-in-line)
+          ("F" . evil-avy-goto-word-1)
+          ;; ("<leader>ff" . find-file)
+          ;; ("<leader>bb" . switch-to-buffer)
+          ;; ("<leader>bs" . evil-split-buffer)
+          ;; ("<leader>bl" . ibuffer)
+          ;; ("<leader>bd" . evil-delete-buffer)
+          ;; ("<leader>bk" . kill-buffer)
+          ;; ("<leader>bp" . previous-buffer)
+          ;; ("<leader>bn" . next-buffer)
+          ;; ("<leader>w" . evil-window-map)
+          :map evil-motion-state-map
+          ("f" . evil-avy-goto-char-in-line)
+          ("F" . evil-avy-goto-word-1)
+          :map evil-window-map
+          ("d" . kill-buffer-and-window)))
+#+end_src
+** COMMENT Evil-Escape
+#+begin_src emacs-lisp
+  (use-package evil-escape
+    :disabled
+    :no-require t
+    :ensure t
+    :hook
+    (evil-mode-hook . evil-escape-mode)
+    :init
+    (setq-default evil-escape-key-sequence "jk")
+    ;; 只在指定主模式当中启用
+    ;; (setq evil-escape-enable-only-for-major-modes '(prog-mode
+    ;;                                                 org-mode
+    ;;                                                 org-src-mode
+    ;;                                                 emacs-lisp-mode
+    ;;                                                 ))
+    ;; 只在指定主模式当中禁用
+    (setq-default evil-escape-excluded-major-modes '(help-mode
+                                                     ibuffer-mode
+                                                     dired-mode
+                                                     Info-mode
+                                                     undo-tree-mode))
 
-    (use-package evil-escape
-      :ensure t
-      :hook
-      (evil-mode-hook . evil-escape-mode)
-      :init
-      (setq-default evil-escape-key-sequence "jk")
-      ;; 只在指定主模式当中启用
-      ;; (setq evil-escape-enable-only-for-major-modes '(prog-mode
-      ;;                                                 org-mode
-      ;;                                                 org-src-mode
-      ;;                                                 emacs-lisp-mode
-      ;;                                                 ))
-      ;; 只在指定主模式当中禁用
-      (setq-default evil-escape-excluded-major-modes '(help-mode
-                                                       ibuffer-mode
-                                                       dired-mode
-                                                       Info-mode
-                                                       undo-tree-mode))
+    (add-hook 'magit-mode-hook (lambda ()
+                                 (setq-local evil-escape-inhibit t)))
+    ;; 当表中的函数返回非 nil 时禁止使用
+    (setq evil-escape-inhibit-functions '(evil-visual-state-p))
+    :diminish evil-escape-mode
+    )
+#+end_src
 
-      (add-hook 'magit-mode-hook (lambda ()
-                                   (setq-local evil-escape-inhibit t)))
-      ;; 当表中的函数返回非 nil 时禁止使用
-      (setq evil-escape-inhibit-functions '(evil-visual-state-p))
-      :diminish evil-escape-mode
-      )
+** Other Evil Configs
+#+begin_src emacs-lisp
+  ;; 更多的按键绑定
+  (use-package evil-collection
+    :ensure t
+    :hook
+    (evil-mode-hook . evil-collection-init))
 
-    (use-package evil-collection
-      :ensure t
-      :hook
-      (evil-mode-hook . evil-collection-init))
+  ;; 注释
+  (use-package evil-nerd-commenter
+    :ensure t
+    :after evil
+    ;; :bind
+    ;; (:map lmm/leader-comma-map
+    ;;       (";" . evilnc-comment-operator)
+    ;;       ("l" . evilnc-comment-or-uncomment-lines))
+    :config
+    (defun lmm/comment-dwim-auto-insert (arg)
+      "comment line or mark region, if evil normal state auto toggle insert state"
+      (interactive "*P")
+      (comment-dwim arg)
+      (if evil-normal-state-minor-mode
+          (evil-append 0)))
 
-    (use-package evil-nerd-commenter
-      :ensure t
-      :after evil
-      ;; :bind
-      ;; (:map lmm/leader-comma-map
-      ;;       (";" . evilnc-comment-operator)
-      ;;       ("l" . evilnc-comment-or-uncomment-lines))
-      :config
-      (defun lmm/comment-dwim-auto-insert (arg)
-        "comment line or mark region, if evil normal state auto toggle insert state"
-        (interactive "*P")
-        (comment-dwim arg)
-        (if evil-normal-state-minor-mode
-            (evil-append 0)))
+    (general-define-key
+     :states 'normal
+     "M-;" 'comment-dwim)
 
-      (general-define-key
-       :states 'normal
-       "M-;" 'comment-dwim)
+    (general-define-key
+     :states 'normal
+     "gc" (general-key-dispatch 'evilnc-comment-operator
+            "l" 'evilnc-comment-or-uncomment-lines)))
 
-      (general-define-key
-       :states 'normal
-       "gc" (general-key-dispatch 'evilnc-comment-operator
-              "l" 'evilnc-comment-or-uncomment-lines)))
+  ;; 括号修改
+  (use-package evil-surround
+    :ensure t
+    :hook
+    (org-mode-hook . evil-surround-mode)
+    (prog-mode-hook . evil-surround-mode))
 
-    (use-package evil-surround
-      :ensure t
-      :hook
-      (org-mode-hook . evil-surround-mode)
-      (prog-mode-hook . evil-surround-mode))
-
-    (use-package undo-tree
-      :ensure t
-      :hook
-      (evil-mode-hook . global-undo-tree-mode)
-      :bind
-      (:map undo-tree-visualizer-mode-map
-            ("l" . undo-tree-visualize-switch-branch-right)
-            ("h" . undo-tree-visualize-switch-branch-left)))
-    ;; C-x u 会出来一个撤销树可供选择以前的一些编辑状态
-    ;; 可按 d 进行 diff 对比
+  ;; 撤销树
+  (use-package undo-tree
+    :ensure t
+    :hook
+    (evil-mode-hook . global-undo-tree-mode)
+    :bind
+    (:map undo-tree-visualizer-mode-map
+          ("l" . undo-tree-visualize-switch-branch-right)
+          ("h" . undo-tree-visualize-switch-branch-left)))
+  ;; C-x u 会出来一个撤销树可供选择以前的一些编辑状态
+  ;; 可按 d 进行 diff 对比
   #+end_src
 
 * WINDOW AND BUFFER AND FRAME
@@ -872,6 +884,12 @@
     :commands toggle-input-method
     :init
     (setq default-input-method "pyim")
+    (general-define-key
+     :states 'insert
+     "j" (general-key-dispatch 'self-insert-command
+           :timeout 0.1
+           "k" 'evil-normal-state
+           "l" 'toggle-input-method))
     :config
     (pyim-default-scheme 'quanpin)
     ;; (setq pyim-dicts
@@ -886,27 +904,11 @@
            :timeout 0.1
            "k" (lambda () (interactive)
                  (pyim-quit-clear)
-                 (evil-normal-state))))
-
-    (general-define-key
-     :keymaps 'pyim-mode-map
-     "k" (general-key-dispatch (lambda () (interactive)
-                                 (pyim-self-insert-command))
-           :timeout 0.1
-           "j" (lambda () (interactive)
+                 (evil-normal-state))
+           "l" (lambda () (interactive)
                  (pyim-quit-clear)
                  (toggle-input-method))))
-    ;; (general-define-key
-    ;;  :keymaps 'evil-insert-state-map
-    ;;  "k" (general-key-dispatch 'self-insert-command
-    ;;        :timeout 0.1
-    ;;        "j" 'toggle-input-method))
 
-    ;; (general-define-key
-    ;;  :states 'insert
-    ;;  "j" (general-key-dispatch 'self-insert-command
-    ;;        :timeout 0.1
-    ;;        "k" 'evil-normal-state))
 
     (let* ((file (concat user-emacs-directory "pyim/dicts/pyim-greatdict.pyim.gz")))
       (if (file-exists-p file)
