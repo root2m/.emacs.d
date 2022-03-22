@@ -12,6 +12,7 @@
 ** Adjust garbage collection thresholds during startup, and thereafter
 垃圾回收
 #+begin_src emacs-lisp
+  (setq garbage-collection-messages t)
   (setq gc-cons-threshold (* 128 1024 1024))
   (setq gc-cons-percentage 0.6)
   (add-hook 'emacs-startup-hook
@@ -60,8 +61,8 @@
 #+begin_src emacs-lisp
   (use-package server
     :ensure nil
-    :hook
-    (after-init-hook . server-start)
+    :config
+    (server-start)
     )
 #+end_src
 
@@ -168,8 +169,17 @@
   ;; Rebind C-u
   (global-set-key (kbd "C-M-u") 'universal-argument)
 #+end_src
-
-
+** Hydra
+#+begin_src emacs-lisp
+  (use-package hydra
+    :ensure t
+    :config
+    (defhydra hydra-text-scale()
+      "Text Scale"
+      ("j" text-scale-increase "Text Scale Increase")
+      ("k" text-scale-decrease "Text Scale Decrease")
+      ("q" nil "Quit ! ! !")))
+#+end_src
 * UI
 ** Disable Menu, Toolbar, Scrollbar, Starup Screen
    #+begin_src emacs-lisp
@@ -202,7 +212,7 @@
 
 ** Cursor Face
 #+begin_src emacs-lisp
-  (setq blink-cursor-mode nil)
+  (setq blink-cursor-mode t)
   (defun lmm/cursor-I-am-here ()
     "cursor, where are you ???"
     (interactive)
@@ -296,7 +306,7 @@
     ;; Global settings (defaults)
     (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
           doom-themes-enable-italic t) ; if nil, italics is universally disabled
-    (load-theme 'doom-one t)
+    (load-theme 'doom-dracula t)
     ;; (doom-themes-visual-bell-config)
    )
 #+end_src
@@ -338,6 +348,40 @@
   (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook))
           (add-hook hook 'Lmm/show-trailing-whitespace))
 #+end_src
+
+** COMMENT Symbol Highlight
+#+begin_src emacs-lisp
+  (use-package auto-highlight-symbol
+    :ensure t)
+#+end_src
+
+** Beautiful Code
+*** COMMENT svg-tag-mode
+#+begin_src emacs-lisp
+  (use-package svg-tag-mode
+    :disabled
+    :no-require t
+    :ensure t
+    :config
+    (setq svg-tag-tags
+          '(
+            (":TODO:" . ((lambda (tag) (svg-tag-make tag :beg 1 :end -1))))
+            )))
+#+end_src
+
+*** hl-todo
+#+begin_src emacs-lisp
+  (use-package hl-todo
+    :ensure t
+    :hook
+    (after-init-hook . global-hl-todo-mode))
+#+end_src
+
+*** COMMENT highlight indent
+#+begin_src emacs-lisp
+
+#+end_src
+
 * EVIL MODE
 ** Evil Core
 #+begin_src emacs-lisp
@@ -366,6 +410,12 @@
     :hook
     (after-init-hook . evil-mode)
     :config
+    (general-define-key
+     :states 'insert
+     "j" (general-key-dispatch 'self-insert-command
+           :timeout 0.1
+           "k" 'evil-normal-state
+           "l" 'toggle-input-method))
     ;; 自定义 escape
     (defun lmm/evil-escape ()
       (when (evil-insert-state-p)
@@ -397,13 +447,17 @@
     (general-create-definer lmm/evil-space-leader-def
       :states '(normal motion)
       :keymaps 'override
+      :prefix-command 'lmm/evil-space-leader-def-command
+      :prefix-map 'lmm/evil-space-leader-def-map
       :prefix "SPC")
     (lmm/evil-space-leader-def
-      "w" 'evil-window-map
+      "w" evil-window-map
       "," 'switch-to-buffer
+      "<" 'switch-to-buffer
       "si" 'imenu
       "ff" 'find-file
       "fb" 'switch-to-buffer
+      "fr" 'recentf-open-files
       "fw" 'save-buffer
       "fs" 'save-buffer
       "qq" 'save-buffers-kill-terminal
@@ -448,7 +502,7 @@
           ;; ("C-n" . next-line)
           ("C-g" . evil-normal-state)
           :map evil-normal-state-map
-          ("f" . evil-avy-goto-char-in-line)
+          ("f" . evil-avy-goto-char-2)
           ("F" . evil-avy-goto-word-1)
           ;; ("<leader>ff" . find-file)
           ;; ("<leader>bb" . switch-to-buffer)
@@ -496,7 +550,7 @@
     )
 #+end_src
 
-** Other Evil Configs
+** Other Evil Plugins
 #+begin_src emacs-lisp
   ;; 更多的按键绑定
   (use-package evil-collection
@@ -547,7 +601,68 @@
           ("h" . undo-tree-visualize-switch-branch-left)))
   ;; C-x u 会出来一个撤销树可供选择以前的一些编辑状态
   ;; 可按 d 进行 diff 对比
+
+  ;; 交换标记区域
+  (use-package evil-exchange
+    :ensure t
+    :after evil
+    :config
+    (general-define-key
+     :states 'normal
+     "gx" 'evil-exchange
+     "gX" 'evil-exchange-cancel))
+
+  ;; 参数跳转与修改
+  (use-package evil-args
+    :ensure t
+    :after evil
+    :bind
+    (:map evil-inner-text-objects-map
+          ("a" . evil-inner-arg)
+          :map evil-outer-text-objects-map
+          ("a" . evil-outer-arg)
+          :map evil-normal-state-map
+          ("[a" . evil-backward-arg)
+          ("]a" . evil-forward-arg)
+          :map evil-motion-state-map
+          ("[a" . evil-backward-arg)
+          ("]a" . evil-forward-arg)
+          )
+    )
+
+  ;; 快速跳转
+  (use-package evil-snipe
+    :disabled
+    :no-require t
+    :ensure t
+    :hook
+    (evil-mode-hook . evil-snipe-mode)
+    :init
+    (setq evil-snipe-scope 'line
+          evil-snipe-repeat-scope 'visible)
+    :bind
+    (:map evil-normal-state-map
+          ("f" . evil-snipe-f)
+          ("F" . evil-snipe-F)
+          ("s" . evil-snipe-s)
+          ("S" . evil-snipe-S))
+    )
   #+end_src
+
+** Other Evil EditUtils
+#+begin_src emacs-lisp
+  (use-package evil
+    :ensure nil
+    :config
+    ;; 删除当前行光标前所有空格
+    (general-define-key
+     :keymaps 'evil-outer-text-objects-map
+     "SPC" (lambda ()(interactive) (cycle-spacing 0)))
+    ;; 删除当前行光标前空格，保留一个
+    (general-define-key
+     :keymaps 'evil-inner-text-objects-map
+     "SPC" 'cycle-spacing))
+#+end_src
 
 * WINDOW AND BUFFER AND FRAME
 ** Utils Functions
@@ -563,7 +678,8 @@
     :ensure nil
     :bind
     (:map evil-window-map
-          ("d" . lmm/kill-current-buffer-and-window)))
+          ("d" . kill-this-buffer)
+          ("D" . lmm/kill-current-buffer-and-window)))
 #+end_src
 ** Window Split Config
 #+begin_src emacs-lisp
@@ -575,6 +691,12 @@
     (winner-mode)
     (define-key evil-window-map "u" 'winner-undo)
     (define-key evil-window-map "U" 'winner-redo))
+
+  ;; 尽可能重用现有buffer
+  (customize-set-variable 'display-buffer-base-action
+                          '((display-buffer-reuse-window display-buffer-same-window)
+                            (reusable-frames . t)))
+  (customize-set-variable 'even-window-sizes nil)
 #+end_src
 ** Window Jump Config
 #+begin_src emacs-lisp
@@ -585,12 +707,12 @@
     (aw-background nil)
     :hook
     (after-init-hook . ace-window-display-mode)
-    :bind
-    (("C-." . ace-window)
-     ("C-c C-." . kill-buffer-and-window)
-     ("C-c C-k" . kill-this-buffer)
-     ("C-c C-o" . delete-other-windows)
-     ))
+    :config
+    (general-define-key
+     :keymaps 'evil-window-map
+     "a" 'ace-window)
+    (lmm/evil-space-leader-def
+      "." 'ace-window))
 #+end_src
 ** Buffers Config
 #+begin_src emacs-lisp
@@ -650,6 +772,9 @@
     (after-init-hook . popwin-mode)
     :config
     (push '("^\\*Org Src.*\\*$" :regexp t :position bottom) popwin:special-display-config)
+    (push '("^\\*cargo-run.*\\*$" :regexp t :position bottom) popwin:special-display-config)
+    (push '("^\\*cargo-clippy.*\\*$" :regexp t :position bottom) popwin:special-display-config)
+    (push '("^\\*Help.*\\*$" :regexp t :position bottom) popwin:special-display-config)
     )
 #+end_src
 ** Frame Config
@@ -689,6 +814,8 @@
   ;;命令历史
   (use-package savehist
     :ensure nil
+    :init
+    (setq vertico-count 15)
     :hook
     (after-init-hook . savehist-mode))
   (use-package vertico  ;;命令补全
@@ -703,7 +830,10 @@
           ("C-w" . vertico-directory-delete-word)
           ("M-<backspace>" . vertico-directory-up)
           ("C-<backspace>" . vertico-directory-up)
-          ("C-u" . evil-delete-back-to-indentation)))
+          ("C-u" . evil-delete-back-to-indentation))
+    :config
+    (lmm/evil-space-leader-def
+      "x" 'vertico-repeat))
   (use-package orderless  ;;搜索排序
     :ensure t
     :after vertico
@@ -773,8 +903,9 @@
       "get number at current point, search geted number at consult-line-multi"
       (interactive)
       (consult-line-multi nil (if-let ((n (number-at-point)))
-                        (number-to-string n)
-                      nil)))
+                                  (number-to-string n)
+                                nil)))
+
     (lmm/evil-space-leader-def
       "sb" 'consult-line
       "sB" 'consult-line-multi
@@ -785,7 +916,9 @@
       "s.n" 'lmm/consult-number-at-point
       "s.N" 'lmm/consult-number-at-point-multi
       "si" 'consult-imenu
-      "sI" 'consult-imenu-multi)
+      "sI" 'consult-imenu-multi
+      "fr" 'consult-recent-file
+      )
     )
   (use-package consult-flycheck
     :ensure t
@@ -857,6 +990,8 @@
   (use-package org
     :ensure nil
     :commands org-mode
+    :config
+    (set-face-attribute 'org-block nil :foreground nil)
     )
 
   (use-package tempo
@@ -877,6 +1012,22 @@
     (org-mode-hook . evil-org-mode))
 #+end_src
 * EDIT SETTINGS
+** Search -- anzu
+#+begin_src emacs-lisp
+  (use-package anzu
+    :ensure t
+    :hook
+    (after-init-hook . global-anzu-mode))
+#+end_src
+
+*** Evil-auzu
+#+begin_src emacs-lisp
+  (use-package evil-anzu
+    :ensure t
+    :after evil anzu
+    )
+#+end_src
+
 ** Keyboard Input -- 中文输入
 #+begin_src emacs-lisp
   (use-package pyim
@@ -884,12 +1035,6 @@
     :commands toggle-input-method
     :init
     (setq default-input-method "pyim")
-    (general-define-key
-     :states 'insert
-     "j" (general-key-dispatch 'self-insert-command
-           :timeout 0.1
-           "k" 'evil-normal-state
-           "l" 'toggle-input-method))
     :config
     (pyim-default-scheme 'quanpin)
     ;; (setq pyim-dicts
@@ -935,7 +1080,6 @@
      (setq-default
       create-lockfiles nil                   ;; 创建锁定文件以防止其他用户同时编辑 , just like #filename
       inhibit-compacting-font-caches t
-      blink-cursor-interval 0.4
       bookmark-default-file (expand-file-name ".bookmarks.el" user-emacs-directory)
       buffers-menu-max-size 30
       case-fold-search t
@@ -990,6 +1134,23 @@
        :ensure t
        :after evil
        :config
+       (general-define-key
+        :states '(normal motion)
+        ";" 'avy-next
+        "," 'avy-prev)
+       (lmm/evil-space-leader-def
+         "aml" 'avy-move-line
+         "amr" 'avy-move-region
+         "acl" 'avy-copy-line
+         "acr" 'avy-copy-region
+         "aw" 'avy-goto-word-0
+         "akl" 'avy-kill-whole-line
+         "akr" 'avy-kill-region
+         "ayl" 'avy-kill-ring-save-whole-line
+         "ayr" 'avy-kill-ring-save-region
+         "as" 'avy-isearch
+         "ar" 'avy-resume
+         "ab" 'avy-pop-mark)
        (defun lmm/avy-goto-word-1-regexp-and-inside-pairs (pairch &optional arg)
          "复制指定位置括号内容并粘贴"
          (interactive (list (read-char "char: " t)
@@ -1009,7 +1170,37 @@
          (call-interactively 'kill-ring-save)
          (avy-pop-mark)
          (yank))
+       (defun lmm/avy-copy-paren-insert()
+         "复制指定位置括号内容并粘贴"
+         (interactive)
+         (save-excursion
+           (avy-goto-char ?\) current-prefix-arg)
+           (evil-yank (car (evil-a-paren)) (cadr (evil-a-paren))))
+         (evil-paste-before 1)
+         )
+       ;; TODO
+     (defun lmm/avy-copy-paren-insert(char &optional arg)
+       (interactive (list (read-char "char: " t)
+                          current-prefix-arg))
+       (when (or
+              (= char ?\()
+              (= char ?\))
+              (= char ?\[)
+              (= char ?\])
+              (= char ?\{)
+              (= char ?\})
+              (= char ?\")
+              )
+         (let ((region
+               (save-excursion
+                 (if (cons (avy-goto-char char arg))
+                     ()
+                   nil
+                     )
+                        ))))
+         )
        )
+     )
    #+end_src
 
 ** Goto Last Change
@@ -1064,8 +1255,15 @@
   (use-package paren
     :ensure nil
     :hook
-    (after-init-hook . show-paren-mode))
-  ;; (setq show-paren-delay 0)
+    (after-init-hook . show-paren-mode)
+    :config
+    (setq show-paren-delay 0)
+    (set-face-attribute 'show-paren-match nil
+                        :underline '(:background "red" :position 0)
+                        :background nil
+                        :foreground "red"
+                        :weight 'bold
+                        ))
   ;; (add-hook 'after-init-hook 'show-paren-mode)
   ;; (add-hook 'show-paren-mode-hook (lambda ()
   ;;                                   (define-advice show-paren-function (:around (fn) fix-show-paren-function)
@@ -1151,8 +1349,16 @@
     :after yasnippet)
 #+end_src
 
-* LANGUAGE CONFIG
+** Multiple Cursors -- 多光标编辑
+#+begin_src emacs-lisp
+  (use-package multiple-cursors
+    :ensure t
+    )
+#+end_src
+
+* LANG CONFIG
 ** Complete Config
+*** Company Install
 #+begin_src emacs-lisp
   (use-package company
     :ensure t
@@ -1170,6 +1376,9 @@
     (define-key company-active-map (kbd "C-i") 'company-complete-common)
     (define-key company-active-map (kbd "C-v") 'company-next-page)
     (define-key company-active-map (kbd "M-v") 'company-previous-page)
+    (define-key company-active-map (kbd "C-w") nil)
+    (define-key company-active-map (kbd "M-<" ) 'company-select-first)
+    (define-key company-active-map (kbd "M->" ) 'company-select-last)
     (add-to-list 'completion-styles 'initials t)
     (setq-default company-dabbrev-other-buffers 'all
                   company-tooltip-align-annotations t
@@ -1194,6 +1403,19 @@
     (:map company-active-map
           ("C-c h" . company-quickhelp-manual-begin)))
   #+end_src
+*** COMMENT Corfu -- other completion tool
+#+begin_src emacs-lisp
+  (use-package corfu
+    :disabled
+    :no-require
+    :ensure t
+    :bind
+    (:map corfu-map
+          ("C-n" . corfu-next)
+          ("C-p" . corfu-previous)
+          ("M-<" . corfu-first)
+          ("M->" . corfu-last)))
+#+end_src
 
 ** Syntax Checking
 #+begin_src emacs-lisp
@@ -1221,9 +1443,14 @@
   (use-package lsp-ui
     :ensure t
     :commands lsp-ui-mode)
+  (use-package eglot
+    :disabled
+    :no-require t
+    :ensure t
+    :commands eglot eglot-ensure)
 #+end_src
 
-** Language
+** LANG
 *** javascript
 #+begin_src
 #+end_src
@@ -1238,7 +1465,7 @@
     :mode
     ("\\.rs$" . rustic-mode)
     :init
-    (setq rustic-lsp-server 'rls)
+    ;; (setq rustic-lsp-server 'rls)
     (setq rustic-lsp-client 'lsp)
     :commands rustic-mode
     :config
@@ -1251,6 +1478,7 @@
     (unless (featurep 'lsp)
       (add-to-list 'flycheck-checker 'rustic-clippy))
     (when (featurep 'lsp)
+      (setq lsp-rust-analyzer-cargo-watch-command 'clippy)
       (remove-hook 'rustic-mode-hook #'rustic-setup-lsp)
       (add-hook 'rustic-mode-local-vars-hook #'rustic-setup-lsp))
     )
@@ -1264,6 +1492,15 @@
                                                                    company-dabbrev
                                                                    company-capf))))
 #+end_src
+*** markdown-mode
+#+begin_src emacs-lisp
+  (use-package markdown-mode
+    :ensure t
+    :commands markdown-mode
+    :mode
+    ("README\\.md\\'" . gfm-mode)
+    :init (setq markdown-command "multimarkdown"))
+#+end_src
 
 * PROJECT CONFIG
 ** Projectile Config
@@ -1276,7 +1513,12 @@
     (setq-default projectile-mode-line-prefix " Proj")
     :config
     (when (executable-find "rg")
-      (setq-default projectile-generic-command "rg --files --hidden")))
+      (setq-default projectile-generic-command "rg --files --hidden"))
+    (lmm/evil-space-leader-def
+      "pp" 'projectile-switch-project
+      "pf" 'projectile-find-file
+      "pb" 'projectile-switch-to-buffer
+       ))
 
   (use-package ibuffer-projectile
     :ensure t
@@ -1286,15 +1528,41 @@
 避免在 dired 中前进和后退新建 buffer
 #+begin_src emacs-lisp
   (put 'dired-find-alternate-file 'disabled nil)
+  (use-package dired
+    :ensure nil
+    :commands (dired dired-jump)
+    :config
+    (defun lmm/dired-up-alternate()
+      "Dired up directory -- alternate"
+      (interactive)
+      (if (equal major-mode 'dired-mode)
+          (find-alternate-file "..")
+        (message "You not in dired-mode")))
 
-  (with-eval-after-load 'dired
-    (define-key dired-mode-map (kbd "<return>") 'dired-find-alternate-file)
-    (define-key dired-mode-map (kbd "-") (lambda () (interactive)
-                                           (find-alternate-file ".."))))
-  (add-hook 'dired-mode-hook (lambda ()
-                               (define-key evil-normal-state-local-map (kbd "-")
-                                           (lambda () (interactive)
-                                             (find-alternate-file "..")))))
+    (defun lmm/dired-find-alternate-file-if-directory()
+      "dired-mode:
+    dired-find-alternate-file if you select is a directory"
+      (interactive)
+      (if (equal major-mode 'dired-mode)
+          (if (file-directory-p (dired-get-filename))
+              (dired-find-alternate-file)
+            (when (yes-or-no-p "This is a file, you sure open this file?")
+              (dired-find-file)))
+        (message "You not in dired-mode")))
+    (general-define-key
+     :states '(normal motion)
+     :keymaps 'dired-mode-map
+     "h" 'lmm/dired-up-alternate
+     "l" 'lmm/dired-find-alternate-file-if-directory))
+
+  ;; (with-eval-after-load 'dired
+  ;;   (define-key dired-mode-map (kbd "<return>") 'dired-find-alternate-file)
+  ;;   (define-key dired-mode-map (kbd "-") (lambda () (interactive)
+  ;;                                          (find-alternate-file ".."))))
+  ;; (add-hook 'dired-mode-hook (lambda ()
+  ;;                              (define-key evil-normal-state-local-map (kbd "-")
+  ;;                                          (lambda () (interactive)
+  ;;                                            (find-alternate-file "..")))))
 #+end_src
 * WITH-EDITOR
 #+begin_src emacs-lisp
@@ -1334,7 +1602,10 @@
     :ensure t
     :init
     (setq-default magit-diff-refine-hunk t)
-    :commands magit-status
+    :commands magit-status magit-dispatch
+    :bind
+    (:map lmm/evil-space-leader-def-map
+          ("g" . magit-dispatch))
     )
 #+end_src
 
@@ -1350,9 +1621,58 @@
 #+end_src
 
 * WORKSPACE
-** Install Persp
+** Perspective
+#+begin_src emacs-lisp
+  (use-package perspective
+    :ensure t
+    :init
+    ;; 按最近使用排序buffer
+    (setq persp-sort 'access
+          ;; 是否在modeline中显示
+          persp-show-modestring t)
+    :hook
+    (after-init-hook . persp-mode)
+    :config
+    (general-define-key
+     :keymaps 'perspective-map
+     "<tab>" 'persp-switch
+     "d" (lambda ()(interactive)(persp-kill (persp-current-name))))
+    (lmm/evil-space-leader-def
+      "," (lambda ()(interactive)(consult-buffer lmm/perspective-consult-buffer-sources))
+      "<" 'persp-switch-to-buffer
+      "<tab>" perspective-map)
+    ;; consult buffers by persp
+   (defvar lmm/perspective-consult--source-buffer
+    `(:name     ,(format "Buffers ( %s )" (persp-current-name))
+      :narrow   ?b
+      :category buffer
+      :face     consult-buffer
+      :history  buffer-name-history
+      :state    ,#'consult--buffer-state
+      :default  t
+      :items
+      ,(lambda () (persp-current-buffer-names)))
+    "Buffer candidate source for `persp-buffers'.")
+
+
+  (defcustom lmm/perspective-consult-buffer-sources
+    '(lmm/perspective-consult--source-buffer
+      consult--source-recent-file
+      consult--source-bookmark
+      consult--source-project-buffer
+      consult--source-project-recent-file)
+    "Sources used by `consult-buffer'.
+  See also `consult-project-buffer-sources'.
+  See `consult--multi' for a description of the source data structure."
+    :type '(repeat symbol))
+
+   )
+#+end_src
+** COMMENT Install Persp
 #+begin_src emacs-lisp
   (use-package persp-mode
+    :disabled
+    :no-require t
     :ensure t
     :after evil
     :init
@@ -1375,7 +1695,7 @@
      :keymaps 'persp-key-map
      "n" 'persp-window-switch))
 #+end_src
-** Hack Persp
+** COMMENT Hack Persp
 #+begin_src emacs-lisp
   (use-package persp-mode
     :ensure nil
@@ -1462,7 +1782,7 @@
     (let ((word (word-at-point p))
           valuestr)
       (if word
-          (setq valuestr (shell-command-to-string (concat "sdcv -e -u 朗道英汉字典5.0 " word)))
+          (setq valuestr (shell-command-to-string (concat "sdcv -e -u 朗道英汉字典5.0 " (downcase word))))
         (setq valuestr "word not found at point"))
       (if (featurep 'popup)
           (popup-tip valuestr)
