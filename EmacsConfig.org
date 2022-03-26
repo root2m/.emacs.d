@@ -8,7 +8,7 @@
 #+end_src
 
 * BOOT CONFIG
-* GLOBAL SETTINGS
+* CORE SETTINGS
 ** Adjust garbage collection thresholds during startup, and thereafter
 垃圾回收
 #+begin_src emacs-lisp
@@ -17,6 +17,7 @@
   (setq gc-cons-percentage 0.6)
   (add-hook 'emacs-startup-hook
             (lambda () (setq gc-cons-threshold (* 20 1024 1024))))
+  (add-hook 'post-gc-hook (lambda ()(message "GC finished 🔥🔥🔥")))
 #+end_src
 
 ** Fast Read
@@ -54,6 +55,7 @@
 
 ** Default Coding System
 #+begin_src emacs-lisp
+  (set-language-environment "UTF-8")
   (set-default-coding-systems 'utf-8)
 #+end_src
 
@@ -173,13 +175,9 @@
 #+begin_src emacs-lisp
   (use-package hydra
     :ensure t
-    :config
-    (defhydra hydra-text-scale()
-      "Text Scale"
-      ("j" text-scale-increase "Text Scale Increase")
-      ("k" text-scale-decrease "Text Scale Decrease")
-      ("q" nil "Quit ! ! !")))
+    :config)
 #+end_src
+** Mouse Key Bind
 * UI
 ** Disable Menu, Toolbar, Scrollbar, Starup Screen
    #+begin_src emacs-lisp
@@ -192,22 +190,31 @@
    #+end_src
 
 ** Display Line Numbers and Truncated Lines
-   #+begin_src emacs-lisp
-      (global-visual-line-mode t)
+#+begin_src emacs-lisp
+  (global-visual-line-mode t)
 
-     ;; Enable line numbers for some modes
-     ;; 开启行号显示
-      (dolist (mode '(text-mode-hook
-                      prog-mode-hook
-                      conf-mode-hook))
-        (add-hook mode (lambda () (display-line-numbers-mode 1))))
+  (setq-default display-line-numbers-type 'relative
+        display-line-numbers-width 3
+        display-line-numbers-widen t)
+  ;; Enable line numbers for some modes
+  ;; 开启行号显示
+  (dolist (mode '(text-mode-hook
+                  prog-mode-hook
+                  conf-mode-hook))
+    (add-hook mode (lambda () (display-line-numbers-mode 1))))
 
-      ;; Override some modes which derive from the above
-      (dolist (mode '(org-mode-hook))
-        (add-hook mode (lambda () (display-line-numbers-mode 0))))
+  ;; Override some modes which derive from the above
+  (dolist (mode '(org-mode-hook))
+    (add-hook mode (lambda () (display-line-numbers-mode 0))))
+  ;; 设置相对行号
 
-     ;; 设置相对行号
-     (setq display-line-numbers-type 'relative)
+
+  ;; (use-package simple
+  ;;   :ensure nil
+  ;;   :config
+  ;;   (progn
+  ;;     ;; 关闭当前行高亮
+  ;;     (global-hl-line-mode -1)))
    #+end_src
 
 ** Cursor Face
@@ -328,16 +335,32 @@
 #+end_src
 
 ** Fonts
-  #+begin_src emacs-lisp
-        (set-face-attribute 'default nil
-                            :font "Sarasa Mono SC Nerd"
-                            ;; :slant 'normal
-                            ;; :weight 'normal
-                            :height 130
-                            ;; :width 'normal
-                            )
-        (add-to-list 'default-frame-alist '(font . "Sarasa Mono SC Nerd"))
-  #+end_src
+#+begin_src emacs-lisp
+  ;; 字体设置
+  (set-face-attribute 'default nil
+                      :font "Sarasa Mono SC Nerd"
+                      ;; :slant 'normal
+                      ;; :weight 'normal
+                      :height 130
+                      ;; :width 'normal
+                      )
+  (add-to-list 'default-frame-alist '(font . "Sarasa Mono SC Nerd"))
+
+
+  (defhydra hydra-text-scale()
+    "Change font size"
+    ;; 减小字体
+    ("j" text-scale-increase "Text Scale Increase")
+    ;; 增大字体
+    ("k" text-scale-decrease "Text Scale Decrease")
+    ;; text-scale-adjust 按键监听，＋ － 或 0 重置，q 退出
+    ("q" nil "Quit ! ! !"))
+
+  (global-prettify-symbols-mode t)
+  ;; (dolist (hook '(prog-mode-hook
+  ;;                org-mode-hook))
+  ;;         (add-hook hook 'prettify-symbols-mode))
+#+end_src
 
 ** Whitespace Config
 #+begin_src emacs-lisp
@@ -693,10 +716,23 @@
     (define-key evil-window-map "U" 'winner-redo))
 
   ;; 尽可能重用现有buffer
-  (customize-set-variable 'display-buffer-base-action
-                          '((display-buffer-reuse-window display-buffer-same-window)
-                            (reusable-frames . t)))
-  (customize-set-variable 'even-window-sizes nil)
+  ;; (customize-set-variable 'display-buffer-base-action
+  ;;                         '((display-buffer-reuse-window display-buffer-same-window)
+  ;;                           (reusable-frames . t)))
+  ;; (customize-set-variable 'even-window-sizes nil)
+
+  (if (display-graphic-p)
+      (progn
+        (setq initial-frame-alist
+              '((width . 200)
+                (height . 50)
+                (left . 100)
+                (top . 50)))
+        (setq default-frame-alist
+              '((width . 200)
+                (height . 50)
+                (left . 100)
+                (top . 50)))))
 #+end_src
 ** Window Jump Config
 #+begin_src emacs-lisp
@@ -806,6 +842,8 @@
 #+begin_src emacs-lisp
   ;; 在 minibuffer 中执行 minibuffer
   (setq enable-recursive-minibuffers t)
+  ;; 禁止光标移动到提示文本上
+  (customize-set-variable 'minibuffer-prompt-properties '(read-only t cursor-intangible t face minibuffer-prompt))
 #+end_src
 ** Vertico -- 命令完成
 #+begin_src emacs-lisp
@@ -822,6 +860,7 @@
     :ensure t
     :hook
     (after-init-hook . vertico-mode)
+    (minibuffer-setup-hook . vertico-repeat-save)
     :bind
     (:map vertico-map
           ("C-w" . backward-kill-word)
@@ -915,7 +954,7 @@
       "s.W" 'lmm/consult-word-at-point-multi
       "s.n" 'lmm/consult-number-at-point
       "s.N" 'lmm/consult-number-at-point-multi
-      "si" 'consult-imenu
+      "si" (lambda ()(interactive) (if (eq major-mode 'org-mode)(consult-org-heading)(consult-imenu)))
       "sI" 'consult-imenu-multi
       "fr" 'consult-recent-file
       )
@@ -1012,6 +1051,21 @@
     (org-mode-hook . evil-org-mode))
 #+end_src
 * EDIT SETTINGS
+** Newline
+#+begin_src emacs-lisp
+  (defun lmm/newline(&optional arg interactive)
+    (interactive "*P\np")
+    (if (and (looking-at-p "}")
+             (save-excursion
+               (goto-char (1- (point)))
+               (looking-at-p "{")))
+        (progn
+          (save-excursion
+            (newline arg interactive))
+          (newline arg interactive)
+          )
+      (newline arg interactive)))
+#+end_src
 ** Search -- anzu
 #+begin_src emacs-lisp
   (use-package anzu
@@ -1084,9 +1138,9 @@
       buffers-menu-max-size 30
       case-fold-search t
       column-number-mode t
-      delete-selection-mode t
       ediff-split-window-function 'split-window-horizontally
       ediff-window-setup-function 'ediff-setup-windows-plain
+      ;; 禁用TAB代替空白缩进
       indent-tabs-mode nil
       make-backup-files nil
       mouse-yank-at-point t
@@ -1233,11 +1287,12 @@
          (define-key paredit-mode-map (read-kbd-macro binding) nil))
        (paredit-mode)
        )
+     (use-package elec-pair
+       :ensure nil
+       :hook
+       (after-init-hook . electric-pair-mode))
      (use-package smartparens
        :ensure t
-       :hook
-       (prog-mode-hook . smartparens-mode)
-       (org-mode-hook . smartparens-mode)
        :init
        (setq sp-highlight-wrap-overlay nil
              sp-highlight-pair-overlay nil
@@ -1473,14 +1528,14 @@
     (setq rustic-babel-format-src-block nil
           rustic-format-trigger nil)
     ;; hook 引入太早容易出现问题
-    (remove-hook 'rustic-mode-hook #'flycheck-mode)
-    (remove-hook 'rustic-mode-hook #'flymake-mode-off)
-    (unless (featurep 'lsp)
-      (add-to-list 'flycheck-checker 'rustic-clippy))
-    (when (featurep 'lsp)
-      (setq lsp-rust-analyzer-cargo-watch-command 'clippy)
-      (remove-hook 'rustic-mode-hook #'rustic-setup-lsp)
-      (add-hook 'rustic-mode-local-vars-hook #'rustic-setup-lsp))
+    ;; (remove-hook 'rustic-mode-hook #'flycheck-mode)
+    ;; (remove-hook 'rustic-mode-hook #'flymake-mode-off)
+    ;; (unless (featurep 'lsp)
+    ;;   (add-to-list 'flycheck-checker 'rustic-clippy))
+    ;; (when (featurep 'lsp)
+    ;;   (setq lsp-rust-analyzer-cargo-watch-command 'clippy)
+    ;;   (remove-hook 'rustic-mode-hook #'rustic-setup-lsp)
+    ;;   (add-hook 'rustic-mode-local-vars-hook #'rustic-setup-lsp))
     )
 #+end_src
 *** emacs-lisp
@@ -1605,7 +1660,8 @@
     :commands magit-status magit-dispatch
     :bind
     (:map lmm/evil-space-leader-def-map
-          ("g" . magit-dispatch))
+          ("gd" . magit-dispatch)
+          ("gs" . magit-stage))
     )
 #+end_src
 
@@ -1630,43 +1686,47 @@
     (setq persp-sort 'access
           ;; 是否在modeline中显示
           persp-show-modestring t)
-    :hook
-    (after-init-hook . persp-mode)
+    ;; :hook
+    ;; (after-init-hook . persp-mode)
+    :after consult
     :config
-    (general-define-key
-     :keymaps 'perspective-map
-     "<tab>" 'persp-switch
-     "d" (lambda ()(interactive)(persp-kill (persp-current-name))))
-    (lmm/evil-space-leader-def
-      "," (lambda ()(interactive)(consult-buffer lmm/perspective-consult-buffer-sources))
-      "<" 'persp-switch-to-buffer
-      "<tab>" perspective-map)
-    ;; consult buffers by persp
-   (defvar lmm/perspective-consult--source-buffer
-    `(:name     ,(format "Buffers ( %s )" (persp-current-name))
-      :narrow   ?b
-      :category buffer
-      :face     consult-buffer
-      :history  buffer-name-history
-      :state    ,#'consult--buffer-state
-      :default  t
-      :items
-      ,(lambda () (persp-current-buffer-names)))
-    "Buffer candidate source for `persp-buffers'.")
+    (progn
+      (persp-mode t)
+      ;; consult buffers by persp
+      (defvar lmm/perspective-consult--source-buffer
+        `(:name     ,(format "Buffers ( %s )" (persp-current-name))
+                    :narrow   ?b
+                    :category buffer
+                    :face     consult-buffer
+                    :history  buffer-name-history
+                    :state    ,#'consult--buffer-state
+                    :default  t
+                    :items
+                    ,(lambda ()(interactive) (persp-current-buffer-names)))
+        "Buffer candidate source for `persp-buffers'.")
 
 
-  (defcustom lmm/perspective-consult-buffer-sources
-    '(lmm/perspective-consult--source-buffer
-      consult--source-recent-file
-      consult--source-bookmark
-      consult--source-project-buffer
-      consult--source-project-recent-file)
-    "Sources used by `consult-buffer'.
+      (defcustom lmm/perspective-consult-buffer-sources
+        '(lmm/perspective-consult--source-buffer
+          consult--source-recent-file
+          consult--source-bookmark
+          consult--source-project-buffer
+          consult--source-project-recent-file)
+        "Sources used by `consult-buffer'.
   See also `consult-project-buffer-sources'.
   See `consult--multi' for a description of the source data structure."
-    :type '(repeat symbol))
+        :type '(repeat symbol))
 
-   )
+      (general-define-key
+       :keymaps 'perspective-map
+       "<tab>" 'persp-switch
+       "d" (lambda ()(interactive)(persp-kill (persp-current-name))))
+      (lmm/evil-space-leader-def
+        ;; "," (lambda ()(interactive)(consult-buffer lmm/perspective-consult-buffer-sources))
+        "," 'persp-switch-to-buffer*
+        "<" 'persp-switch-to-buffer
+        "<tab>" perspective-map)
+      ))
 #+end_src
 ** COMMENT Install Persp
 #+begin_src emacs-lisp
@@ -1767,6 +1827,23 @@
     )
 
 #+end_src
+** Treemacs -- 文件树
+#+begin_src emacs-lisp
+  (use-package treemacs
+    :ensure t
+    :defer t
+    :bind
+    (:map lmm/evil-space-leader-def-map
+          (";" . treemacs-select-window)))
+  (use-package treemacs-evil
+    :ensure t
+    :after (treemacs evil))
+
+  (use-package treemacs-icons-dired
+    :ensure t
+    :hook
+    (dired-mode-hook . treemacs-icons-dired-enable-once))
+#+end_src
 
 * POPUP
 #+begin_src emacs-lisp
@@ -1788,22 +1865,58 @@
           (popup-tip valuestr)
         (message valuestr)))
     )
+
+  ;; C-x 8 RET is insert-char, have unicode
+  ;; (defun lmm/consult-display-unicode ()
+  ;;   "display unicode by consult"
+  ;;   (interactive)
+  ;;   (let ((names (ucs-names))
+  ;;         (char-alias ()))
+  ;;     (maphash (lambda (name char)
+  ;;                (push (cons (format "0x%06X\t%s\t%s" char (char-to-string char) name) char) char-alias))
+  ;;              names)
+  ;;     (completing-read "Unicode Display: " (sort char-alias (lambda (a b)
+  ;;                                                             (< (cdr a) (cdr b)))))))
+  (defun lmm/rename-buffer-and-file-name(&optional buffer file newfile)
+    "Rename current BUFFER name and FILE name for NEWFILE."
+    (interactive (let* ((buffer (current-buffer))
+                        (file (buffer-file-name))
+                        (newfile (and file
+                                      (expand-file-name (read-file-name "File and Buffer New Name: ")))))
+                   (list buffer file newfile)))
+    ;; 读取新文件名
+    (if (and buffer file newfile)
+        ;; 如果新文件名为文件夹则放弃
+        (if (not (directory-name-p newfile))
+            (if-let ((newfile-dir (file-name-directory newfile)))
+                ;; 判断新文件名所在文件夹是否存在
+                (if (file-directory-p newfile-dir)
+                    (progn
+                      (rename-file file newfile 4)
+                      (with-current-buffer buffer
+                        ;; 更改缓冲区所在文件路径，同时更改缓冲区名称
+                        (set-visited-file-name newfile)
+                        ;; (rename-buffer (file-name-nondirectory newfile))
+                        ))
+                  ;; 是否创建新的文件夹
+                  (when (yes-or-no-p
+                         (format "\"%s\" directory is not exists, you sure make the new directory?"
+                                 newfile-dir))
+                    (make-directory newfile-dir)
+                    (rename-file file newfile 4)
+                    (with-current-buffer buffer
+                      (set-visited-file-name newfile)
+                      ))))
+          (message "\"%s\" is a directory ! ! !" newfile))))
+
+
   (use-package evil
     :ensure nil
     :config
     (lmm/evil-space-leader-def
-      "tw" 'lmm/translate-word-at-point))
+      "tw" 'lmm/translate-word-at-point
+      "cf" 'lmm/rename-buffer-and-file-name))
 
-  (defun lmm/consult-display-unicode ()
-    "display unicode by consult"
-    (interactive)
-    (let ((names (ucs-names))
-          (char-alias ()))
-      (maphash (lambda (name char)
-                 (push (cons (format "0x%06X\t%s\t%s" char (char-to-string char) name) char) char-alias))
-               names)
-      (completing-read "Unicode Display: " (sort char-alias (lambda (a b)
-                                                              (< (cdr a) (cdr b)))))))
 #+end_src
 
 * KEY LIST
