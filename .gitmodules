@@ -1,6 +1,3 @@
-[submodule "vertico"]
-	path = packages/vertico
-	url = https://github.com/minad/vertico.git
 [submodule "evil"]
 	path = packages/evil
 	url = https://github.com/emacs-evil/evil.git
