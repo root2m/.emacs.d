@@ -17,7 +17,7 @@
   (setq gc-cons-percentage 0.6)
   (add-hook 'emacs-startup-hook
             (lambda () (setq gc-cons-threshold (* 20 1024 1024))))
-  (add-hook 'post-gc-hook (lambda ()(message "GC finished 🔥🔥🔥")))
+  ;; (add-hook 'post-gc-hook (lambda ()(message "GC finished 🔥🔥🔥")))
 #+end_src
 
 ** Fast Read
@@ -87,8 +87,19 @@
   (unless (>= emacs-major-version 28)
     (fset 'yes-or-no-p 'y-or-n-p))
   (setq y-or-n-p-use-read-key t
-  ;;禁止切换从选择中出来
+        ;;禁止切换从选择中出来
         read-char-choice-use-read-key t)
+  ;; 更多的选项
+  (defmacro lmm/read-char-choice (format choices)
+    "More option to question. CHOICES is a list
+     exp:
+     (lmm/read-char-choice format ((?a (body)) (?b (body)) ...))"
+            (declare (indent 1) (debug t))
+            (let ((ch-list (mapcar (lambda (l)(car l)) choices)))
+              `(let ((ch (read-char-choice ,format ',ch-list)))
+                 (cond ,@(mapcar (lambda (c) (let ((c (car c))
+                                            (body (cdr c)))
+                                        (cons (list '= c 'ch) body))) choices)))))
 #+end_src
 
 ** System Clipboard
@@ -147,14 +158,35 @@
         )
     #+end_src
 
-** Install diminish, bind-key
-   #+begin_src emacs-lisp
-     (use-package diminish
-       :ensure t
-       )
-     (use-package bind-key
-       :ensure t)
-   #+end_src
+** Install diminish, bind-key, gcmh
+#+begin_src emacs-lisp
+  (use-package diminish
+    :ensure t
+    )
+  (use-package bind-key
+    :ensure t)
+
+  ;; 垃圾回收
+  (use-package gcmh
+    :ensure t
+    :config
+    (gcmh-mode))
+#+end_src
+
+* HELP
+** Helpful -- 更好的帮助信息
+#+begin_src emacs-lisp
+  (use-package helpful
+    :ensure t
+    :bind
+    (:map help-map
+          ("SPC" . helpful-at-point)
+          ("f" . helpful-callable)
+          ("F" . helpful-function)
+          ("v" . helpful-variable)
+          ("k" . helpful-key)
+          ("C" . helpful-command)))
+#+end_src
 * KEY BIND
 ** Simple Key Bind
 [[https://github.com/noctuid/general.el][General]] 直观的按键绑定
@@ -338,13 +370,22 @@
 #+begin_src emacs-lisp
   ;; 字体设置
   (set-face-attribute 'default nil
-                      :font "Sarasa Mono SC Nerd"
+                      :font "Fira Code"
                       ;; :slant 'normal
                       ;; :weight 'normal
                       :height 130
                       ;; :width 'normal
                       )
-  (add-to-list 'default-frame-alist '(font . "Sarasa Mono SC Nerd"))
+  (add-to-list 'default-frame-alist '(font . "Fira Code"))
+
+  ;; (set-face-attribute 'default nil
+  ;;                     :font "Sarasa Mono SC Nerd"
+  ;;                     ;; :slant 'normal
+  ;;                     ;; :weight 'normal
+  ;;                     :height 130
+  ;;                     ;; :width 'normal
+  ;;                     )
+  ;; (add-to-list 'default-frame-alist '(font . "Sarasa Mono SC Nerd"))
 
 
   (defhydra hydra-text-scale()
@@ -356,7 +397,7 @@
     ;; text-scale-adjust 按键监听，＋ － 或 0 重置，q 退出
     ("q" nil "Quit ! ! !"))
 
-  (global-prettify-symbols-mode t)
+  ;; (global-prettify-symbols-mode t)
   ;; (dolist (hook '(prog-mode-hook
   ;;                org-mode-hook))
   ;;         (add-hook hook 'prettify-symbols-mode))
@@ -467,6 +508,16 @@
     (evil-ex-define-cmd "q" 'kill-this-buffer)
     ;; (evil-set-leader 'normal (kbd "<SPC>"))
 
+    (general-define-key
+     :states '(normal motion)
+     "," evil-window-map)
+
+    (general-define-key
+     :states '(normal motion)
+     "gh" 'beginning-of-line-text
+     "gl" 'end-of-line
+     )
+
     (general-create-definer lmm/evil-space-leader-def
       :states '(normal motion)
       :keymaps 'override
@@ -527,6 +578,8 @@
           :map evil-normal-state-map
           ("f" . evil-avy-goto-char-2)
           ("F" . evil-avy-goto-word-1)
+          ("'" . evil-goto-mark)
+          ("`" . evil-goto-mark-line)
           ;; ("<leader>ff" . find-file)
           ;; ("<leader>bb" . switch-to-buffer)
           ;; ("<leader>bs" . evil-split-buffer)
@@ -539,8 +592,11 @@
           :map evil-motion-state-map
           ("f" . evil-avy-goto-char-in-line)
           ("F" . evil-avy-goto-word-1)
+          ("'" . evil-goto-mark)
+          ("`" . evil-goto-mark-line)
           :map evil-window-map
-          ("d" . kill-buffer-and-window)))
+          ("d" . kill-buffer-and-window)
+          ("SPC" . switch-to-buffer)))
 #+end_src
 ** COMMENT Evil-Escape
 #+begin_src emacs-lisp
@@ -684,7 +740,27 @@
     ;; 删除当前行光标前空格，保留一个
     (general-define-key
      :keymaps 'evil-inner-text-objects-map
-     "SPC" 'cycle-spacing))
+     "SPC" 'cycle-spacing)
+
+    (evil-define-command evil-vsplit-next-buffer (&optional count)
+      "Vsplits the window and goes to the COUNT-th next buffer in the buffer list."
+      :repeat nil
+      (interactive "p")
+      (evil-window-vsplit)
+      (evil-next-buffer count))
+
+    (evil-define-command evil-vsplit-prev-buffer (&optional count)
+      "Vsplits window and goes to the COUNT-th prev buffer in the buffer list."
+      :repeat nil
+      (interactive "p")
+      (evil-window-vsplit)
+      (evil-prev-buffer count))
+
+    (general-define-key
+     :keymaps 'evil-window-map
+     "s" 'evil-split-next-buffer
+     "v" 'evil-vsplit-next-buffer)
+    )
 #+end_src
 
 * WINDOW AND BUFFER AND FRAME
@@ -746,9 +822,8 @@
     :config
     (general-define-key
      :keymaps 'evil-window-map
-     "a" 'ace-window)
-    (lmm/evil-space-leader-def
-      "." 'ace-window))
+     "." 'ace-window
+     "," 'evil-window-mru))
 #+end_src
 ** Buffers Config
 #+begin_src emacs-lisp
@@ -970,9 +1045,14 @@
   (use-package embark   ;;
     :ensure t
     :after vertico
+    :init
     :bind
     (("C-;". embark-act)
      :map vertico-map
+          ("C-." . (lambda ()(interactive)
+                     (let ((embark-quit-after-action nil))
+                                             (embark-act))))
+          ;; 导出当前列表到额外buffer，然后执行各种操作
           ("C-;" . embark-act)
           ("C-c C-o" . embark-export)
           )
@@ -1188,10 +1268,6 @@
        :ensure t
        :after evil
        :config
-       (general-define-key
-        :states '(normal motion)
-        ";" 'avy-next
-        "," 'avy-prev)
        (lmm/evil-space-leader-def
          "aml" 'avy-move-line
          "amr" 'avy-move-region
@@ -1275,35 +1351,41 @@
 
 ** Parenthes Settings
 *** Pairs
-   #+begin_src emacs-lisp
-     ;; (when (fboundp 'electric-pair-mode)
-     ;;   (add-hook 'after-init-hook 'electric-pair-mode))
-     (use-package paredit
-       :disabled
-       :ensure t
-       :config
-       (diminish 'paredit-mode " Par")
-       (dolist (binding '("C-<left>" "C-<right>" "C-M-<left>" "C-M-<right>" "M-s" "M-?"))
-         (define-key paredit-mode-map (read-kbd-macro binding) nil))
-       (paredit-mode)
-       )
-     (use-package elec-pair
-       :ensure nil
-       :hook
-       (after-init-hook . electric-pair-mode))
-     (use-package smartparens
-       :ensure t
-       :init
-       (setq sp-highlight-wrap-overlay nil
-             sp-highlight-pair-overlay nil
-             sp-highlight-wrap-tag-overlay nil)
-       :bind
-       (:map evil-normal-state-map
-             (")" . sp-up-sexp)
-             ("(" . sp-backward-up-sexp))
-       :config
-       (require 'smartparens-config))
-   #+end_src
+#+begin_src emacs-lisp
+  ;; (when (fboundp 'electric-pair-mode)
+  ;;   (add-hook 'after-init-hook 'electric-pair-mode))
+  (use-package paredit
+    :disabled
+    :ensure t
+    :config
+    (diminish 'paredit-mode " Par")
+    (dolist (binding '("C-<left>" "C-<right>" "C-M-<left>" "C-M-<right>" "M-s" "M-?"))
+      (define-key paredit-mode-map (read-kbd-macro binding) nil))
+    (paredit-mode)
+    )
+  (use-package elec-pair
+    :ensure nil
+    :hook
+    (after-init-hook . electric-pair-mode)
+    ;; org-mode 中存在bug，故关闭
+    (org-mode-hook . (lambda ()(electric-pair-local-mode -1)))
+    :config
+    )
+  (use-package smartparens
+    :ensure t
+    :init
+    (setq sp-highlight-wrap-overlay nil
+          sp-highlight-pair-overlay nil
+          sp-highlight-wrap-tag-overlay nil)
+    :hook
+    (org-mode-hook . smartparens-mode)
+    :bind
+    (:map evil-normal-state-map
+          (")" . sp-up-sexp)
+          ("(" . sp-backward-up-sexp))
+    :config
+    (require 'smartparens-config))
+#+end_src
 *** Show Paren Mode
 开启括号配对显示
 #+begin_src emacs-lisp
@@ -1438,7 +1520,7 @@
     (setq-default company-dabbrev-other-buffers 'all
                   company-tooltip-align-annotations t
                   company-idle-delay 0
-                  company-show-numbers t
+                  company-show-numbers nil
                   company-require-match nil
                   company-dabbrev-ignore-case nil
                   company-dabbrev-downcase nil
@@ -1448,21 +1530,10 @@
     (setq company-transformers '(company-sort-prefer-same-case-prefix
                                  company-sort-by-occurrence))
     )
-  (use-package company-quickhelp
-    :ensure t
-    :hook
-    (company-mode-hook . company-quickhelp-mode)
-    :init
-    (setq company-quickhelp-delay nil)
-    :bind
-    (:map company-active-map
-          ("C-c h" . company-quickhelp-manual-begin)))
   #+end_src
-*** COMMENT Corfu -- other completion tool
+*** Corfu -- other completion tool
 #+begin_src emacs-lisp
   (use-package corfu
-    :disabled
-    :no-require
     :ensure t
     :bind
     (:map corfu-map
@@ -1485,19 +1556,40 @@
   (use-package lsp-mode
     :ensure t
     :init
-    (setq lsp-auto-guess-root t
+    (setq lsp-auto-guess-root nil
           lsp-prefer-flymake nil
-          lsp-auto-configure t)
+          lsp-auto-configure t
+          ;; 符号高亮
+          lsp-enable-symbol-highlighting nil
+          ;; 关闭底部eldoc 提示
+          lsp-eldoc-enable-hover nil
+          ;; 关闭状态栏提示
+          lsp-modeline-code-actions-enable nil
+          ;; 关闭状态栏诊断提示
+          lsp-modeline-diagnostics-enable nil
+          ;; 关闭模板生成
+          lsp-enable-snippet nil
+          ;; 关闭折叠
+          lsp-enable-folding nil
+          )
     :hook
-    ((c-mode-hook python-mode rust-mode) . lsp)
+    ;; lsp-deferred 等待buffer完全可见后启用 lsp
+    ((c-mode-hook python-mode rust-mode) . lsp-deferred)
     (lsp-mode . lsp-enable-which-key-integration)
     :config
     (delq 'company-capf company-backends)
     (add-to-list 'company-backends 'company-capf)
     :commands lsp)
+
   (use-package lsp-ui
     :ensure t
+    :init
+    ;; 错误检查提示延迟
+    (setq lsp-ui-sideline-delay 0.4
+          ;; 类型提示
+          lsp-ui-sideline-show-code-actions t)
     :commands lsp-ui-mode)
+
   (use-package eglot
     :disabled
     :no-require t
@@ -1524,6 +1616,11 @@
     (setq rustic-lsp-client 'lsp)
     :commands rustic-mode
     :config
+    (add-hook 'rustic-mode-hook (lambda () (setq-local company-backends '(company-capf
+                                                                     (company-yasnippet company-dabbrev-code company-keywords)
+                                                                     company-dabbrev
+                                                                     company-files
+                                                                     ))))
     (setq rustic-indent-method-chain t)
     (setq rustic-babel-format-src-block nil
           rustic-format-trigger nil)
@@ -1853,6 +1950,7 @@
 #+end_src
 
 * UTILS
+** 翻译
 #+begin_src emacs-lisp
   (defun lmm/translate-word-at-point (p)
     (interactive "P")
@@ -1917,6 +2015,79 @@
       "tw" 'lmm/translate-word-at-point
       "cf" 'lmm/rename-buffer-and-file-name))
 
+#+end_src
+** 文件操作
+#+begin_src emacs-lisp
+  (defun lmm/open-file-in-remote-sudo(file)
+    "Open FILE as remote root"
+    (interactive)
+    (find-file (if (file-remote-p file)
+                   (concat "/" (file-remote-p file 'method) ":"
+                           (file-remote-p file 'user) "@" (file-remote-p file 'host)
+                           "|sudo:root@"
+                           (file-remote-p file 'host) ":" (file-remote-p file 'localname))
+                 (user-error "This is not remote file"))))
+
+
+  (defvar lmmv/sudo-localhost "/sudo:root@localhost:"
+    "Sudo localhost name")
+
+  (defun lmm/open-file-in-localhost-sudo(file)
+    "Open FILE as root"
+    (interactive)
+    (find-file (concat lmmv/sudo-localhost (expand-file-name file))))
+
+  (defun lmm/conver-sudo-file-name(file)
+    "Conver FILE to sudo path"
+    (concat lmmv/sudo-localhost (expand-file-name file)))
+
+  (defun lmm/sudo-find-file (file)
+    "Open FILE as root."
+    (interactive "FOpen file as root: ")
+    (let ((file (expand-file-name file)))
+      (cond
+       ;; 如果是一个文件夹并存在
+       ((file-directory-p file)
+        (lmm/read-char-choice
+            (format "\"%s\" is directory, sure open in sudo('y' -> yes, '.' -> not sudo open, 'n' or 'q' -> quit)" file)
+          ((?y (lmm/open-file-in-localhost-sudo file))
+           (?. (find-file file))
+           (?n nil)
+           (?q nil))))
+
+       ;; 如果是一个文件夹但不存在
+       ((directory-name-p file)
+        (lmm/read-char-choice
+            (format "\"%s\" is new directory, sure make it on sudo('y':make sudo + sudo open, '.':make + open, 'r':make sudo, 'u':make, 'n'|'q':quit)?" file)
+          ((?y (let ((fs (lmm/conver-sudo-file-name file)))
+                 (make-directory fs t)
+                 (if (file-directory-p fs)
+                     (find-file fs)
+                   (user-error (format "\"%s create filed!\"" file)))))
+           (?. (make-directory file t)
+               (if (file-directory-p file)
+                     (find-file file)
+                 (user-error (format "\"%s create filed!\"" file))))
+           (?r (make-directory (lmm/conver-sudo-file-name file) t))
+           (?u (make-directory file t))
+           (?n nil)
+           (?q nil))))
+
+       ;; 如果是一个文件并直接可写
+       ((file-writable-p file)
+        (lmm/read-char-choice
+            (format "File \"%s\" is user writeable, sure open in sudo('y':sudo open, '.':open, 'n'|'q':quit)?" file)
+          ((?y (lmm/open-file-in-localhost-sudo file))
+           (?. (find-file file))
+           (?n nil)
+           (?q nil))))
+
+       ;; 如果是一个文件并不能直接可写
+       ((file-exists-p file) (lmm/open-file-in-localhost-sudo file))
+
+       ;; 如果该文件不存在
+       (t nil)
+       )))
 #+end_src
 
 * KEY LIST
