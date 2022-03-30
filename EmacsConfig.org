@@ -139,7 +139,7 @@
     (package-install 'use-package))
   (setq use-package-hook-name-suffix nil) ;;停止在:hook 当中添加-hook后缀
   ;; 启动时显示包加载信息至 *Message*
-  (setq use-package-verbose t)
+  ;; (setq use-package-verbose t)
   (eval-when-compile
     (require 'use-package))
 #+end_src
@@ -1232,7 +1232,7 @@
       truncate-lines nil
       truncate-partial-width-windows nil
       ;; 行上下边距
-      scroll-margin 3
+      scroll-margin 0
       ;; 列左右边距
       visual-line-fringe-indicators '(nil right-curly-arrow)
       )
@@ -1534,6 +1534,8 @@
 *** Corfu -- other completion tool
 #+begin_src emacs-lisp
   (use-package corfu
+    :disabled
+    :no-require t
     :ensure t
     :bind
     (:map corfu-map
@@ -1586,9 +1588,11 @@
     :init
     ;; 错误检查提示延迟
     (setq lsp-ui-sideline-delay 0.4
-          ;; 类型提示
-          lsp-ui-sideline-show-code-actions t)
-    :commands lsp-ui-mode)
+          ;; 操作提示
+          lsp-ui-sideline-show-code-actions nil)
+    :commands lsp-ui-mode
+    :config
+    (setq lsp-ui-sideline-actions-icon lsp-ui-sideline-actions-icon-default))
 
   (use-package eglot
     :disabled
@@ -1643,6 +1647,15 @@
                                                                    (company-dabbrev-code company-keywords)
                                                                    company-dabbrev
                                                                    company-capf))))
+#+end_src
+*** lua
+#+begin_src emacs-lisp
+  (use-package lua-mode
+    :ensure t
+    :init
+    (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
+    (add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
+    :commands lua-mode)
 #+end_src
 *** markdown-mode
 #+begin_src emacs-lisp
