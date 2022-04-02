@@ -117,6 +117,15 @@
   (put 'narrow-to-region 'disabled nil)
 #+end_src
 
+** Repeat -- 重复命令
+#+begin_src emacs-lisp
+  (use-package repeat
+    :ensure nil
+    :config
+    (repeat-mode t)
+    (global-set-key [remap evil-repeat-pop] 'repeat))
+#+end_src
+
 * PACKAGE MANAGEMENT
 ** Setup package.el to work with MELPA.
    修改国内镜像源
@@ -295,7 +304,9 @@
     ;; :hook (after-init-hook . dashboard-setup-startup-hook)
     :init
     ;; 居中对齐
-    (setq dashboard-center-content t)
+    (setq dashboard-center-content t
+          dashboard-set-footer nil
+          dashboard-banner-logo-title nil)
     ;;(setq dashboard-show-shortcuts nil)
     (setq dashboard-items '((recents  . 5)
                             (projects . 5)
@@ -346,6 +357,8 @@
     (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
           doom-themes-enable-italic t) ; if nil, italics is universally disabled
     (load-theme 'doom-dracula t)
+    ;; Treemacs hl-line-mode bug
+    (set-face-background 'line-number-current-line "#282a36")
     ;; (doom-themes-visual-bell-config)
    )
 #+end_src
@@ -370,14 +383,15 @@
 #+begin_src emacs-lisp
   ;; 字体设置
   (set-face-attribute 'default nil
-                      :font "Fira Code"
+                      :font "FiraCode Nerd Font"
                       ;; :slant 'normal
                       ;; :weight 'normal
                       :height 130
                       ;; :width 'normal
                       )
-  (add-to-list 'default-frame-alist '(font . "Fira Code"))
-
+  ;; (add-to-list 'default-frame-alist '(font . "Fira Code"))
+  (set-fontset-font t 'han (if (member "HarmonyOS Sans SC" (font-family-list)) "HarmonyOS Sans SC"))
+  (setq-default line-spacing nil)
   ;; (set-face-attribute 'default nil
   ;;                     :font "Sarasa Mono SC Nerd"
   ;;                     ;; :slant 'normal
@@ -386,7 +400,100 @@
   ;;                     ;; :width 'normal
   ;;                     )
   ;; (add-to-list 'default-frame-alist '(font . "Sarasa Mono SC Nerd"))
+  ;; Fira Code Symbol 字符集
+  ;; www  \ue100     **   \ue101    ***  \ue102    **/  \ue103
+  ;;  *>  \ue104     */   \ue105     \\  \ue106    \\\  \ue107
+  ;;  {-  \ue108     []   \ue109     ::  \ue10a    :::  \ue10b
+  ;;  :=  \ue10c     !!   \ue10d     !=  \ue10e    !==  \ue10f
+  ;;  -}  \ue110     --   \ue111    ---  \ue112    -->  \ue113
+  ;;  ->  \ue114    ->>   \ue115     -<  \ue116    -<<  \ue117
+  ;;  -~  \ue118     #{   \ue119     #[  \ue11a     ##  \ue11b
+  ;; ###  \ue11c   ####   \ue11d     #(  \ue11e     #?  \ue11f
+  ;;  #_  \ue120    #_(   \ue121     .-  \ue122     .=  \ue123
+  ;;  ..  \ue124    ..<   \ue125    ...  \ue126     ?=  \ue127
+  ;;  ??  \ue128     ;;   \ue129     /*  \ue12a    /**  \ue12b
+  ;;  /=  \ue12c    /==   \ue12d     />  \ue12e     //  \ue12f
+  ;; ///  \ue130     &&   \ue131     ||  \ue132    ||=  \ue133
+  ;;  |=  \ue134     |>   \ue135     ^=  \ue136     $>  \ue137
+  ;;  ++  \ue138    +++   \ue139     +>  \ue13a     +>  \ue13a
+  ;; =:=  \ue13b     ==   \ue13c    ===  \ue13d    ==>  \ue13e
+  ;;  =>  \ue13f    =>>   \ue140     <=  \ue141    =<<  \ue142
+  ;; =/=  \ue143     >-   \ue144     >=  \ue145    >=>  \ue146
+  ;;  >>  \ue147    >>-   \ue148    >>=  \ue149    >>>  \ue14a
+  ;;  <*  \ue14b    <*>   \ue14c     <|  \ue14d    <|>  \ue14e
+  ;;  <$  \ue14f    <$>   \ue150   <!--  \ue151     <-  \ue152
+  ;; <--  \ue153    <->   \ue154     <+  \ue155    <+>  \ue156
+  ;;  <=  \ue157    <==   \ue158    <=>  \ue159    <=<  \ue15a
+  ;;  <>  \ue15b     <<   \ue15c    <<-  \ue15d    <<=  \ue15e
+  ;; <<<  \ue15f     <~   \ue160    <~~  \ue161     </  \ue162
+  ;; </>  \ue163     ~@   \ue164     ~-  \ue165     ~=  \ue166
+  ;;  ~>  \ue167     ~~   \ue168    ~~>  \ue169     %%  \ue16a
+  ;;   x  \ue16b      :   \ue16c      +  \ue16d      *  \ue16f
+  ;; (when (member "Fira Code Symbol" (font-family-list))
+  ;;   (set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol"))
 
+  ;; Install Doc: https://github.com/tonsky/FiraCode/wiki/Emacs-instructions
+  (defun fira-code-mode--make-alist (list)
+    "Generate prettify-symbols alist from LIST."
+    (let ((idx -1))
+      (mapcar
+       (lambda (s)
+         (setq idx (1+ idx))
+         (let* ((code (+ #Xe100 idx))
+            (width (string-width s))
+            (prefix ())
+            (suffix '(?\s (Br . Br)))
+            (n 1))
+       (while (< n width)
+         (setq prefix (append prefix '(?\s (Br . Bl))))
+         (setq n (1+ n)))
+       (cons s (append prefix suffix (list (decode-char 'ucs code))))))
+       list)))
+
+  (defconst fira-code-mode--ligatures
+    '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\"
+      "{-" "[]" "::" ":::" ":=" "!!" "!=" "!==" "-}"
+      "--" "---" "-->" "->" "->>" "-<" "-<<" "-~"
+      "#{" "#[" "##" "###" "####" "#(" "#?" "#_" "#_("
+      ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*"
+      "/**" "/=" "/==" "/>" "//" "///" "&&" "||" "||="
+      "|=" "|>" "^=" "$>" "++" "+++" "+>" "=:=" "=="
+      "===" "==>" "=>" "=>>" "<=" "=<<" "=/=" ">-" ">="
+      ">=>" ">>" ">>-" ">>=" ">>>" "<*" "<*>" "<|" "<|>"
+      "<$" "<$>" "<!--" "<-" "<--" "<->" "<+" "<+>" "<="
+      "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<" "<~"
+      "<~~" "</" "</>" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"
+      "x" ":" "+" "+" "*"))
+
+  (defvar fira-code-mode--old-prettify-alist)
+
+  (defun fira-code-mode--enable ()
+    "Enable Fira Code ligatures in current buffer."
+    (if (member "Fira Code Symbol" (font-family-list))
+     (progn
+       (setq-local fira-code-mode--old-prettify-alist prettify-symbols-alist)
+       (setq-local prettify-symbols-alist (append (fira-code-mode--make-alist fira-code-mode--ligatures) fira-code-mode--old-prettify-alist))
+       (prettify-symbols-mode t))
+     (user-error "Fira Code Symbol Not Found, Enable Failed")))
+
+  (defun fira-code-mode--disable ()
+    "Disable Fira Code ligatures in current buffer."
+    (setq-local prettify-symbols-alist fira-code-mode--old-prettify-alist)
+    (prettify-symbols-mode -1))
+
+  (define-minor-mode fira-code-mode
+    "Fira Code ligatures minor mode"
+    :lighter " Fira Code"
+    (setq-local prettify-symbols-unprettify-at-point 'right-edge)
+    (if fira-code-mode
+        (fira-code-mode--enable)
+      (fira-code-mode--disable)))
+
+  (defun fira-code-mode--setup ()
+    "Setup Fira Code Symbols"
+    (set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol"))
+
+  (add-hook 'prog-mode-hook 'fira-code-mode)
 
   (defhydra hydra-text-scale()
     "Change font size"
@@ -397,10 +504,6 @@
     ;; text-scale-adjust 按键监听，＋ － 或 0 重置，q 退出
     ("q" nil "Quit ! ! !"))
 
-  ;; (global-prettify-symbols-mode t)
-  ;; (dolist (hook '(prog-mode-hook
-  ;;                org-mode-hook))
-  ;;         (add-hook hook 'prettify-symbols-mode))
 #+end_src
 
 ** Whitespace Config
@@ -596,7 +699,8 @@
           ("`" . evil-goto-mark-line)
           :map evil-window-map
           ("d" . kill-buffer-and-window)
-          ("SPC" . switch-to-buffer)))
+          ("SPC" . switch-to-buffer)
+          ("x" . kill-current-buffer)))
 #+end_src
 ** COMMENT Evil-Escape
 #+begin_src emacs-lisp
@@ -677,7 +781,9 @@
     :bind
     (:map undo-tree-visualizer-mode-map
           ("l" . undo-tree-visualize-switch-branch-right)
-          ("h" . undo-tree-visualize-switch-branch-left)))
+          ("h" . undo-tree-visualize-switch-branch-left)
+          :map undo-tree-map
+          ("C-/" . evil-undo)))
   ;; C-x u 会出来一个撤销树可供选择以前的一些编辑状态
   ;; 可按 d 进行 diff 对比
 
@@ -777,8 +883,8 @@
     :ensure nil
     :bind
     (:map evil-window-map
-          ("d" . kill-this-buffer)
-          ("D" . lmm/kill-current-buffer-and-window)))
+          ("D" . kill-this-buffer)
+          ("d" . lmm/kill-current-buffer-and-window)))
 #+end_src
 ** Window Split Config
 #+begin_src emacs-lisp
@@ -955,6 +1061,11 @@
     (setq completion-styles '(orderless)
           completion-category-defaults nil
           completion-category-overrides '((file (styles partial-completion))))
+    :config
+    (set-face-background 'orderless-match-face-0 nil)
+    (set-face-background 'orderless-match-face-1 nil)
+    (set-face-background 'orderless-match-face-2 nil)
+    (set-face-background 'orderless-match-face-3 nil)
     )
   (use-package marginalia  ;;命令注释
     :ensure t
@@ -1169,25 +1280,75 @@
     :commands toggle-input-method
     :init
     (setq default-input-method "pyim")
+    (setq pyim-default-scheme 'quanpin)
     :config
-    (pyim-default-scheme 'quanpin)
     ;; (setq pyim-dicts
     ;;       `((:name "Greatdict" :file ,(concat user-emacs-directory "pyim/dicts/pyim-greatdict.pyim"))))
+
+  ;;   (defvar lmmv/pyim-ch-input-state t
+  ;;     "插入模式下中文输入状态")
+
+  ;;   (defun lmm/pyim-evil-insert-to-normal-state()
+  ;;     (interactive)
+  ;;     (if lmmv/pyim-ch-input-state
+  ;;         (funcall-interactively 'pyim-deactivate))
+  ;;     (funcall-interactively 'evil-normal-state))
+
+  ;;   (defun lmm/pyim-evil-normal-to-insert-state()
+  ;;     (interactive)
+  ;;     (if lmmv/pyim-ch-input-state
+  ;;         (funcall-interactively 'pyim-activate)))
+
+    ;; 代替默认
+    (custom-set-variables
+     '(pyim-english-input-switch-functions '(pyim-probe-program-mode)))
+
+  (defun pyim-preview-delete-string ()
+    "删除已经插入 buffer 的 preview 预览字符串。"
+    (when (and pyim-preview-overlay (overlay-start pyim-preview-overlay))
+      (delete-region (overlay-start pyim-preview-overlay)
+                     (overlay-end pyim-preview-overlay))))
 
     (general-define-key
      :keymaps 'pyim-mode-map
      "," 'pyim-previous-page
      "." 'pyim-next-page
-     "j" (general-key-dispatch (lambda () (interactive)
-                                 (pyim-self-insert-command))
+     "j" (general-key-dispatch 'pyim-self-insert-command
            :timeout 0.1
-           "k" (lambda () (interactive)
-                 (pyim-quit-clear)
-                 (evil-normal-state))
-           "l" (lambda () (interactive)
-                 (pyim-quit-clear)
-                 (toggle-input-method))))
+           "k" (lambda ()(interactive)
+                 (funcall-interactively 'pyim-quit-clear)
+                 (funcall-interactively 'evil-normal-state))
+           "l" 'toggle-input-method))
 
+  ;;   (general-define-key
+  ;;    :keymaps 'pyim-mode-map
+  ;;    "," 'pyim-previous-page
+  ;;    "." 'pyim-next-page
+  ;;    "j" (general-key-dispatch (lambda () (interactive)
+  ;;                                (pyim-self-insert-command))
+  ;;          :timeout 0.1
+  ;;          "k" 'lmm/pyim-evil-insert-to-normal-state
+  ;;          "l" (lambda () (interactive)
+  ;;                (cond (lmmv/pyim-ch-input-state
+  ;;                       (pyim-preview-delete-overlay)
+  ;;                       (funcall-interactively 'pyim-quit-clear)
+  ;;                       (funcall-interactively 'pyim-deactivate)
+  ;;                       (setq-local lmmv/pyim-ch-input-state nil))
+  ;;                      (t
+  ;;                       (pyim-preview-delete-overlay)
+  ;;                       (funcall-interactively 'pyim-quit-clear)
+  ;;                       (funcall-interactively 'pyim-activate)
+  ;;                       (setq-local lmmv/pyim-ch-input-state t))
+  ;;                    ))))
+  ;; (general-define-key
+  ;;      :states 'insert
+  ;;      "j" (general-key-dispatch 'self-insert-command
+  ;;            :timeout 0.1
+  ;;            "k" 'evil-normal-state
+  ;;            "l" (lambda()(interactive)(if (string-equal current-input-method "pyim")
+  ;;                                          (progn (funcall-interactively 'pyim-activate)
+  ;;                                                 (setq-local lmmv/pyim-ch-input-state t))
+  ;;                                        (insert ?j?l)))))
 
     (let* ((file (concat user-emacs-directory "pyim/dicts/pyim-greatdict.pyim.gz")))
       (if (file-exists-p file)
@@ -1417,21 +1578,21 @@
 #+end_src
 
 ** COMMENT Symbol-overlay
-   同词高亮显示
-   #+begin_src emacs-lisp
-     (use-package symbol-overlay
-       :ensure t
-       :hook
-       ((prog-mode-hook html-mode-hook yaml-mode-hook conf-mode-hook) . symbol-overlay-mode)
-       :bind
-       (:map symbol-overlay-mode-map
-             ("M-i" . symbol-overlay-put)
-             ("M-I" . symbol-overlay-remove-all)
-             ("M-n" . symbol-overlay-jump-next)
-             ("M-p" . symbol-overlay-jump-prev)
-             )
-       )
-   #+end_src
+同词高亮显示
+#+begin_src emacs-lisp
+  (use-package symbol-overlay
+    :ensure t
+    :hook
+    ((prog-mode-hook html-mode-hook yaml-mode-hook conf-mode-hook) . symbol-overlay-mode)
+    :bind
+    (:map symbol-overlay-mode-map
+          ("M-i" . symbol-overlay-put)
+          ("M-I" . symbol-overlay-remove-all)
+          ("M-n" . symbol-overlay-jump-next)
+          ("M-p" . symbol-overlay-jump-prev)
+          )
+    )
+#+end_src
 
 ** COMMENT Page Break Lines
 页面分割线(C-q C-l)
@@ -1476,10 +1637,10 @@
 ** Snippet -- 模板补全
 #+begin_src emacs-lisp
   (use-package yasnippet
-      :ensure t
-      :hook
-      (prog-mode-hook . yas-minor-mode)
-      (org-mode-hook . yas-minor-mode))
+    :ensure t
+    :hook
+    (prog-mode-hook . yas-minor-mode)
+    (org-mode-hook . yas-minor-mode))
 
   (use-package yasnippet-snippets
     :ensure t
@@ -1490,7 +1651,86 @@
 #+begin_src emacs-lisp
   (use-package multiple-cursors
     :ensure t
-    )
+    :config
+    (defhydra hydra-multiple-cursors(:foreign-keys warn
+                                                   :hint nil)
+      "
+   增减光标^^        |  搜索标记^^               |  区域或所有              % 2(mc/num-cursors) cursor%s(if (> (mc/num-cursors) 1) \"s\" \"\")
+  ------------------------------------------------------------------
+   [_J_]   向下添加  |  [_V_]   矩形区域标记编辑  |  [_a_]   标记当前所有标记
+   [_K_]   向上添加  |  [_;_]   向下搜索标记区域  |  [_r_]   选择区域搜索标记
+   [_C-j_] 向下跳过  |  [_,_]   向上搜索标记区域  |  [_R_]   选择区域正则搜索
+   [_C-k_] 向上跳过  |  [_s_]   标记当前符号向下  |  [_F_]   标记当前所有函数
+   [_p_]   删除最下  |  [_S_]   标记当前符号向上  |  [_._]   智能标记添加光标
+   [_n_]   删除最上  |  [_i_]   可按前缀插入数字  |  [_L_]   选择区域所有行尾
+   [_j_]   基础移动  |  [_I_]   可按前缀插入字母  |  [_H_]   选择区域所有行首
+  "
+      ("j" evil-next-line)
+      ("k" evil-previous-line)
+      ("h" evil-backward-char)
+      ("l" evil-forward-char)
+      ("w" evil-forward-word-begin)
+      ("e" evil-forward-word-end)
+      ("b" evil-backward-word-begin)
+      ("v" evil-visual-char)
+      ("V" set-rectangular-region-anchor)
+      ("J" mc/mark-next-lines)
+      ("K" mc/mark-previous-lines)
+      ("C-j" mc/skip-to-next-like-this)
+      ("C-k" mc/skip-to-previous-like-this)
+      ("p" mc/unmark-next-like-this)
+      ("n" mc/unmark-previous-like-this)
+      ("a" mc/mark-all-like-this)
+      ("r" mc/mark-all-in-region)
+      ("R" mc/mark-all-in-region-regexp)
+      ("F" mc/mark-all-like-this-in-defun)
+      ("." mc/mark-all-dwim)
+      (";" mc/mark-next-like-this)
+      ("," mc/mark-previous-like-this)
+      ("s" mc/mark-next-like-this-symbol)
+      ("S" mc/mark-previous-like-this-symbol)
+      ("L" mc/edit-ends-of-lines)
+      ("H" mc/edit-beginnings-of-lines)
+      ("i" mc/insert-numbers)
+      ("I" mc/insert-letters)
+      ("C-g" mc/keyboard-quit "mc/keyboard-quit")
+      ("q" nil "Quit"))
+    (lmm/evil-space-leader-def
+      "mc" 'hydra-multiple-cursors/body))
+
+  ;; (setq mc/cmds-to-run-once
+  ;;       '(
+  ;;         hydra-multiple-cursors/body
+  ;;         hydra-multiple-cursors/evil-next-line
+  ;;         hydra-multiple-cursors/evil-previous-line
+  ;;         hydra-multiple-cursors/evil-backward-char
+  ;;         hydra-multiple-cursors/evil-forward-char
+  ;;         hydra-multiple-cursors/evil-forward-word-begin
+  ;;         hydra-multiple-cursors/evil-forward-word-end
+  ;;         hydra-multiple-cursors/evil-backward-word-begin
+  ;;         hydra-multiple-cursors/evil-visual-char
+  ;;         hydra-multiple-cursors/set-rectangular-region-anchor
+  ;;         hydra-multiple-cursors/mc/mark-next-lines
+  ;;         hydra-multiple-cursors/mc/mark-previous-lines
+  ;;         hydra-multiple-cursors/mc/skip-to-next-like-this
+  ;;         hydra-multiple-cursors/mc/skip-to-previous-like-this
+  ;;         hydra-multiple-cursors/mc/unmark-next-like-this
+  ;;         hydra-multiple-cursors/mc/unmark-previous-like-this
+  ;;         hydra-multiple-cursors/mc/mark-all-like-this
+  ;;         hydra-multiple-cursors/mc/mark-all-in-region
+  ;;         hydra-multiple-cursors/mc/mark-all-in-region-regexp
+  ;;         hydra-multiple-cursors/mc/mark-all-like-this-in-defun
+  ;;         hydra-multiple-cursors/mc/mark-all-dwim
+  ;;         hydra-multiple-cursors/mc/mark-next-like-this
+  ;;         hydra-multiple-cursors/mc/mark-previous-like-this
+  ;;         hydra-multiple-cursors/mc/mark-next-like-this-symbol
+  ;;         hydra-multiple-cursors/mc/mark-previous-like-this-symbol
+  ;;         hydra-multiple-cursors/mc/edit-ends-of-lines
+  ;;         hydra-multiple-cursors/mc/edit-beginnings-of-lines
+  ;;         hydra-multiple-cursors/mc/insert-numbers
+  ;;         hydra-multiple-cursors/mc/insert-letters
+  ;;         hydra-multiple-cursors/mc/keyboard-quit
+  ;;         hydra-multiple-cursors/nil))
 #+end_src
 
 * LANG CONFIG
@@ -1498,6 +1738,8 @@
 *** Company Install
 #+begin_src emacs-lisp
   (use-package company
+    :disabled
+    :no-require t
     :ensure t
     :hook
     (after-init-hook . global-company-mode)
@@ -1530,19 +1772,104 @@
     (setq company-transformers '(company-sort-prefer-same-case-prefix
                                  company-sort-by-occurrence))
     )
-  #+end_src
+#+end_src
 *** Corfu -- other completion tool
 #+begin_src emacs-lisp
   (use-package corfu
-    :disabled
-    :no-require t
     :ensure t
+    :init
+    ;; 自动触发补全
+    (setq corfu-auto t
+          ;; 补全预览
+          corfu-preview-current nil
+
+          ;; 补全候选预选
+          ;; corfu-preselect-first nil
+          ;; 禁用minibuffer文档显示
+          corfu-echo-documentation nil
+          ;; 滚动边距
+          ;; corfu-scroll-margin 2
+          corfu-min-width 80
+          corfu-max-width corfu-min-width
+          corfu-count 15
+          corfu-auto-delay 0.4
+          corfu-right-margin-width 1.0
+          )
+    :hook
+    (after-init-hook . corfu-global-mode)
     :bind
     (:map corfu-map
           ("C-n" . corfu-next)
           ("C-p" . corfu-previous)
+          ;; ([remap evil-complete-next] . corfu-next)
+          ;; ([remap evil-complete-previous] . corfu-previous)
           ("M-<" . corfu-first)
-          ("M->" . corfu-last)))
+          ("M->" . corfu-last)
+          ("C-v" . corfu-scroll-up)
+          ("M-v" . corfu-scroll-down)
+          ("M-h". corfu-show-documentation)
+          ("C-SPC" . corfu-insert-separator))
+    :config
+    ;; insert模式下按键失效，需此设置
+    (general-add-advice '(corfu--setup corfu--teardown) :after 'evil-normalize-keymaps)
+    (evil-make-overriding-map corfu-map)
+    (setq lsp-completion-provider :none)
+    (defun lmm/lsp-mode-setup-completion()
+      (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+            '(orderless)))
+    (add-hook 'lsp-completion-mode-hook 'lmm/lsp-mode-setup-completion)
+
+
+    (set-face-background 'corfu-current "#44475a")
+    (set-face-background 'corfu-border "#ffc4cd")
+    (set-face-background 'corfu-default "#282a36")
+    )
+#+end_src
+**** cape -- complete backends
+#+begin_src emacs-lisp
+  ;; cape-dabbrev:当前缓冲区的完整单词
+  ;; cape-file:完整的文件名
+  ;; cape-keyword:完整的编程语言关键字
+  ;; cape-symbol:完整的 elisp 符号
+  ;; cape-abbrev:完整缩写(add-global-abbrev, add-mode-abbrev)
+  ;; cape-ispell:Ispell 词典中的完整单词
+  ;; cape-dict:字典文件中的完整单词
+  ;; cape-line:从当前缓冲区完成整行
+  ;; cape-tex:来自 Tex 命令的完整 unicode 字符
+  ;; cape-sgml:来自 sgml 完整的 unicode 字符
+  ;; cape-rfc1345: unicode
+  (use-package cape
+    :ensure t
+    :config
+    (dolist (hook '(lisp-mode-hook
+                    emacs-lisp-mode-hook
+                    lisp-interaction-mode-hook))
+      (add-hook hook
+              (lambda()
+                (setq-local completion-at-point-functions
+                            '(cape-symbol cape-keyword cape-file)))))
+
+    (dolist (hook '(rustic-mode-hook))
+      (add-hook hook
+              (lambda()
+                (setq-local completion-at-point-functions
+                            (append completion-at-point-functions '(cape-dabbrev cape-file))))))
+    )
+#+end_src
+**** kind-icon
+#+begin_src emacs-lisp
+  (use-package kind-icon
+    :ensure t
+    :after corfu
+    :custom
+    (kind-icon-default-face 'corfu-default)
+    ;; (kind-icon-blend-frac 0.0)
+    (kind-icon-blend-background nil)
+    :config
+    (custom-set-variables
+     '(kind-icon-default-style
+       '(:padding 0.3 :stroke 3 :margin 0 :radius 5 :height 0.9 :scale 1.0)))
+    (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+end_src
 
 ** Syntax Checking
@@ -1554,6 +1881,7 @@
 #+end_src
 
 ** Lsp Server Config
+[[https://emacs-lsp.github.io/lsp-mode/tutorials/how-to-turn-off/][lsp display config]]
 #+begin_src emacs-lisp
   (use-package lsp-mode
     :ensure t
@@ -1565,7 +1893,7 @@
           lsp-enable-symbol-highlighting nil
           ;; 关闭底部eldoc 提示
           lsp-eldoc-enable-hover nil
-          ;; 关闭状态栏提示
+          ;; 关闭状态栏代码操作提示
           lsp-modeline-code-actions-enable nil
           ;; 关闭状态栏诊断提示
           lsp-modeline-diagnostics-enable nil
@@ -1573,6 +1901,8 @@
           lsp-enable-snippet nil
           ;; 关闭折叠
           lsp-enable-folding nil
+          ;; 关闭 minibuffer 签名和文档显示
+          lsp-signature-auto-activate nil
           )
     :hook
     ;; lsp-deferred 等待buffer完全可见后启用 lsp
@@ -1581,6 +1911,8 @@
     :config
     (delq 'company-capf company-backends)
     (add-to-list 'company-backends 'company-capf)
+    (lmm/evil-space-leader-def
+      "ls" 'lsp-signature-activate)
     :commands lsp)
 
   (use-package lsp-ui
@@ -1589,10 +1921,14 @@
     ;; 错误检查提示延迟
     (setq lsp-ui-sideline-delay 0.4
           ;; 操作提示
-          lsp-ui-sideline-show-code-actions nil)
+          lsp-ui-sideline-show-code-actions t)
     :commands lsp-ui-mode
     :config
-    (setq lsp-ui-sideline-actions-icon lsp-ui-sideline-actions-icon-default))
+    (setq lsp-ui-sideline-actions-icon lsp-ui-sideline-actions-icon-default)
+    (lmm/evil-space-leader-def
+      "lds" 'lsp-ui-doc-show
+      "ldh" 'lsp-ui-doc-hide
+      ))
 
   (use-package eglot
     :disabled
@@ -1621,10 +1957,14 @@
     :commands rustic-mode
     :config
     (add-hook 'rustic-mode-hook (lambda () (setq-local company-backends '(company-capf
-                                                                     (company-yasnippet company-dabbrev-code company-keywords)
-                                                                     company-dabbrev
-                                                                     company-files
-                                                                     ))))
+                                                                          (company-yasnippet company-dabbrev-code company-keywords)
+                                                                          company-dabbrev
+                                                                          company-files
+                                                                          ))))
+    (general-define-key
+     :keymaps 'rustic-mode-map
+     "<f5>" '(lambda ()(interactive) (save-buffer)(rustic-cargo-run)))
+
     (setq rustic-indent-method-chain t)
     (setq rustic-babel-format-src-block nil
           rustic-format-trigger nil)
@@ -1644,8 +1984,7 @@
   (add-hook 'emacs-lisp-mode-hook (lambda ()
                                     (setq-local company-backends '(company-elisp
                                                                    company-files
-                                                                   (company-dabbrev-code company-keywords)
-                                                                   company-dabbrev
+                                                                   (company-dabbrev-code company-keywords company-dabbrev)
                                                                    company-capf))))
 #+end_src
 *** lua
@@ -1666,6 +2005,12 @@
     ("README\\.md\\'" . gfm-mode)
     :init (setq markdown-command "multimarkdown"))
 #+end_src
+*** json-mode
+#+begin_src emacs-lisp
+  (use-package json-mode
+    :commands json-mode
+    :ensure t)
+#+end_src
 
 * PROJECT CONFIG
 ** Projectile Config
@@ -1683,7 +2028,7 @@
       "pp" 'projectile-switch-project
       "pf" 'projectile-find-file
       "pb" 'projectile-switch-to-buffer
-       ))
+      ))
 
   (use-package ibuffer-projectile
     :ensure t
@@ -1745,7 +2090,7 @@
     ;;             [remap async-shell-command] 'with-editor-async-shell-command)
     ;; (define-key (current-global-map)
     ;;             [remap shell-command] 'with-editor-shell-command)
-  )
+    )
 #+end_src
 * ENVIRONMENT SAVE
 保存打开过的光标位置
@@ -2079,7 +2424,7 @@
                    (user-error (format "\"%s create filed!\"" file)))))
            (?. (make-directory file t)
                (if (file-directory-p file)
-                     (find-file file)
+                   (find-file file)
                  (user-error (format "\"%s create filed!\"" file))))
            (?r (make-directory (lmm/conver-sudo-file-name file) t))
            (?u (make-directory file t))
