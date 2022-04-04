@@ -260,7 +260,7 @@
 
 ** Cursor Face
 #+begin_src emacs-lisp
-  (setq blink-cursor-mode t)
+  (blink-cursor-mode -1)
   (defun lmm/cursor-I-am-here ()
     "cursor, where are you ???"
     (interactive)
@@ -493,7 +493,7 @@
     "Setup Fira Code Symbols"
     (set-fontset-font t '(#Xe100 . #Xe16f) "Fira Code Symbol"))
 
-  (add-hook 'prog-mode-hook 'fira-code-mode)
+  ;; (add-hook 'prog-mode-hook 'fira-code-mode)
 
   (defhydra hydra-text-scale()
     "Change font size"
@@ -699,8 +699,12 @@
           ("`" . evil-goto-mark-line)
           :map evil-window-map
           ("d" . kill-buffer-and-window)
-          ("SPC" . switch-to-buffer)
-          ("x" . kill-current-buffer)))
+          ("x" . kill-current-buffer)
+          ("n" . evil-next-buffer)
+          ("p" . evil-prev-buffer)
+          ("w" . evil-window-mru)
+          ("W" . evil-window-next)
+          ("." . evil-switch-to-windows-last-buffer)))
 #+end_src
 ** COMMENT Evil-Escape
 #+begin_src emacs-lisp
@@ -928,7 +932,7 @@
     :config
     (general-define-key
      :keymaps 'evil-window-map
-     "." 'ace-window
+     "m" 'ace-window
      "," 'evil-window-mru))
 #+end_src
 ** Buffers Config
@@ -2305,6 +2309,13 @@
   (use-package popup
     :ensure t
     :no-require t)
+#+end_src
+
+* TERM
+#+begin_src emacs-lisp
+  (use-package vterm
+    :ensure t
+    :commands vterm)
 #+end_src
 
 * UTILS
