@@ -6,7 +6,7 @@
 
 
 
-(when (or (string-search "WSL" operating-system-release) (string-search "wsl" operating-system-release))
+(when (string-match "WSL" operating-system-release)
   (setenv "PATH" "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl")
   (setq exec-path (split-string "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl" path-separator)))
 

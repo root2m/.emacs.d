@@ -46,10 +46,10 @@
    #+begin_src emacs-lisp
      (defun open-init-file()
        (interactive)
-       (find-file "~/.emacs.d/init.el"))
+       (find-file (concat user-emacs-directory "init.el")))
      (defun open-config-org-file()
        (interactive)
-       (find-file "~/.emacs.d/EmacsConfig.org"))
+       (find-file (concat user-emacs-directory "EmacsConfig.org")))
      (global-set-key (kbd "<f2>") 'open-config-org-file)
    #+end_src
 
@@ -61,11 +61,7 @@
 
 ** Server Mode
 #+begin_src emacs-lisp
-  (use-package server
-    :ensure nil
-    :config
-    (server-start)
-    )
+  (server-start)
 #+end_src
 
 ** Native Comp Support
@@ -119,11 +115,8 @@
 
 ** Repeat -- 重复命令
 #+begin_src emacs-lisp
-  (use-package repeat
-    :ensure nil
-    :config
     (repeat-mode t)
-    (global-set-key [remap evil-repeat-pop] 'repeat))
+    (global-set-key [remap evil-repeat-pop] 'repeat)
 #+end_src
 
 * PACKAGE MANAGEMENT
@@ -195,6 +188,15 @@
           ("v" . helpful-variable)
           ("k" . helpful-key)
           ("C" . helpful-command)))
+#+end_src
+** elisp-demos -- elisp 例子
+#+begin_src emacs-lisp
+  (use-package elisp-demos
+    :defer t
+    :ensure t
+    :config
+    (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1)
+    (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
 #+end_src
 * KEY BIND
 ** Simple Key Bind
@@ -281,6 +283,7 @@
 *** visible bell
 #+begin_src emacs-lisp
   (setq visible-bell nil)
+  (setq ring-bell-function 'ignore)
 #+end_src
 
 ** 80 line
@@ -317,22 +320,26 @@
     (setq dashboard-set-heading-icons t)
     (setq dashboard-set-file-icons t)
     ;; 主页设置
-    ;; (setq dashboard-set-navigator t)
+    (setq dashboard-set-navigator t)
     ;; Format: "(icon title help action face prefix suffix)"
-    ;; (setq dashboard-navigator-buttons
-    ;;       `(;; line1
-    ;;         ((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
-    ;;           "Homepage"
-    ;;           "Browse homepage"
-    ;;           (lambda (&rest _) (browse-url "homepage")))
-    ;;          ("★" "Star" "Show stars" (lambda (&rest _) (show-stars)) warning)
-    ;;          ("?" "" "?/h" #'show-help nil "<" ">"))
-    ;;         ;; line 2
-    ;;         ((,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
-    ;;           "Linkedin"
-    ;;           ""
-    ;;           (lambda (&rest _) (browse-url "homepage")))
-    ;;          ("⚑" nil "Show flags" (lambda (&rest _) (message "flag")) error))))
+    (setq dashboard-navigator-buttons
+          `(;; line1
+            ((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
+              ""
+              "Git Homepage"
+              (lambda (&rest _) (if (string-match "WSL" operating-system-release)
+                                    (shell-command "/mnt/c/Windows/explorer.exe https://github.com/Littlemanman " nil nil)
+                                    (browse-url "https://github.com/Littlemanman"))))
+             ;; ("★" "Star" "Show stars" (lambda (&rest _) (show-stars)) warning)
+             ;; ("?" "" "?/h" #'show-help nil "<" ">")
+             )
+            ;; line 2
+            ;; ((,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
+            ;;   "Linkedin"
+            ;;   ""
+            ;;   (lambda (&rest _) (browse-url "homepage")))
+            ;;  ("⚑" nil "Show flags" (lambda (&rest _) (message "flag")) error))
+            ))
     :config
     ;;启用dashboard
     (dashboard-setup-startup-hook)
@@ -369,6 +376,17 @@
     :ensure t
     :hook
     (after-init-hook . doom-modeline-mode))
+
+  (use-package moody
+    :disabled
+    :no-require t
+    :ensure t
+    :config
+    (setq x-underline-at-descent-line t)
+    (moody-replace-mode-line-buffer-identification)
+    (moody-replace-vc-mode)
+    (moody-replace-eldoc-minibuffer-message-function)
+    )
 #+end_src
 
 ** Pair Color Config
@@ -382,13 +400,14 @@
 ** Fonts
 #+begin_src emacs-lisp
   ;; 字体设置
-  (set-face-attribute 'default nil
+  (when (member "FiraCode Nerd Font" (font-family-list))
+   (set-face-attribute 'default nil
                       :font "FiraCode Nerd Font"
                       ;; :slant 'normal
                       ;; :weight 'normal
                       :height 130
                       ;; :width 'normal
-                      )
+                      ))
   ;; (add-to-list 'default-frame-alist '(font . "Fira Code"))
   (set-fontset-font t 'han (if (member "HarmonyOS Sans SC" (font-family-list)) "HarmonyOS Sans SC"))
   (setq-default line-spacing nil)
@@ -611,15 +630,90 @@
     (evil-ex-define-cmd "q" 'kill-this-buffer)
     ;; (evil-set-leader 'normal (kbd "<SPC>"))
 
-    (general-define-key
-     :states '(normal motion)
-     "," evil-window-map)
+
 
     (general-define-key
      :states '(normal motion)
      "gh" 'beginning-of-line-text
      "gl" 'end-of-line
-     )
+     "," evil-window-map)
+
+    (defmacro lmm/create-translate-key-map(from to)
+      "Translate key"
+      (declare (indent 1) (debug 1))
+      (let ((name (intern (concat "lmm/" from "-to-" to "-map"))))
+        `(progn
+           (defvar ,name (make-sparse-keymap)
+             ,(concat "Translate key " from " -> " to)))))
+
+    ;; (lmm/create-translate-key-map "s" "Ctrl")
+
+    ;; (general-define-key
+    ;;  :keymaps 'lmm/s-to-Ctrl-map
+    ;;  "a" (general-simulate-key "C-a")
+    ;;  "b" (general-simulate-key "C-b")
+    ;;  "c" (general-simulate-key "C-c")
+    ;;  "d" (general-simulate-key "C-d")
+    ;;  "e" (general-simulate-key "C-e")
+    ;;  "f" (general-simulate-key "C-f")
+    ;;  "g" (general-simulate-key "C-g")
+    ;;  "h" (general-simulate-key "C-h")
+    ;;  "i" (general-simulate-key "C-i")
+    ;;  "j" (general-simulate-key "C-j")
+    ;;  "k" (general-simulate-key "C-k")
+    ;;  "l" (general-simulate-key "C-l")
+    ;;  "m" (general-simulate-key "C-m")
+    ;;  "n" (general-simulate-key "C-n")
+    ;;  "o" (general-simulate-key "C-o")
+    ;;  "p" (general-simulate-key "C-p")
+    ;;  "q" (general-simulate-key "C-q")
+    ;;  "r" (general-simulate-key "C-r")
+    ;;  "s" (general-simulate-key "C-s")
+    ;;  "t" (general-simulate-key "C-t")
+    ;;  "u" (general-simulate-key "C-u")
+    ;;  "v" (general-simulate-key "C-v")
+    ;;  "w" (general-simulate-key "C-w")
+    ;;  "x" (general-simulate-key "C-x")
+    ;;  ";" (general-simulate-key "C-;")
+    ;;  )
+
+    ;; (define-key evil-normal-state-map "s" nil)
+    ;; (define-key evil-motion-state-map "s" nil)
+
+    ;; (general-define-key
+    ;;  :states '(normal motion)
+    ;;  "s" lmm/s-to-Ctrl-map)
+
+
+    ;; (general-define-key
+    ;;  :keymaps 'lmm/s-to-Ctrl-map
+    ;;  "a" (general-simulate-key "C-c C-a")
+    ;;  "b" (general-simulate-key "C-c C-b")
+    ;;  "c" (general-simulate-key "C-c C-c")
+    ;;  "d" (general-simulate-key "C-c C-d")
+    ;;  "e" (general-simulate-key "C-c C-e")
+    ;;  "f" (general-simulate-key "C-c C-f")
+    ;;  "g" (general-simulate-key "C-c C-g")
+    ;;  "h" (general-simulate-key "C-c C-h")
+    ;;  "i" (general-simulate-key "C-c C-i")
+    ;;  "j" (general-simulate-key "C-c C-j")
+    ;;  "k" (general-simulate-key "C-c C-k")
+    ;;  "l" (general-simulate-key "C-c C-l")
+    ;;  "m" (general-simulate-key "C-c C-m")
+    ;;  "n" (general-simulate-key "C-c C-n")
+    ;;  "o" (general-simulate-key "C-c C-o")
+    ;;  "p" (general-simulate-key "C-c C-p")
+    ;;  "q" (general-simulate-key "C-c C-q")
+    ;;  "r" (general-simulate-key "C-c C-r")
+    ;;  "s" (general-simulate-key "C-c C-s")
+    ;;  "t" (general-simulate-key "C-c C-t")
+    ;;  "u" (general-simulate-key "C-c C-u")
+    ;;  "v" (general-simulate-key "C-c C-v")
+    ;;  "w" (general-simulate-key "C-c C-w")
+    ;;  "x" (general-simulate-key "C-c C-x")
+    ;;  ";" (general-simulate-key "C-c C-;"))
+    ;; (general-define-key
+    ;;  "C-c s" lmm/s-to-Ctrl-map)
 
     (general-create-definer lmm/evil-space-leader-def
       :states '(normal motion)
@@ -637,14 +731,25 @@
       "fr" 'recentf-open-files
       "fw" 'save-buffer
       "fs" 'save-buffer
-      "qq" 'save-buffers-kill-terminal
+      "qq" 'lmm/delete-frame-or-C-x-C-c
       "qs" 'evil-save-and-quit
       "es" 'eval-last-sexp
       "ed" 'eval-defun
       "er" 'eval-region
       "eb" 'eval-buffer
       "ep" 'eval-print-last-sexp
-      "bk" 'kill-current-buffer)
+      "bk" 'kill-current-buffer
+      "x" 'execute-extended-command)
+    (defhydra hydra-Ctrl-quick-key(:foreign-keys warn
+                                                 :hint nil)
+      ("d" evil-scroll-down)
+      ("u" evil-scroll-up)
+      ("f" evil-scroll-page-down)
+      ("b" evil-scroll-page-up)
+      ("j" evil-next-line)
+      ("k" evil-previous-line)
+      ("q" nil "Quit"))
+
     ;; (evil-set-leader '(normal motion) (kbd "C-SPC"))
 
     ;; (evil-define-key '(normal motion) 'global (kbd ""))
@@ -679,10 +784,18 @@
           ;; ("C-n" . next-line)
           ("C-g" . evil-normal-state)
           :map evil-normal-state-map
-          ("f" . evil-avy-goto-char-2)
+          ("f" . evil-avy-goto-char-timer)
           ("F" . evil-avy-goto-word-1)
+          ("q" . evil-execute-macro)
+          ("Q" . evil-record-macro)
           ("'" . evil-goto-mark)
           ("`" . evil-goto-mark-line)
+          ("U" . evil-redo)
+          (";" . repeat)
+          ("r" . evil-backward-word-begin)
+          ("R" . evil-backward-WORD-begin)
+          ("t" . evil-replace)
+          ("T" . evil-replace-state)
           ;; ("<leader>ff" . find-file)
           ;; ("<leader>bb" . switch-to-buffer)
           ;; ("<leader>bs" . evil-split-buffer)
@@ -693,8 +806,11 @@
           ;; ("<leader>bn" . next-buffer)
           ;; ("<leader>w" . evil-window-map)
           :map evil-motion-state-map
-          ("f" . evil-avy-goto-char-in-line)
+          ("f" . evil-avy-goto-char-timer)
           ("F" . evil-avy-goto-word-1)
+          ("q" . evil-execute-macro)
+          ("Q" . evil-record-macro)
+          (";" . repeat)
           ("'" . evil-goto-mark)
           ("`" . evil-goto-mark-line)
           :map evil-window-map
@@ -780,8 +896,8 @@
   ;; 撤销树
   (use-package undo-tree
     :ensure t
-    :hook
-    (evil-mode-hook . global-undo-tree-mode)
+    ;; :hook
+    ;; (evil-mode-hook . global-undo-tree-mode)
     :bind
     (:map undo-tree-visualizer-mode-map
           ("l" . undo-tree-visualize-switch-branch-right)
@@ -866,10 +982,59 @@
       (evil-window-vsplit)
       (evil-prev-buffer count))
 
+    (defun lmm/vsplit-other-buffer (&optional arg)
+      "VSplit this window"
+      (interactive "P")
+      (split-window-horizontally)
+      (let ((target-window (next-window)))
+        (set-window-buffer target-window (other-buffer))
+        (unless arg
+          (select-window target-window))))
+
+    (defun lmm/split-other-buffer (&optional arg)
+      "Split this window"
+      (interactive "P")
+      (split-window-vertically)
+      (let ((target-window (next-window)))
+        (set-window-buffer target-window (other-buffer))
+        (unless arg
+          (select-window target-window))))
+
     (general-define-key
      :keymaps 'evil-window-map
-     "s" 'evil-split-next-buffer
-     "v" 'evil-vsplit-next-buffer)
+     "s" 'lmm/split-other-buffer
+     "v" 'lmm/vsplit-other-buffer)
+
+    (evil-define-text-object evil-inner-line (count &optional beg end type)
+      "Select in current visual line, not \n"
+      (let ((begin (save-excursion (beginning-of-line-text) (point)))
+            (end (save-excursion (end-of-visual-line) (point))))
+        (evil-range begin end)))
+
+    (evil-define-text-object evil-a-line (count &optional beg end type)
+      "Select in current line, not \n"
+      (let ((begin (save-excursion (beginning-of-line-text) (point)))
+            (end (save-excursion (end-of-line) (point))))
+        (evil-range begin end)))
+
+    (define-key evil-inner-text-objects-map "l" 'evil-inner-line)
+    (define-key evil-outer-text-objects-map "l" 'evil-a-line)
+
+    (evil-define-motion evil-forward-in-word-begin(count &optional bigword)
+      "Jump to next word"
+      :type inclusive
+      (forward-to-word (or count 1)))
+
+    (evil-define-key '(normal motion) 'global
+      "w" 'evil-forward-in-word-begin)
+
+  (evil-define-motion evil-backward-in-word-begin(count &optional bigword)
+    "Backward in word begin"
+    :type exclusive
+    (backward-word (or count 1)))
+
+    (evil-define-key '(normal motion) 'global
+      "r" 'evil-backward-in-word-begin)
     )
 #+end_src
 
@@ -1000,6 +1165,11 @@
 #+end_src
 ** Frame Config
 #+begin_src emacs-lisp
+  (defun lmm/delete-frame-or-C-x-C-c(&optional arg)
+    (interactive "P")
+      (if (delete-frame-enabled-p)
+          (delete-frame)
+        (save-buffers-kill-terminal arg)))
 #+end_src
 ** Auto Save Window Size
 自动保存窗口尺寸
@@ -1029,6 +1199,52 @@
   (setq enable-recursive-minibuffers t)
   ;; 禁止光标移动到提示文本上
   (customize-set-variable 'minibuffer-prompt-properties '(read-only t cursor-intangible t face minibuffer-prompt))
+
+  (defun lmm/evil-minibuffer-insert()
+    "Minibuffer evil insert state"
+    (setq-local evil-echo-state nil)
+    (evil-insert 1))
+
+  (remove-hook 'minibuffer-setup-hook 'evil-collection-minibuffer-insert)
+  (add-hook 'minibuffer-setup-hook 'lmm/evil-minibuffer-insert)
+
+
+  (use-package evil
+    :ensure nil
+    :config
+    (evil-define-key* 'normal minibuffer-local-map
+      (kbd "ESC") 'minibuffer-keyboard-quit
+      (kbd "q") 'minibuffer-keyboard-quit
+      (kbd "C-f") 'scroll-up-command
+      (kbd "C-b") 'scroll-down-command
+      (kbd "C-v") 'scroll-up-command
+      (kbd "C-d") 'scroll-up-command
+      (kbd "C-u") 'scroll-down-command
+      (kbd "j") 'next-line
+      (kbd "k") 'previous-line
+      (kbd "RET") 'exit-minibuffer
+      (kbd "g") 'minibuffer-beginning-of-buffer
+      (kbd "G") 'end-of-buffer
+      (kbd "o") 'embark-act
+      (kbd ".") 'evil-repeat-pop
+      )
+    (evil-define-key* 'insert minibuffer-local-map
+      (kbd "ESC") 'minibuffer-keyboard-quit
+      (kbd "C-g") 'minibuffer-keyboard-quit
+      (kbd "C-v") 'scroll-up-command
+      (kbd "C-n") 'next-line
+      (kbd "C-p") 'previous-line
+      (kbd "C-k") 'kill-line
+      (kbd "RET") 'exit-minibuffer
+      )
+
+    (general-define-key
+     :states 'insert
+     :keymaps 'minibuffer-local-map
+     "j" (general-key-dispatch 'self-insert-command
+           :timeout 0.1
+           "k" 'evil-normal-state
+           ";" 'minibuffer-keyboard-quit)))
 #+end_src
 ** Vertico -- 命令完成
 #+begin_src emacs-lisp
@@ -1053,11 +1269,12 @@
           ("C-h" . vertico-directory-delete-char)
           ("C-w" . vertico-directory-delete-word)
           ("M-<backspace>" . vertico-directory-up)
-          ("C-<backspace>" . vertico-directory-up)
+          ("M-h" . vertico-directory-up)
+          ("C-<backspace>" . backward-kill-word)
           ("C-u" . evil-delete-back-to-indentation))
     :config
     (lmm/evil-space-leader-def
-      "x" 'vertico-repeat))
+      "X" 'vertico-repeat))
   (use-package orderless  ;;搜索排序
     :ensure t
     :after vertico
@@ -1432,6 +1649,8 @@
      (use-package avy
        :ensure t
        :after evil
+       :init
+       (setq avy-timeout-seconds 0.3)
        :config
        (lmm/evil-space-leader-def
          "aml" 'avy-move-line
@@ -1561,7 +1780,7 @@
     :config
     (setq show-paren-delay 0)
     (set-face-attribute 'show-paren-match nil
-                        :underline '(:background "red" :position 0)
+                        :underline '(:color "red" :position 0)
                         :background nil
                         :foreground "red"
                         :weight 'bold
@@ -1644,7 +1863,12 @@
     :ensure t
     :hook
     (prog-mode-hook . yas-minor-mode)
-    (org-mode-hook . yas-minor-mode))
+    (org-mode-hook . yas-minor-mode)
+    :config
+    (set-face-attribute 'yas-field-highlight-face nil
+                        :background nil
+                        :underline '(:color "white" :position 0)
+                        :inherit nil))
 
   (use-package yasnippet-snippets
     :ensure t
@@ -1890,11 +2114,12 @@
   (use-package lsp-mode
     :ensure t
     :init
-    (setq lsp-auto-guess-root nil
+    (setq lsp-auto-guess-root t
           lsp-prefer-flymake nil
           lsp-auto-configure t
           ;; 符号高亮
-          lsp-enable-symbol-highlighting nil
+          lsp-enable-symbol-highlighting t
+          lsp-symbol-highlighting-skip-current t
           ;; 关闭底部eldoc 提示
           lsp-eldoc-enable-hover nil
           ;; 关闭状态栏代码操作提示
@@ -1902,7 +2127,7 @@
           ;; 关闭状态栏诊断提示
           lsp-modeline-diagnostics-enable nil
           ;; 关闭模板生成
-          lsp-enable-snippet nil
+          lsp-enable-snippet t
           ;; 关闭折叠
           lsp-enable-folding nil
           ;; 关闭 minibuffer 签名和文档显示
@@ -1910,13 +2135,20 @@
           )
     :hook
     ;; lsp-deferred 等待buffer完全可见后启用 lsp
-    ((c-mode-hook python-mode rust-mode) . lsp-deferred)
+    ((c-mode-hook python-mode) . lsp-deferred)
     (lsp-mode . lsp-enable-which-key-integration)
     :config
-    (delq 'company-capf company-backends)
-    (add-to-list 'company-backends 'company-capf)
+    ;; (delq 'company-capf company-backends)
+    ;; (add-to-list 'company-backends 'company-capf)
     (lmm/evil-space-leader-def
       "ls" 'lsp-signature-activate)
+    (set-face-attribute 'lsp-face-highlight-textual nil
+                        :background nil
+                        :underline '(:color "#fce38a" :position 0)
+                        :foreground nil
+                        )
+    ;; (set-face-attribute 'lsp-face-highlight-write nil :background nil)
+    ;; (set-face-attribute 'lsp-face-highlight-read nil :background nil)
     :commands lsp)
 
   (use-package lsp-ui
@@ -1925,7 +2157,7 @@
     ;; 错误检查提示延迟
     (setq lsp-ui-sideline-delay 0.4
           ;; 操作提示
-          lsp-ui-sideline-show-code-actions t)
+          lsp-ui-sideline-show-code-actions nil)
     :commands lsp-ui-mode
     :config
     (setq lsp-ui-sideline-actions-icon lsp-ui-sideline-actions-icon-default)
@@ -1958,6 +2190,7 @@
     :init
     ;; (setq rustic-lsp-server 'rls)
     (setq rustic-lsp-client 'lsp)
+    ;; (setq rustic-lsp-client 'eglot)
     :commands rustic-mode
     :config
     (add-hook 'rustic-mode-hook (lambda () (setq-local company-backends '(company-capf
@@ -2296,7 +2529,9 @@
           (";" . treemacs-select-window)))
   (use-package treemacs-evil
     :ensure t
-    :after (treemacs evil))
+    :after (treemacs evil)
+    :config
+    (define-key evil-treemacs-state-map (kbd "q") 'treemacs-quit))
 
   (use-package treemacs-icons-dired
     :ensure t
