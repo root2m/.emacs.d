@@ -1,6 +1,9 @@
 ;;; package --- summary
 ;;; Commentary:
 ;;; Code:
+
+
+;; use straight package manager.
 (setq package-enable-at-startup nil)
 
 (menu-bar-mode -1)
