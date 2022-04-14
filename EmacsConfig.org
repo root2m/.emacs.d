@@ -113,17 +113,11 @@
   (put 'narrow-to-region 'disabled nil)
 #+end_src
 
-** Repeat -- 重复命令
-#+begin_src emacs-lisp
-    (repeat-mode t)
-    (global-set-key [remap evil-repeat-pop] 'repeat)
-#+end_src
-
 * PACKAGE MANAGEMENT
 ** Setup package.el to work with MELPA.
    修改国内镜像源
    #+begin_src emacs-lisp
-     (require 'package)
+     ;; (require 'package)
      (setq package-archives '(("gnu"   . "https://elpa.zilongshanren.com/gnu/")
                               ("melpa" . "https://elpa.zilongshanren.com/melpa/")
                               ("org" . "https://elpa.zilongshanren.com/org/")))
@@ -131,17 +125,34 @@
      (setq package-quickstart t)
      ;; (package-refresh-contents)
    #+end_src
+** Straight -- git package manager
+#+begin_src emacs-lisp
+  (setq straight-check-for-modifications 'never)
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+        (bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
+#+end_src
 
 ** Installing use-package
 包管理器
 #+begin_src emacs-lisp
-  (unless (package-installed-p 'use-package)
-    (package-initialize)
-    (package-refresh-contents)
-    (package-install 'use-package))
+  (straight-use-package 'use-package)
+  ;; (unless (package-installed-p 'use-package)
+  ;;   (package-initialize)
+  ;;   (package-refresh-contents)
+  ;;   (package-install 'use-package))
   (setq use-package-hook-name-suffix nil) ;;停止在:hook 当中添加-hook后缀
-  ;; 启动时显示包加载信息至 *Message*
-  ;; (setq use-package-verbose t)
+  ;; ;; 启动时显示包加载信息至 *Message*
+  ;; ;; (setq use-package-verbose t)
   (eval-when-compile
     (require 'use-package))
 #+end_src
@@ -151,7 +162,7 @@
       (use-package some-package-name
         :disabled ;;停止加载不使用的内容
         :no-require t; 不加载
-        :ensure t ;;确保软件包会自动安装
+        :straight t ;;确保软件包会自动安装
         :defer t ;;延迟t秒加载包（require 'some-package-name)
         :init () ;;加载包之前执行的代码
         :config () ;;加载包之后执行的代码
@@ -163,14 +174,14 @@
 ** Install diminish, bind-key, gcmh
 #+begin_src emacs-lisp
   (use-package diminish
-    :ensure t
+    :straight t
     )
   (use-package bind-key
-    :ensure t)
+    :straight t)
 
   ;; 垃圾回收
   (use-package gcmh
-    :ensure t
+    :straight t
     :config
     (gcmh-mode))
 #+end_src
@@ -179,7 +190,7 @@
 ** Helpful -- 更好的帮助信息
 #+begin_src emacs-lisp
   (use-package helpful
-    :ensure t
+    :straight t
     :bind
     (:map help-map
           ("SPC" . helpful-at-point)
@@ -193,7 +204,7 @@
 #+begin_src emacs-lisp
   (use-package elisp-demos
     :defer t
-    :ensure t
+    :straight t
     :config
     (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1)
     (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
@@ -203,7 +214,7 @@
 [[https://github.com/noctuid/general.el][General]] 直观的按键绑定
 #+begin_src emacs-lisp
   (use-package general
-    :ensure t
+    :straight t
     :config
     (general-evil-setup t))
 #+end_src
@@ -253,7 +264,6 @@
 
 
   ;; (use-package simple
-  ;;   :ensure nil
   ;;   :config
   ;;   (progn
   ;;     ;; 关闭当前行高亮
@@ -297,18 +307,19 @@
 ** Icon Display
 #+begin_src emacs-lisp
   (use-package all-the-icons
-    :ensure t)
+    :straight t)
 #+end_src
 
 ** Dashboard
 #+begin_src emacs-lisp
   (use-package dashboard
-    :ensure t
+    :straight t
     ;; :hook (after-init-hook . dashboard-setup-startup-hook)
     :init
     ;; 居中对齐
     (setq dashboard-center-content t
           dashboard-set-footer nil
+          dashboard-startup-banner 'logl
           dashboard-banner-logo-title nil)
     ;;(setq dashboard-show-shortcuts nil)
     (setq dashboard-items '((recents  . 5)
@@ -351,14 +362,14 @@
 ** Posframe
 #+begin_src emacs-lisp
   (use-package posframe
-    :ensure t
+    :straight t
     :defer t
     )
 #+end_src
 ** Face Theme
 #+begin_src emacs-lisp
   (use-package doom-themes
-    :ensure t
+    :straight t
     :config
     ;; Global settings (defaults)
     (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
@@ -373,14 +384,14 @@
 ** Modeline Config
 #+begin_src emacs-lisp
   (use-package doom-modeline
-    :ensure t
+    :straight t
     :hook
     (after-init-hook . doom-modeline-mode))
 
   (use-package moody
     :disabled
     :no-require t
-    :ensure t
+    :straight t
     :config
     (setq x-underline-at-descent-line t)
     (moody-replace-mode-line-buffer-identification)
@@ -392,7 +403,7 @@
 ** Pair Color Config
 #+begin_src emacs-lisp
   (use-package rainbow-delimiters
-    :ensure t
+    :straight t
     :hook
     (prog-mode-hook . rainbow-delimiters-mode))
 #+end_src
@@ -538,7 +549,7 @@
 ** COMMENT Symbol Highlight
 #+begin_src emacs-lisp
   (use-package auto-highlight-symbol
-    :ensure t)
+    :straight t)
 #+end_src
 
 ** Beautiful Code
@@ -547,7 +558,7 @@
   (use-package svg-tag-mode
     :disabled
     :no-require t
-    :ensure t
+    :straight t
     :config
     (setq svg-tag-tags
           '(
@@ -558,7 +569,7 @@
 *** hl-todo
 #+begin_src emacs-lisp
   (use-package hl-todo
-    :ensure t
+    :straight t
     :hook
     (after-init-hook . global-hl-todo-mode))
 #+end_src
@@ -572,8 +583,9 @@
 ** Evil Core
 #+begin_src emacs-lisp
   (use-package evil
-    :ensure t
+    :straight t
     :init
+    (add-hook 'after-init-hook 'evil-mode)
     ;;
     (setq evil-want-integration t
           ;; 在其他模式加载vim默认键绑定
@@ -593,8 +605,6 @@
           evil-want-fine-undo t
           ;; 粘贴替换选中文本不加入 kill ring 中
           evil-kill-on-visual-paste nil)
-    :hook
-    (after-init-hook . evil-mode)
     :config
     (general-define-key
      :states 'insert
@@ -827,7 +837,7 @@
   (use-package evil-escape
     :disabled
     :no-require t
-    :ensure t
+    :straight t
     :hook
     (evil-mode-hook . evil-escape-mode)
     :init
@@ -857,13 +867,13 @@
 #+begin_src emacs-lisp
   ;; 更多的按键绑定
   (use-package evil-collection
-    :ensure t
+    :straight t
     :hook
     (evil-mode-hook . evil-collection-init))
 
   ;; 注释
   (use-package evil-nerd-commenter
-    :ensure t
+    :straight t
     :after evil
     ;; :bind
     ;; (:map lmm/leader-comma-map
@@ -888,14 +898,14 @@
 
   ;; 括号修改
   (use-package evil-surround
-    :ensure t
+    :straight t
     :hook
     (org-mode-hook . evil-surround-mode)
     (prog-mode-hook . evil-surround-mode))
 
   ;; 撤销树
   (use-package undo-tree
-    :ensure t
+    :straight t
     ;; :hook
     ;; (evil-mode-hook . global-undo-tree-mode)
     :bind
@@ -909,7 +919,7 @@
 
   ;; 交换标记区域
   (use-package evil-exchange
-    :ensure t
+    :straight t
     :after evil
     :config
     (general-define-key
@@ -919,7 +929,7 @@
 
   ;; 参数跳转与修改
   (use-package evil-args
-    :ensure t
+    :straight t
     :after evil
     :bind
     (:map evil-inner-text-objects-map
@@ -939,7 +949,7 @@
   (use-package evil-snipe
     :disabled
     :no-require t
-    :ensure t
+    :straight t
     :hook
     (evil-mode-hook . evil-snipe-mode)
     :init
@@ -957,7 +967,6 @@
 ** Other Evil EditUtils
 #+begin_src emacs-lisp
   (use-package evil
-    :ensure nil
     :config
     ;; 删除当前行光标前所有空格
     (general-define-key
@@ -1049,7 +1058,6 @@
       (kill-buffer-and-window)))
 
   (use-package evil
-    :ensure nil
     :bind
     (:map evil-window-map
           ("D" . kill-this-buffer)
@@ -1059,7 +1067,6 @@
 #+begin_src emacs-lisp
   ;; 窗口布局历史切换
   (use-package winner
-    :ensure nil
     :after evil
     :config
     (winner-mode)
@@ -1088,7 +1095,7 @@
 ** Window Jump Config
 #+begin_src emacs-lisp
   (use-package ace-window
-    :ensure t
+    :straight t
     :custom
     (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
     (aw-background nil)
@@ -1108,7 +1115,6 @@
     :after
     (fullframe ibuffer ibuffer-quit))
   (use-package ibuffer
-    :ensure nil
     :init
     (setq ibuffer-formats
           '((mark modified read-only vc-status-mini " "
@@ -1138,7 +1144,7 @@
       (file-size-human-readable (buffer-size)))
     )
   (use-package ibuffer-vc
-    :ensure t
+    :straight t
     :config
     (defun ibuffer-set-up-preferred-filters ()
       (ibuffer-vc-set-filter-groups-by-vc-root)
@@ -1153,7 +1159,7 @@
 ** POPUP WINDOW MANAGER
 #+begin_src emacs-lisp
   (use-package popwin
-    :ensure t
+    :straight t
     :hook
     (after-init-hook . popwin-mode)
     :config
@@ -1185,7 +1191,7 @@
 * WHICH KEY
   #+begin_src emacs-lisp
     (use-package which-key
-      :ensure t
+      :straight t
       :hook
       (after-init-hook . which-key-mode)
       :diminish which-key-mode
@@ -1210,7 +1216,6 @@
 
 
   (use-package evil
-    :ensure nil
     :config
     (evil-define-key* 'normal minibuffer-local-map
       (kbd "ESC") 'minibuffer-keyboard-quit
@@ -1252,13 +1257,12 @@
   (setq-default history-length 1000)
   ;;命令历史
   (use-package savehist
-    :ensure nil
-    :init
-    (setq vertico-count 15)
     :hook
     (after-init-hook . savehist-mode))
   (use-package vertico  ;;命令补全
-    :ensure t
+    :straight (:files (:defaults "extensions/*"))
+    :init
+    (setq vertico-count 15)
     :hook
     (after-init-hook . vertico-mode)
     (minibuffer-setup-hook . vertico-repeat-save)
@@ -1276,7 +1280,7 @@
     (lmm/evil-space-leader-def
       "X" 'vertico-repeat))
   (use-package orderless  ;;搜索排序
-    :ensure t
+    :straight t
     :after vertico
     :init
     (setq completion-styles '(orderless)
@@ -1289,7 +1293,7 @@
     (set-face-background 'orderless-match-face-3 nil)
     )
   (use-package marginalia  ;;命令注释
-    :ensure t
+    :straight t
     :after vertico
     :config
     (marginalia-mode)
@@ -1298,7 +1302,7 @@
 ** Consult -- 搜索完成
 #+begin_src emacs-lisp
   (use-package consult
-    :ensure t
+    :straight t
     :after vertico
     :config
     (global-set-key (kbd "M-Y") 'consult-yank-from-kill-ring)
@@ -1367,7 +1371,7 @@
       )
     )
   (use-package consult-flycheck
-    :ensure t
+    :straight t
     :after consult
     )
 #+end_src
@@ -1375,7 +1379,7 @@
 ** Embark -- 上下文菜单
 #+begin_src emacs-lisp
   (use-package embark   ;;
-    :ensure t
+    :straight t
     :after vertico
     :init
     :bind
@@ -1429,7 +1433,7 @@
                 :around #'embark-hide-which-key-indicator)
     )
   (use-package embark-consult
-    :ensure t
+    :straight t
     :after (embark consult)
     :demand t
     :hook
@@ -1439,26 +1443,25 @@
 * ORG MODE CONFIG
 #+begin_src emacs-lisp
   (use-package org
-    :ensure nil
+    :straight (:type built-in)
     :commands org-mode
     :config
     (set-face-attribute 'org-block nil :foreground nil)
     )
 
   (use-package tempo
-    :ensure nil
     :config
     (require 'org-tempo)
     (tempo-define-template "org-src"
                            '("#+begin_src " p '> n nil "#+end_src" >)))
 
   (use-package org-superstar
-    :ensure t
+    :straight t
     :hook
     (org-mode-hook . org-superstar-mode))
 
   (use-package evil-org
-    :ensure t
+    :straight t
     :hook
     (org-mode-hook . evil-org-mode))
 #+end_src
@@ -1478,10 +1481,15 @@
           )
       (newline arg interactive)))
 #+end_src
+** Repeat -- 重复命令
+#+begin_src emacs-lisp
+  (use-package repeat
+    :commands repeat)
+#+end_src
 ** Search -- anzu
 #+begin_src emacs-lisp
   (use-package anzu
-    :ensure t
+    :straight t
     :hook
     (after-init-hook . global-anzu-mode))
 #+end_src
@@ -1489,7 +1497,7 @@
 *** Evil-auzu
 #+begin_src emacs-lisp
   (use-package evil-anzu
-    :ensure t
+    :straight t
     :after evil anzu
     )
 #+end_src
@@ -1497,7 +1505,7 @@
 ** Keyboard Input -- 中文输入
 #+begin_src emacs-lisp
   (use-package pyim
-    :ensure t
+    :straight t
     :commands toggle-input-method
     :init
     (setq default-input-method "pyim")
@@ -1631,7 +1639,6 @@
 *** 长行文件性能缓解
 #+begin_src emacs-lisp
   (use-package so-long
-    :ensure nil
     :hook
     (after-init-hook . global-so-long-mode))
 #+end_src
@@ -1647,7 +1654,7 @@
 ** Word Jump
    #+begin_src emacs-lisp
      (use-package avy
-       :ensure t
+       :straight t
        :after evil
        :init
        (setq avy-timeout-seconds 0.3)
@@ -1720,7 +1727,7 @@
 ** Goto Last Change
 #+begin_src emacs-lisp
   (use-package goto-chg
-    :ensure t
+    :straight t
     )
 #+end_src
 
@@ -1728,7 +1735,7 @@
  - 智能选择区域
    #+begin_src emacs-lisp
      (use-package expand-region
-       :ensure t
+       :straight t
        :bind ("C-=" . er/expand-region)
        )
    #+end_src
@@ -1740,7 +1747,7 @@
   ;;   (add-hook 'after-init-hook 'electric-pair-mode))
   (use-package paredit
     :disabled
-    :ensure t
+    :straight t
     :config
     (diminish 'paredit-mode " Par")
     (dolist (binding '("C-<left>" "C-<right>" "C-M-<left>" "C-M-<right>" "M-s" "M-?"))
@@ -1748,7 +1755,6 @@
     (paredit-mode)
     )
   (use-package elec-pair
-    :ensure nil
     :hook
     (after-init-hook . electric-pair-mode)
     ;; org-mode 中存在bug，故关闭
@@ -1756,7 +1762,7 @@
     :config
     )
   (use-package smartparens
-    :ensure t
+    :straight t
     :init
     (setq sp-highlight-wrap-overlay nil
           sp-highlight-pair-overlay nil
@@ -1774,7 +1780,6 @@
 开启括号配对显示
 #+begin_src emacs-lisp
   (use-package paren
-    :ensure nil
     :hook
     (after-init-hook . show-paren-mode)
     :config
@@ -1804,7 +1809,7 @@
 同词高亮显示
 #+begin_src emacs-lisp
   (use-package symbol-overlay
-    :ensure t
+    :straight t
     :hook
     ((prog-mode-hook html-mode-hook yaml-mode-hook conf-mode-hook) . symbol-overlay-mode)
     :bind
@@ -1821,7 +1826,7 @@
 页面分割线(C-q C-l)
 #+begin_src emacs-lisp
   (use-package page-break-lines
-    :ensure t
+    :straight t
     :hook
     (after-init-hook . global-page-break-lines-mode)
     :diminish page-break-lines-mode)
@@ -1831,7 +1836,7 @@
 剪贴板
 #+begin_src emacs-lisp
   (use-package browse-kill-ring
-    :ensure t
+    :straight t
     :custom
     (browse-kill-ring-separator "\f")
     :bind
@@ -1849,7 +1854,7 @@
 ** COMMENT Iedit -- 多区域同时编辑
 #+begin_src emacs-lisp
   (use-package iedit
-    :ensure t
+    :straight t
     )
 #+end_src
 
@@ -1860,7 +1865,7 @@
 ** Snippet -- 模板补全
 #+begin_src emacs-lisp
   (use-package yasnippet
-    :ensure t
+    :straight t
     :hook
     (prog-mode-hook . yas-minor-mode)
     (org-mode-hook . yas-minor-mode)
@@ -1871,14 +1876,14 @@
                         :inherit nil))
 
   (use-package yasnippet-snippets
-    :ensure t
+    :straight t
     :after yasnippet)
 #+end_src
 
 ** Multiple Cursors -- 多光标编辑
 #+begin_src emacs-lisp
   (use-package multiple-cursors
-    :ensure t
+    :straight t
     :config
     (defhydra hydra-multiple-cursors(:foreign-keys warn
                                                    :hint nil)
@@ -1968,7 +1973,7 @@
   (use-package company
     :disabled
     :no-require t
-    :ensure t
+    :straight t
     :hook
     (after-init-hook . global-company-mode)
     :init
@@ -2002,9 +2007,10 @@
     )
 #+end_src
 *** Corfu -- other completion tool
+**** Install
 #+begin_src emacs-lisp
   (use-package corfu
-    :ensure t
+    :straight t
     :init
     ;; 自动触发补全
     (setq corfu-auto t
@@ -2067,7 +2073,7 @@
   ;; cape-sgml:来自 sgml 完整的 unicode 字符
   ;; cape-rfc1345: unicode
   (use-package cape
-    :ensure t
+    :straight t
     :config
     (dolist (hook '(lisp-mode-hook
                     emacs-lisp-mode-hook
@@ -2087,7 +2093,7 @@
 **** kind-icon
 #+begin_src emacs-lisp
   (use-package kind-icon
-    :ensure t
+    :straight t
     :after corfu
     :custom
     (kind-icon-default-face 'corfu-default)
@@ -2103,7 +2109,7 @@
 ** Syntax Checking
 #+begin_src emacs-lisp
   (use-package flycheck
-    :ensure t
+    :straight t
     :hook
     (prog-mode-hook . flycheck-mode))
 #+end_src
@@ -2112,7 +2118,7 @@
 [[https://emacs-lsp.github.io/lsp-mode/tutorials/how-to-turn-off/][lsp display config]]
 #+begin_src emacs-lisp
   (use-package lsp-mode
-    :ensure t
+    :straight t
     :init
     (setq lsp-auto-guess-root t
           lsp-prefer-flymake nil
@@ -2152,7 +2158,7 @@
     :commands lsp)
 
   (use-package lsp-ui
-    :ensure t
+    :straight t
     :init
     ;; 错误检查提示延迟
     (setq lsp-ui-sideline-delay 0.4
@@ -2169,7 +2175,7 @@
   (use-package eglot
     :disabled
     :no-require t
-    :ensure t
+    :straight t
     :commands eglot eglot-ensure)
 #+end_src
 
@@ -2180,11 +2186,11 @@
 *** rust
 #+begin_src emacs-lisp
   (use-package rust-mode
-    :ensure t
+    :straight t
     :commands rust-mode
     )
   (use-package rustic
-    :ensure t
+    :straight t
     :mode
     ("\\.rs$" . rustic-mode)
     :init
@@ -2227,7 +2233,7 @@
 *** lua
 #+begin_src emacs-lisp
   (use-package lua-mode
-    :ensure t
+    :straight t
     :init
     (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
     (add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
@@ -2236,7 +2242,7 @@
 *** markdown-mode
 #+begin_src emacs-lisp
   (use-package markdown-mode
-    :ensure t
+    :straight t
     :commands markdown-mode
     :mode
     ("README\\.md\\'" . gfm-mode)
@@ -2246,14 +2252,14 @@
 #+begin_src emacs-lisp
   (use-package json-mode
     :commands json-mode
-    :ensure t)
+    :straight t)
 #+end_src
 
 * PROJECT CONFIG
 ** Projectile Config
 #+begin_src emacs-lisp
   (use-package projectile
-    :ensure t
+    :straight t
     :hook
     (after-init-hook . projectile-mode)
     :init
@@ -2261,14 +2267,12 @@
     :config
     (when (executable-find "rg")
       (setq-default projectile-generic-command "rg --files --hidden"))
+
     (lmm/evil-space-leader-def
-      "pp" 'projectile-switch-project
-      "pf" 'projectile-find-file
-      "pb" 'projectile-switch-to-buffer
-      ))
+      "p" projectile-command-map))
 
   (use-package ibuffer-projectile
-    :ensure t
+    :straight t
     :after projectile)
 #+end_src
 * DIRED CONFIG
@@ -2276,7 +2280,6 @@
 #+begin_src emacs-lisp
   (put 'dired-find-alternate-file 'disabled nil)
   (use-package dired
-    :ensure nil
     :commands (dired dired-jump)
     :config
     (defun lmm/dired-up-alternate()
@@ -2315,7 +2318,7 @@
 #+begin_src emacs-lisp
   ;; 导出环境变量 －－ EDITOR
   (use-package with-editor
-    :ensure t
+    :straight t
     :hook
     (shell-mode-hook . with-editor-export-editor)
     (eshell-mode-hook . with-editor-export-editor)
@@ -2332,13 +2335,15 @@
 * ENVIRONMENT SAVE
 保存打开过的光标位置
 #+begin_src emacs-lisp
-  (add-hook 'after-init-hook 'save-place-mode)
+  (use-package saveplace
+    :hook
+    (after-init-hook . save-place-mode))
 #+end_src
 保存打开过的文件
 #+begin_src emacs-lisp
   (use-package recentf
-    :ensure nil
-    :hook (after-init-hook . recentf-mode)
+    :hook
+    (after-init-hook . recentf-mode)
     :init
     (setq recentf-max-saved-items 100))
 #+end_src
@@ -2346,7 +2351,7 @@
 * GIT
 #+begin_src emacs-lisp
   (use-package magit
-    :ensure t
+    :straight t
     :init
     (setq-default magit-diff-refine-hunk t)
     :commands magit-status magit-dispatch
@@ -2360,7 +2365,7 @@
 * DIFF
 #+begin_src emacs-lisp
   (use-package diff-hl
-    :ensure t
+    :straight t
     :hook
     (after-init-hook . global-diff-hl-mode)
     (dired-mode-hook . diff-hl-dired-mode-unless-remote)
@@ -2372,7 +2377,7 @@
 ** Perspective
 #+begin_src emacs-lisp
   (use-package perspective
-    :ensure t
+    :straight t
     :init
     ;; 按最近使用排序buffer
     (setq persp-sort 'access
@@ -2425,7 +2430,7 @@
   (use-package persp-mode
     :disabled
     :no-require t
-    :ensure t
+    :straight t
     :after evil
     :init
     (setq persp-autokill-buffer-on-remove 'kill-weak
@@ -2450,7 +2455,6 @@
 ** COMMENT Hack Persp
 #+begin_src emacs-lisp
   (use-package persp-mode
-    :ensure nil
     :config
     (progn
 
@@ -2522,19 +2526,19 @@
 ** Treemacs -- 文件树
 #+begin_src emacs-lisp
   (use-package treemacs
-    :ensure t
+    :straight t
     :defer t
     :bind
     (:map lmm/evil-space-leader-def-map
           (";" . treemacs-select-window)))
   (use-package treemacs-evil
-    :ensure t
+    :straight t
     :after (treemacs evil)
     :config
     (define-key evil-treemacs-state-map (kbd "q") 'treemacs-quit))
 
   (use-package treemacs-icons-dired
-    :ensure t
+    :straight t
     :hook
     (dired-mode-hook . treemacs-icons-dired-enable-once))
 #+end_src
@@ -2542,15 +2546,18 @@
 * POPUP
 #+begin_src emacs-lisp
   (use-package popup
-    :ensure t
+    :straight t
     :no-require t)
 #+end_src
 
 * TERM
 #+begin_src emacs-lisp
   (use-package vterm
-    :ensure t
+    :straight t
     :commands vterm)
+  (use-package vterm-toggle
+    :straight t
+    :commands vterm-toggle)
 #+end_src
 
 * UTILS
@@ -2579,6 +2586,8 @@
   ;;              names)
   ;;     (completing-read "Unicode Display: " (sort char-alias (lambda (a b)
   ;;                                                             (< (cdr a) (cdr b)))))))
+
+  ;;;###autoload
   (defun lmm/rename-buffer-and-file-name(&optional buffer file newfile)
     "Rename current BUFFER name and FILE name for NEWFILE."
     (interactive (let* ((buffer (current-buffer))
@@ -2613,7 +2622,6 @@
 
 
   (use-package evil
-    :ensure nil
     :config
     (lmm/evil-space-leader-def
       "tw" 'lmm/translate-word-at-point
@@ -2645,6 +2653,7 @@
     "Conver FILE to sudo path"
     (concat lmmv/sudo-localhost (expand-file-name file)))
 
+;;;###autoload
   (defun lmm/sudo-find-file (file)
     "Open FILE as root."
     (interactive "FOpen file as root: ")
