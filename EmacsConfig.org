@@ -9,17 +9,6 @@
 
 * BOOT CONFIG
 * CORE SETTINGS
-** Adjust garbage collection thresholds during startup, and thereafter
-垃圾回收
-#+begin_src emacs-lisp
-  (setq garbage-collection-messages t)
-  (setq gc-cons-threshold (* 128 1024 1024))
-  (setq gc-cons-percentage 0.6)
-  (add-hook 'emacs-startup-hook
-            (lambda () (setq gc-cons-threshold (* 20 1024 1024))))
-  ;; (add-hook 'post-gc-hook (lambda ()(message "GC finished 🔥🔥🔥")))
-#+end_src
-
 ** Fast Read
 #+begin_src emacs-lisp
   ;; Increase how much is read from processes in a single chunk (default is 4kb)
@@ -187,6 +176,16 @@
 #+end_src
 
 * HELP
+** Default Help System
+#+begin_src emacs-lisp
+  (use-package help
+    :init
+    ;; 自动获取焦点
+    (setq help-window-select t)
+    :commands help
+    :config
+    (add-hook 'help-mode-hook (lambda ()(setq-local mode-line-format nil))))
+#+end_src
 ** Helpful -- 更好的帮助信息
 #+begin_src emacs-lisp
   (use-package helpful
@@ -198,7 +197,16 @@
           ("F" . helpful-function)
           ("v" . helpful-variable)
           ("k" . helpful-key)
-          ("C" . helpful-command)))
+          ("C" . helpful-command))
+    :init
+    (setq helpful-max-buffers 2)
+    (setq helpful-switch-buffer-function
+          (lambda (buffer-name &rest args)
+            (if (equal major-mode 'helpful-mode)
+                (pop-to-buffer buffer-name '((display-buffer-same-window)))
+              (pop-to-buffer buffer-name '((display-buffer-at-bottom) . ((window-height . 0.4)))))))
+    :config
+    (add-hook 'helpful-mode-hook (lambda()(setq-local mode-line-format nil))))
 #+end_src
 ** elisp-demos -- elisp 例子
 #+begin_src emacs-lisp
@@ -220,7 +228,7 @@
 #+end_src
 #+begin_src emacs-lisp
   ;; ESC Cancels All
-  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+ (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
   ;; Rebind C-u
   (global-set-key (kbd "C-M-u") 'universal-argument)
@@ -228,21 +236,17 @@
 ** Hydra
 #+begin_src emacs-lisp
   (use-package hydra
-    :ensure t
+    :straight t
     :config)
 #+end_src
 ** Mouse Key Bind
+#+begin_src emacs-lisp
+  (unless (< emacs-major-version 29)
+    (setq pixel-scroll-precision-large-scroll-height 10)
+    (setq pixel-scroll-precision-interpolation-factor 10)
+    (add-hook 'after-init-hook 'pixel-scroll-precision-mode))
+#+end_src
 * UI
-** Disable Menu, Toolbar, Scrollbar, Starup Screen
-   #+begin_src emacs-lisp
-     (menu-bar-mode -1)
-     (tool-bar-mode -1)
-     (scroll-bar-mode -1)
-     (tooltip-mode -1)
-     ;; 禁止启动屏幕
-     (setq inhibit-startup-message t)
-   #+end_src
-
 ** Display Line Numbers and Truncated Lines
 #+begin_src emacs-lisp
   (global-visual-line-mode t)
@@ -604,7 +608,8 @@
           ;; 使用 emacs 本身的撤销模式
           evil-want-fine-undo t
           ;; 粘贴替换选中文本不加入 kill ring 中
-          evil-kill-on-visual-paste nil)
+          evil-kill-on-visual-paste nil
+          evil-echo-state nil)
     :config
     (general-define-key
      :states 'insert
@@ -646,7 +651,8 @@
      :states '(normal motion)
      "gh" 'beginning-of-line-text
      "gl" 'end-of-line
-     "," evil-window-map)
+     ;; "," evil-window-map
+     )
 
     (defmacro lmm/create-translate-key-map(from to)
       "Translate key"
@@ -730,6 +736,7 @@
       :keymaps 'override
       :prefix-command 'lmm/evil-space-leader-def-command
       :prefix-map 'lmm/evil-space-leader-def-map
+      :non-normal-prefix "C-SPC"
       :prefix "SPC")
     (lmm/evil-space-leader-def
       "w" evil-window-map
@@ -749,7 +756,8 @@
       "eb" 'eval-buffer
       "ep" 'eval-print-last-sexp
       "bk" 'kill-current-buffer
-      "x" 'execute-extended-command)
+      "j" 'evil-avy-goto-char-timer
+      "SPC" 'execute-extended-command)
     (defhydra hydra-Ctrl-quick-key(:foreign-keys warn
                                                  :hint nil)
       ("d" evil-scroll-down)
@@ -784,6 +792,20 @@
     ;;   "Keymap for \"leader key ,\" shortcuts.")
     ;; (evil-define-key 'normal 'global
     ;;   ";" lmm/leader-comma-map)
+    (evil-define-key '(normal motion) 'global
+          ;; "f" #'evil-avy-goto-char-timer
+          ;; "F" #'evil-avy-goto-word-1
+          "q" #'evil-execute-macro
+          "Q" #'evil-record-macro
+          "'" #'evil-goto-mark
+          "`" #'evil-goto-mark-line
+          "U" #'evil-redo
+          ;; ";" #'repeat
+          )
+
+    ;; (evil-define-key '(normal motion visual operator) 'global
+    ;;       "t" #'evil-backward-word-begin
+    ;;       "T" #'evil-backward-WORD-begin)
     :bind
     (:map evil-insert-state-map
           ("C-a" . beginning-of-visual-line)
@@ -793,36 +815,6 @@
           ;; ("C-p" . previous-line)
           ;; ("C-n" . next-line)
           ("C-g" . evil-normal-state)
-          :map evil-normal-state-map
-          ("f" . evil-avy-goto-char-timer)
-          ("F" . evil-avy-goto-word-1)
-          ("q" . evil-execute-macro)
-          ("Q" . evil-record-macro)
-          ("'" . evil-goto-mark)
-          ("`" . evil-goto-mark-line)
-          ("U" . evil-redo)
-          (";" . repeat)
-          ("r" . evil-backward-word-begin)
-          ("R" . evil-backward-WORD-begin)
-          ("t" . evil-replace)
-          ("T" . evil-replace-state)
-          ;; ("<leader>ff" . find-file)
-          ;; ("<leader>bb" . switch-to-buffer)
-          ;; ("<leader>bs" . evil-split-buffer)
-          ;; ("<leader>bl" . ibuffer)
-          ;; ("<leader>bd" . evil-delete-buffer)
-          ;; ("<leader>bk" . kill-buffer)
-          ;; ("<leader>bp" . previous-buffer)
-          ;; ("<leader>bn" . next-buffer)
-          ;; ("<leader>w" . evil-window-map)
-          :map evil-motion-state-map
-          ("f" . evil-avy-goto-char-timer)
-          ("F" . evil-avy-goto-word-1)
-          ("q" . evil-execute-macro)
-          ("Q" . evil-record-macro)
-          (";" . repeat)
-          ("'" . evil-goto-mark)
-          ("`" . evil-goto-mark-line)
           :map evil-window-map
           ("d" . kill-buffer-and-window)
           ("x" . kill-current-buffer)
@@ -830,7 +822,7 @@
           ("p" . evil-prev-buffer)
           ("w" . evil-window-mru)
           ("W" . evil-window-next)
-          ("." . evil-switch-to-windows-last-buffer)))
+          ("," . evil-switch-to-windows-last-buffer)))
 #+end_src
 ** COMMENT Evil-Escape
 #+begin_src emacs-lisp
@@ -905,7 +897,8 @@
 
   ;; 撤销树
   (use-package undo-tree
-    :straight t
+    :disabled
+    ;; :straight t
     ;; :hook
     ;; (evil-mode-hook . global-undo-tree-mode)
     :bind
@@ -947,21 +940,31 @@
 
   ;; 快速跳转
   (use-package evil-snipe
-    :disabled
-    :no-require t
     :straight t
     :hook
     (evil-mode-hook . evil-snipe-mode)
     :init
     (setq evil-snipe-scope 'line
-          evil-snipe-repeat-scope 'visible)
-    :bind
-    (:map evil-normal-state-map
-          ("f" . evil-snipe-f)
-          ("F" . evil-snipe-F)
-          ("s" . evil-snipe-s)
-          ("S" . evil-snipe-S))
-    )
+          evil-snipe-repeat-scope 'nil
+          evil-snipe-smart-case t)
+    :config
+    (evil-define-key '(normal motion visual) 'global
+      "f" #'evil-snipe-f
+      "F" #'evil-snipe-F
+      "s" #'evil-snipe-s
+      "S" #'evil-snipe-S
+      ";" #'evil-snipe-repeat
+      "," #'evil-snipe-repeat-reverse)
+    (set-face-attribute 'evil-snipe-matches-face nil
+                        :background nil
+                        :foreground "red"
+                        :weight 'normal
+                        :underline '(:color "red" :position 0))
+    (set-face-attribute 'evil-snipe-first-match-face nil
+                        :background nil
+                        :foreground nil
+                        :underline nil
+                        :weight 'normal))
   #+end_src
 
 ** Other Evil EditUtils
@@ -1031,19 +1034,19 @@
 
     (evil-define-motion evil-forward-in-word-begin(count &optional bigword)
       "Jump to next word"
-      :type inclusive
+      :type excessive
       (forward-to-word (or count 1)))
 
-    (evil-define-key '(normal motion) 'global
-      "w" 'evil-forward-in-word-begin)
+    ;; (evil-define-key '(normal motion) 'global
+    ;;   "w" 'evil-forward-in-word-begin)
 
-  (evil-define-motion evil-backward-in-word-begin(count &optional bigword)
-    "Backward in word begin"
-    :type exclusive
-    (backward-word (or count 1)))
+    (evil-define-motion evil-backward-in-word-begin(count &optional bigword)
+      "Backward in word begin"
+      :type exclusive
+      (backward-word (or count 1)))
 
-    (evil-define-key '(normal motion) 'global
-      "r" 'evil-backward-in-word-begin)
+    ;; (evil-define-key '(normal motion) 'global
+    ;;   "r" 'evil-backward-in-word-begin)
     )
 #+end_src
 
@@ -1091,6 +1094,9 @@
                 (height . 50)
                 (left . 100)
                 (top . 50)))))
+  (add-to-list
+   'display-buffer-alist
+   '("^\\*\\(Help\\|info\\|cargo.*\\)\\*$" (display-buffer-at-bottom) (window-height . 0.4)))
 #+end_src
 ** Window Jump Config
 #+begin_src emacs-lisp
@@ -1104,8 +1110,7 @@
     :config
     (general-define-key
      :keymaps 'evil-window-map
-     "m" 'ace-window
-     "," 'evil-window-mru))
+     "w" 'ace-window))
 #+end_src
 ** Buffers Config
 #+begin_src emacs-lisp
@@ -1156,14 +1161,13 @@
     (setq-default ibuffer-show-empty-filter-groups nil)
     )
 #+end_src
-** POPUP WINDOW MANAGER
+** COMMENT POPUP WINDOW MANAGER
 #+begin_src emacs-lisp
   (use-package popwin
     :straight t
     :hook
     (after-init-hook . popwin-mode)
     :config
-    (push '("^\\*Org Src.*\\*$" :regexp t :position bottom) popwin:special-display-config)
     (push '("^\\*cargo-run.*\\*$" :regexp t :position bottom) popwin:special-display-config)
     (push '("^\\*cargo-clippy.*\\*$" :regexp t :position bottom) popwin:special-display-config)
     (push '("^\\*Help.*\\*$" :regexp t :position bottom) popwin:special-display-config)
@@ -1225,22 +1229,27 @@
       (kbd "C-v") 'scroll-up-command
       (kbd "C-d") 'scroll-up-command
       (kbd "C-u") 'scroll-down-command
+      (kbd "C-p") #'previous-history-element
+      (kbd "C-n") #'next-history-element
       (kbd "j") 'next-line
       (kbd "k") 'previous-line
+      (kbd "J") 'next-history-element
+      (kbd "K") 'previous-history-element
       (kbd "RET") 'exit-minibuffer
       (kbd "g") 'minibuffer-beginning-of-buffer
       (kbd "G") 'end-of-buffer
       (kbd "o") 'embark-act
-      (kbd ".") 'evil-repeat-pop
+      (kbd ",") #'previous-history-element
+      (kbd ".") #'next-history-element
       )
     (evil-define-key* 'insert minibuffer-local-map
-      (kbd "ESC") 'minibuffer-keyboard-quit
-      (kbd "C-g") 'minibuffer-keyboard-quit
-      (kbd "C-v") 'scroll-up-command
-      (kbd "C-n") 'next-line
-      (kbd "C-p") 'previous-line
-      (kbd "C-k") 'kill-line
-      (kbd "RET") 'exit-minibuffer
+      (kbd "ESC") #'minibuffer-keyboard-quit
+      (kbd "C-g") #'minibuffer-keyboard-quit
+      (kbd "C-v") #'scroll-up-command
+      (kbd "C-n") #'next-line
+      (kbd "C-p") #'previous-line
+      (kbd "C-k") #'kill-line
+      (kbd "RET") #'exit-minibuffer
       )
 
     (general-define-key
@@ -1270,6 +1279,7 @@
     (:map vertico-map
           ("C-w" . backward-kill-word)
           ("C-r" . consult-history)
+          ("C-<return>" . vertico-exit-input)
           ("C-h" . vertico-directory-delete-char)
           ("C-w" . vertico-directory-delete-word)
           ("M-<backspace>" . vertico-directory-up)
@@ -1445,9 +1455,15 @@
   (use-package org
     :straight (:type built-in)
     :commands org-mode
+    :init
+    (setq org-src-window-setup 'current-window)
+    (setq org-src-tab-acts-natively nil)
     :config
     (set-face-attribute 'org-block nil :foreground nil)
     )
+  (use-package org-roam
+    :straight t
+    :commands org-roma)
 
   (use-package tempo
     :config
@@ -1510,6 +1526,7 @@
     :init
     (setq default-input-method "pyim")
     (setq pyim-default-scheme 'quanpin)
+    (setq pyim-punctuation-translate-p '(yes auto no))
     :config
     ;; (setq pyim-dicts
     ;;       `((:name "Greatdict" :file ,(concat user-emacs-directory "pyim/dicts/pyim-greatdict.pyim"))))
@@ -1600,42 +1617,42 @@
 
 #+end_src
 ** Default Variable -- 系统默认变量
-   #+begin_src emacs-lisp
-     (setq-default
-      create-lockfiles nil                   ;; 创建锁定文件以防止其他用户同时编辑 , just like #filename
-      inhibit-compacting-font-caches t
-      bookmark-default-file (expand-file-name ".bookmarks.el" user-emacs-directory)
-      buffers-menu-max-size 30
-      case-fold-search t
-      column-number-mode t
-      ediff-split-window-function 'split-window-horizontally
-      ediff-window-setup-function 'ediff-setup-windows-plain
-      ;; 禁用TAB代替空白缩进
-      indent-tabs-mode nil
-      make-backup-files nil
-      mouse-yank-at-point t
-      save-interprogram-paste-before-kill t
-      scroll-preserve-screen-position 'always
-      scroll-conservatively 1000
-      set-mark-command-repeat-pop t
-      tooltip-delay 1.5
-      truncate-lines nil
-      truncate-partial-width-windows nil
-      ;; 行上下边距
-      scroll-margin 0
-      ;; 列左右边距
-      visual-line-fringe-indicators '(nil right-curly-arrow)
-      )
-   #+end_src
+#+begin_src emacs-lisp
+  (setq-default
+   create-lockfiles nil                   ;; 创建锁定文件以防止其他用户同时编辑 , just like #filename
+   inhibit-compacting-font-caches t
+   bookmark-default-file (expand-file-name ".bookmarks.el" user-emacs-directory)
+   buffers-menu-max-size 30
+   case-fold-search t
+   column-number-mode t
+   ediff-split-window-function 'split-window-horizontally
+   ediff-window-setup-function 'ediff-setup-windows-plain
+   ;; 禁用TAB代替空白缩进
+   indent-tabs-mode nil
+   make-backup-files nil
+   mouse-yank-at-point t
+   save-interprogram-paste-before-kill t
+   scroll-preserve-screen-position 'always
+   scroll-conservatively 1000
+   set-mark-command-repeat-pop t
+   tooltip-delay 1.5
+   truncate-lines nil
+   truncate-partial-width-windows nil
+   ;; 行上下边距
+   scroll-margin 0
+   ;; 列左右边距
+   visual-line-fringe-indicators '(nil right-curly-arrow)
+   )
+#+end_src
 
 ** Default Mode -- 系统默认模式
 *** 自动加载文件
-    #+begin_src emacs-lisp
-      (add-hook 'after-init-hook 'global-auto-revert-mode)
-      (setq global-auto-revert-non-file-buffers t
-            auto-revert-verbose nil)
-      (diminish 'auto-revert-mode)
-    #+end_src
+#+begin_src emacs-lisp
+  (add-hook 'after-init-hook 'global-auto-revert-mode)
+  (setq global-auto-revert-non-file-buffers t
+        auto-revert-verbose nil)
+  (diminish 'auto-revert-mode)
+#+end_src
 *** 长行文件性能缓解
 #+begin_src emacs-lisp
   (use-package so-long
@@ -2026,7 +2043,7 @@
           corfu-min-width 80
           corfu-max-width corfu-min-width
           corfu-count 15
-          corfu-auto-delay 0.4
+          corfu-auto-delay 0.3
           corfu-right-margin-width 1.0
           )
     :hook
@@ -2179,6 +2196,18 @@
     :commands eglot eglot-ensure)
 #+end_src
 
+** Tree Sitter
+#+begin_src emacs-lisp
+  (use-package tree-sitter
+    :straight t
+    :commands (tree-sitter-mode tree-sitter-hl-mode)
+    :hook ((rust-mode-hook) . tree-sitter-hl-mode)
+    )
+  (use-package tree-sitter-langs
+    :straight t
+    :commands tree-sitter-mode)
+#+end_src
+
 ** LANG
 *** javascript
 #+begin_src
@@ -2199,7 +2228,7 @@
     ;; (setq rustic-lsp-client 'eglot)
     :commands rustic-mode
     :config
-    (add-hook 'rustic-mode-hook (lambda () (setq-local company-backends '(company-capf
+    (add-hook 'rust-mode-hook (lambda () (setq-local company-backends '(company-capf
                                                                           (company-yasnippet company-dabbrev-code company-keywords)
                                                                           company-dabbrev
                                                                           company-files
@@ -2237,6 +2266,9 @@
     :init
     (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
     (add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
+    (setq lua-indent-level 2)
+    (setq lua-indent-string-contents t)
+    (setq lua-indent-close-paren-align nil)
     :commands lua-mode)
 #+end_src
 *** markdown-mode
@@ -2253,6 +2285,12 @@
   (use-package json-mode
     :commands json-mode
     :straight t)
+#+end_src
+*** web
+#+begin_src emacs-lisp
+  (use-package request
+    :straight t
+    :commands request)
 #+end_src
 
 * PROJECT CONFIG
@@ -2425,104 +2463,6 @@
         "<tab>" perspective-map)
       ))
 #+end_src
-** COMMENT Install Persp
-#+begin_src emacs-lisp
-  (use-package persp-mode
-    :disabled
-    :no-require t
-    :straight t
-    :after evil
-    :init
-    (setq persp-autokill-buffer-on-remove 'kill-weak
-          persp-reset-windows-on-nil-window-conf nil
-          persp-nil-hidden t
-          persp-set-last-persp-for-new-frames t
-          persp-switch-to-added-buffer nil
-          persp-kill-foreign-buffer-behaviour 'kill
-          persp-remove-buffers-from-nil-persp-behaviour nil
-          persp-auto-resume-time -1 ; Don't auto-load on startup
-          )
-    :config
-    (persp-mode 1)
-    (lmm/evil-space-leader-def
-      "<tab>" 'persp-key-map
-      "," 'persp-switch-to-buffer
-      "<" 'switch-to-buffer)
-    (general-define-key
-     :keymaps 'persp-key-map
-     "n" 'persp-window-switch))
-#+end_src
-** COMMENT Hack Persp
-#+begin_src emacs-lisp
-  (use-package persp-mode
-    :config
-    (progn
-
-      ;; progn start:
-
-      (defvar lmm/workspace-main-name "main")
-
-
-      (defun lmm/get-current-workspace-name ()
-        "Get current workspace in persp-mode"
-        (safe-persp-name (get-current-persp)))
-
-      (defun lmm/get-workspace-names ()
-        "Get all workspace name"
-        persp-names-cache)
-
-
-      (defun lmm/workspace-delete(name)
-        "删除当前工作区，如果加上 C-u 前缀，从 minibuffer 读取。"
-        (interactive
-         (let ((current-name (lmm/get-current-workspace-name)))
-           (list
-            (if current-prefix-arg
-                (completing-read (format "Delete workspace (default: %s): " current-name)
-                                 (lmm/get-workspace-names)
-                                 nil nil nil nil current-name)
-              current-name))))
-        (let ((workspaces (lmm/get-workspace-names)))
-          (if (not (member name workspaces))
-              (message (format "Warning: '%s' workspace delete filed" name))
-            (persp-kill name))))
-
-      (defun lmm/init-startup-workspace (&rest _)
-        "启动时的主工作区"
-        (when persp-mode
-          (let (persp-before-switch-functions)
-            ;; 尝试删除默认无工作区时的 "none"
-            (when (equal (car persp-names-cache) persp-nil-name)
-              (pop persp-names-cache))
-            ;; 当存在主工作区时或工作区大于2时不重复添加主工作区
-            (unless (or (member lmm/workspace-main-name persp-names-cache)
-                        (> (hash-table-count *persp-hash*) 2))
-              (persp-add-new lmm/workspace-main-name)))))
-
-      (defun lmm/init-main-workspace-if-workspace-nil (&rest _)
-        "如果主工作区不存在，则创建并切换至主工作区."
-        (when persp-mode
-          (dolist (frame (frame-list))
-            (when (string= (safe-persp-name (get-current-persp frame)) persp-nil-name)
-              ;; 是否最后工作区，不是就删除当前工作区并至切换下一个，否则创建主工作区
-              (persp-frame-switch (or (cadr (hash-table-keys *persp-hash*))
-                                      lmm/workspace-main-name)
-                                  frame)))))
-      ;; progn end:
-      )
-
-
-    (add-hook 'persp-mode-hook #'lmm/init-startup-workspace)
-    (add-hook 'persp-mode-hook #'lmm/init-main-workspace-if-workspace-nil)
-    (add-hook 'persp-after-load-state-functions 'lmm/init-main-workspace-if-workspace-nil)
-    (add-hook 'persp-before-deactivate-functions 'lmm/init-main-workspace-if-workspace-nil)
-
-    (general-define-key
-     :keymaps 'persp-key-map
-     "d" 'lmm/workspace-delete)
-    )
-
-#+end_src
 ** Treemacs -- 文件树
 #+begin_src emacs-lisp
   (use-package treemacs
@@ -2554,10 +2494,25 @@
 #+begin_src emacs-lisp
   (use-package vterm
     :straight t
+    :init
+    (general-define-key
+     "<f12>" #'vterm)
+    (setq vterm-timer-delay 0.05)
+    :config
+    (add-to-list 'display-buffer-alist
+                 '("\\*vterm\\*\\(<[0-9]>\\)?$"
+                   display-buffer-at-bottom))
+    (general-define-key
+     :keymaps 'vterm-mode-map
+     "<f12>" (lambda ()(interactive) (if (one-window-p)
+                            (switch-to-buffer (other-buffer))
+                          (delete-window))))
+     (add-hook 'vterm-exit-functions
+               (lambda (buffer &optional arg)
+                 "Vterm exit command will call interactive func 'delete-window'"
+                 (when (not (one-window-p))
+                   (call-interactively 'delete-window))))
     :commands vterm)
-  (use-package vterm-toggle
-    :straight t
-    :commands vterm-toggle)
 #+end_src
 
 * UTILS
