@@ -4,11 +4,18 @@
 ;;; Code:
 
 
+(defvar lmmv/emacs-in-wsl (if (string-match "WSL" operating-system-release) t nil)
+  "Emacs if run wsl, is t else nil.")
 
-
-(when (string-match "WSL" operating-system-release)
+(when lmmv/emacs-in-wsl
   (setenv "PATH" "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl")
-  (setq exec-path (split-string "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl" path-separator)))
+  (setq exec-path (split-string "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl" path-separator))
+  (setq browse-url-browser-function (lambda(url &rest args)
+                                      (start-process
+                                       (concat "WinExplorer " url)
+                                       nil
+                                       "/mnt/c/Windows/explorer.exe"
+                                       url))))
 
 (defvar lmmv/emacs-config-file "EmacsConfig.org"
   "Main Config file, .org or .el.")
