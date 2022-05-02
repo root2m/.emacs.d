@@ -305,7 +305,8 @@
   (when (boundp 'display-fill-column-indicator)
     (setq-default indicate-buffer-boundaries 't)
     (setq-default fill-column 80)
-    (add-hook 'prog-mode-hook 'display-fill-column-indicator-mode))
+    ;; (add-hook 'prog-mode-hook 'display-fill-column-indicator-mode)
+    )
 #+end_src
 
 ** Icon Display
@@ -415,15 +416,13 @@
 ** Fonts
 #+begin_src emacs-lisp
   ;; 字体设置
-  (when (member "FiraCode Nerd Font" (font-family-list))
-   (set-face-attribute 'default nil
-                      :font "FiraCode Nerd Font"
-                      ;; :slant 'normal
-                      ;; :weight 'normal
-                      :height 130
-                      ;; :width 'normal
-                      ))
-  ;; (add-to-list 'default-frame-alist '(font . "Fira Code"))
+  (cond ((member "JetBrainsMono Nerd Font" (font-family-list))
+         (add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-13")))
+        ((member "Fira Code" (font-family-list))
+         (add-to-list 'default-frame-alist '(font . "Fira Code-13")))
+        ((member "Source Code Pro" (font-family-list))
+         (add-to-list 'default-frame-alist '(font . "Source Code Pro-13"))))
+  ;; (add-to-list 'initial-frame-alist '(font . "Fira Code"))
   (set-fontset-font t 'han (if (member "HarmonyOS Sans SC" (font-family-list)) "HarmonyOS Sans SC"))
   (setq-default line-spacing nil)
   ;; (set-face-attribute 'default nil
@@ -433,7 +432,6 @@
   ;;                     :height 130
   ;;                     ;; :width 'normal
   ;;                     )
-  ;; (add-to-list 'default-frame-alist '(font . "Sarasa Mono SC Nerd"))
   ;; Fira Code Symbol 字符集
   ;; www  \ue100     **   \ue101    ***  \ue102    **/  \ue103
   ;;  *>  \ue104     */   \ue105     \\  \ue106    \\\  \ue107
@@ -543,11 +541,32 @@
 ** Whitespace Config
 #+begin_src emacs-lisp
   (setq-default show-trailing-whitespace nil)
-  (defun Lmm/show-trailing-whitespace()
+  (defun lmm/show-trailing-whitespace()
     "Enable display of trailing whitespace in this buffer."
     (setq-local show-trailing-whitespace t))
   (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook))
-          (add-hook hook 'Lmm/show-trailing-whitespace))
+          (add-hook hook 'lmm/show-trailing-whitespace))
+
+  ;; (dolist (hook '(emacs-lisp-mode-hook))
+  ;;   (add-hook hook (lambda()
+  ;;                    "Enable highlight whitespace"
+  ;;                    (setq-local whitespace-style
+  ;;                                ;; trailing : enable highlight trail space
+  ;;                                '(face trailing lines-tail)
+  ;;                                ;; '(face lines-tail)
+  ;;                                whitespace-line-column 80)
+  ;;                    (whitespace-mode t))))
+
+
+  ;; (dolist (hook '(org-mode-hook text-mode-hook))
+  ;;   (add-hook hook (lambda ()
+  ;;                    "Enable highlight whitespace"
+  ;;                    (setq-local whitespace-style
+  ;;                                ;; trailing : enable highlight trail space
+  ;;                                '(face trailing)
+  ;;                                ;; '(face lines-tail)
+  ;;                                )
+  ;;                    (whitespace-mode t))))
 #+end_src
 
 ** COMMENT Symbol Highlight
@@ -609,7 +628,8 @@
           evil-want-fine-undo t
           ;; 粘贴替换选中文本不加入 kill ring 中
           evil-kill-on-visual-paste nil
-          evil-echo-state nil)
+          evil-echo-state nil
+          evil-search-module 'evil-search)
     :config
     (general-define-key
      :states 'insert
@@ -639,6 +659,7 @@
     (setq evil-motion-state-modes nil)
 
     (setq evil-visual-state-cursor 'hollow)
+    (setq evil-normal-state-cursor '(box "cyan"))
     ;;清空插入模式的按键
     ;; (setcdr evil-insert-state-map nil)
     ;; 定制ex命令
@@ -757,7 +778,8 @@
       "ep" 'eval-print-last-sexp
       "bk" 'kill-current-buffer
       "j" 'evil-avy-goto-char-timer
-      "SPC" 'execute-extended-command)
+      "SPC" 'execute-extended-command
+      ":" 'eval-expression)
     (defhydra hydra-Ctrl-quick-key(:foreign-keys warn
                                                  :hint nil)
       ("d" evil-scroll-down)
@@ -800,18 +822,67 @@
           "'" #'evil-goto-mark
           "`" #'evil-goto-mark-line
           "U" #'evil-redo
-          ;; ";" #'repeat
+          "t" #'repeat
           )
 
-    ;; (evil-define-key '(normal motion visual operator) 'global
-    ;;       "t" #'evil-backward-word-begin
-    ;;       "T" #'evil-backward-WORD-begin)
+      (defvar lmm/goto-next-object-map (make-sparse-keymap))
+      (defvar lmm/goto-preview-object-map (make-sparse-keymap))
+      (general-define-key
+       :keymaps 'lmm/goto-preview-object-map
+        "SPC" #'evil-collection-unimpaired-insert-newline-above
+        "L" #'evil-collection-unimpaired-first-error
+        "P" #'evil-collection-unimpaired-paste-above
+        "Q" #'evil-collection-unimpaired-first-error
+        "b" #'evil-prev-buffer
+        "e" #'evil-collection-unimpaired-move-text-up
+        "l" #'evil-collection-unimpaired-previous-error
+        "n" #'evil-collection-unimpaired-previous-SCM-conflict-marker
+        "p" #'evil-collection-unimpaired-paste-above
+        "q" #'evil-collection-unimpaired-previous-error
+        "6" #'evil-collection-unimpaired-b64-encode
+        "u" #'evil-collection-unimpaired-url-encode
+        "'" #'evil-previous-mark-line
+        "(" #'evil-previous-open-paren
+        "[" #'evil-backward-section-begin
+        "]" #'evil-backward-section-end
+        "`" #'evil-previous-mark
+        "s" #'evil-prev-flyspell-error
+        "{" #'evil-previous-open-brace
+        "f" #'beginning-of-defun)
+
+      (general-define-key
+       :keymaps 'lmm/goto-next-object-map
+        "SPC" #'evil-collection-unimpaired-insert-newline-below
+        "L" #'evil-collection-unimpaired-last-error
+        "Q" #'evil-collection-unimpaired-last-error
+        "b" #'evil-next-buffer
+        "l" #'evil-collection-unimpaired-next-error
+        "e" #'evil-collection-unimpaired-move-text-down
+        "n" #'evil-collection-unimpaired-next-SCM-conflict-marker
+        "P" #'evil-collection-unimpaired-paste-below
+        "p" #'evil-collection-unimpaired-paste-below
+        "q" #'evil-collection-unimpaired-next-error
+        "6" #'evil-collection-unimpaired-b64-decode
+        "u" #'evil-collection-unimpaired-url-decode
+        "'" #'evil-next-mark-line
+        ")" #'evil-next-close-paren
+        "[" #'evil-forward-section-end
+        "]" #'evil-forward-section-begin
+        "`" #'evil-next-mark
+        "s" #'evil-next-flyspell-error
+        "}" #'evil-next-close-brace
+        "f" #'end-of-defun)
+      (evil-define-key '(normal motion visual) 'global
+      ";" lmm/goto-next-object-map
+      "," lmm/goto-preview-object-map)
+
     :bind
     (:map evil-insert-state-map
           ("C-a" . beginning-of-visual-line)
           ("C-e" . end-of-visual-line)
-          ("C-h" . backward-delete-char)
-          ("C-d" . delete-char)
+          ("C-h" . evil-delete-backward-char)
+          ("C-d" . evil-delete-char)
+          ("C-k" . kill-line)
           ;; ("C-p" . previous-line)
           ;; ("C-n" . next-line)
           ("C-g" . evil-normal-state)
@@ -930,11 +1001,11 @@
           :map evil-outer-text-objects-map
           ("a" . evil-outer-arg)
           :map evil-normal-state-map
-          ("[a" . evil-backward-arg)
-          ("]a" . evil-forward-arg)
+          (",a" . evil-backward-arg)
+          (";a" . evil-forward-arg)
           :map evil-motion-state-map
-          ("[a" . evil-backward-arg)
-          ("]a" . evil-forward-arg)
+          (",a" . evil-backward-arg)
+          (";a" . evil-forward-arg)
           )
     )
 
@@ -944,7 +1015,7 @@
     :hook
     (evil-mode-hook . evil-snipe-mode)
     :init
-    (setq evil-snipe-scope 'line
+    (setq evil-snipe-scope 'visible
           evil-snipe-repeat-scope 'nil
           evil-snipe-smart-case t)
     :config
@@ -952,9 +1023,7 @@
       "f" #'evil-snipe-f
       "F" #'evil-snipe-F
       "s" #'evil-snipe-s
-      "S" #'evil-snipe-S
-      ";" #'evil-snipe-repeat
-      "," #'evil-snipe-repeat-reverse)
+      "S" #'evil-snipe-S)
     (set-face-attribute 'evil-snipe-matches-face nil
                         :background nil
                         :foreground "red"
@@ -965,6 +1034,14 @@
                         :foreground nil
                         :underline nil
                         :weight 'normal))
+
+  (use-package evil-embrace
+    :straight t
+    :after evil-snipe
+    :init
+    (setq evil-embrace-show-help-p nil)
+    :config
+    (evil-embrace-enable-evil-surround-integration))
   #+end_src
 
 ** Other Evil EditUtils
@@ -1082,21 +1159,15 @@
   ;;                           (reusable-frames . t)))
   ;; (customize-set-variable 'even-window-sizes nil)
 
-  (if (display-graphic-p)
-      (progn
-        (setq initial-frame-alist
-              '((width . 200)
-                (height . 50)
-                (left . 100)
-                (top . 50)))
-        (setq default-frame-alist
-              '((width . 200)
-                (height . 50)
-                (left . 100)
-                (top . 50)))))
+  ;; (add-to-list
+  ;;  'display-buffer-alist
+  ;;  '("^\\*\\(Help\\|info\\|cargo.*\\)\\*$" (display-buffer-at-bottom) (window-height . 0.4)))
   (add-to-list
    'display-buffer-alist
-   '("^\\*\\(Help\\|info\\|cargo.*\\)\\*$" (display-buffer-at-bottom) (window-height . 0.4)))
+   '("^\\*.*\\*$" (display-buffer-at-bottom) (window-height . 0.4)))
+  (add-to-list
+   'display-buffer-alist
+   '("^\\*Org Src.*\\*$" (display-buffer-use-some-window)))
 #+end_src
 ** Window Jump Config
 #+begin_src emacs-lisp
@@ -1181,7 +1252,7 @@
           (delete-frame)
         (save-buffers-kill-terminal arg)))
 #+end_src
-** Auto Save Window Size
+** COMMENT Auto Save Window Size
 自动保存窗口尺寸
 #+begin_src emacs-lisp
   (use-package desktop
@@ -1216,7 +1287,7 @@
     (evil-insert 1))
 
   (remove-hook 'minibuffer-setup-hook 'evil-collection-minibuffer-insert)
-  (add-hook 'minibuffer-setup-hook 'lmm/evil-minibuffer-insert)
+  ;; (add-hook 'minibuffer-setup-hook 'lmm/evil-minibuffer-insert)
 
 
   (use-package evil
@@ -1301,6 +1372,32 @@
     (set-face-background 'orderless-match-face-1 nil)
     (set-face-background 'orderless-match-face-2 nil)
     (set-face-background 'orderless-match-face-3 nil)
+
+    ;; 排除项
+    ;; !word
+    (defun lmm/orderless-dispatch-without-if-bang (pattern _index _total)
+      (cond
+       ((equal "!" pattern)
+        '(orderless-literal . ""))
+       ((string-prefix-p "!" pattern)
+        `(orderless-without-literal . ,(substring pattern 1)))))
+
+    ;; 散列
+    ;; word~
+    ;; thws-os-wor-isd
+    (defun lmm/orderless-dispatch-flex (pattern _index _total)
+      (when (string-suffix-p "~" pattern)
+        `(orderless-flex . ,(substring pattern 0 -1))))
+
+    ;; 前缀
+    ;; `word
+    ;; wordsub
+    (defun lmm/orderless-dispatch-prefixes(pattern _index _total)
+      (when (string-prefix-p "`" pattern)
+        `(orderless-prefixes . ,(substring pattern 1))))
+
+    ;; (setq orderless-style-dispatchers '(lmm/orderless-dispatch-without-if-bang
+    ;;                                     lmm/orderless-dispatch-flex))
     )
   (use-package marginalia  ;;命令注释
     :straight t
@@ -1456,13 +1553,17 @@
     :straight (:type built-in)
     :commands org-mode
     :init
-    (setq org-src-window-setup 'current-window)
-    (setq org-src-tab-acts-natively nil)
+    (setq org-src-window-setup 'current-window
+          org-src-tab-acts-natively nil
+          )
+
     :config
     (set-face-attribute 'org-block nil :foreground nil)
     )
   (use-package org-roam
     :straight t
+    :init
+    (setq org-roam-directory "~/Notes/org-roam")
     :commands org-roma)
 
   (use-package tempo
@@ -1484,18 +1585,13 @@
 * EDIT SETTINGS
 ** Newline
 #+begin_src emacs-lisp
-  (defun lmm/newline(&optional arg interactive)
-    (interactive "*P\np")
-    (if (and (looking-at-p "}")
-             (save-excursion
-               (goto-char (1- (point)))
-               (looking-at-p "{")))
-        (progn
-          (save-excursion
-            (newline arg interactive))
-          (newline arg interactive)
-          )
-      (newline arg interactive)))
+  (defun lmm/newline()
+    (interactive)
+    (if (nth 4 (syntax-ppss))
+        (call-interactively 'comment-indent-new-line)
+      (call-interactively 'newline)))
+
+  (global-set-key (kbd "RET") #'lmm/newline)
 #+end_src
 ** Repeat -- 重复命令
 #+begin_src emacs-lisp
@@ -1508,6 +1604,13 @@
     :straight t
     :hook
     (after-init-hook . global-anzu-mode))
+
+  (use-package color-rg
+    :straight (:host github
+                     :repo "manateelazycat/color-rg"
+                     :branch "master")
+    :commands color-rg-search-input
+    )
 #+end_src
 
 *** Evil-auzu
@@ -1526,7 +1629,7 @@
     :init
     (setq default-input-method "pyim")
     (setq pyim-default-scheme 'quanpin)
-    (setq pyim-punctuation-translate-p '(yes auto no))
+    (setq pyim-punctuation-translate-p '(no auto yes))
     :config
     ;; (setq pyim-dicts
     ;;       `((:name "Greatdict" :file ,(concat user-emacs-directory "pyim/dicts/pyim-greatdict.pyim"))))
@@ -1546,8 +1649,8 @@
   ;;         (funcall-interactively 'pyim-activate)))
 
     ;; 代替默认
-    (custom-set-variables
-     '(pyim-english-input-switch-functions '(pyim-probe-program-mode)))
+    ;; (custom-set-variables
+    ;;  '(pyim-english-input-switch-functions '(pyim-probe-program-mode)))
 
   (defun pyim-preview-delete-string ()
     "删除已经插入 buffer 的 preview 预览字符串。"
@@ -1749,13 +1852,14 @@
 #+end_src
 
 ** Expand-region
- - 智能选择区域
-   #+begin_src emacs-lisp
-     (use-package expand-region
-       :straight t
-       :bind ("C-=" . er/expand-region)
-       )
-   #+end_src
+- 智能选择区域
+  #+begin_src emacs-lisp
+    (use-package expand-region
+      :straight t
+      :bind (:map evil-visual-state-map
+                  ("." . er/expand-region)
+                  ("C-." . er/contract-region)))
+  #+end_src
 
 ** Parenthes Settings
 *** Pairs
@@ -2027,7 +2131,7 @@
 **** Install
 #+begin_src emacs-lisp
   (use-package corfu
-    :straight t
+    :straight (:files (:defaults "extensions/*"))
     :init
     ;; 自动触发补全
     (setq corfu-auto t
@@ -2048,6 +2152,7 @@
           )
     :hook
     (after-init-hook . corfu-global-mode)
+    (corfu-mode-hook . corfu-history-mode)
     :bind
     (:map corfu-map
           ("C-n" . corfu-next)
@@ -2058,7 +2163,12 @@
           ("M->" . corfu-last)
           ("C-v" . corfu-scroll-up)
           ("M-v" . corfu-scroll-down)
-          ("M-h". corfu-show-documentation)
+          ("C-'" . corfu-quick-jump)
+          ("C-." . corfu-quick-insert)
+          ("C-," . corfu-quick-complete)
+          ("C-i" . corfu-complete)
+          ("M-h". corfu-info-documentation)
+          ("<tab>" . corfu-insert-separator)
           ("C-SPC" . corfu-insert-separator))
     :config
     ;; insert模式下按键失效，需此设置
@@ -2075,6 +2185,20 @@
     (set-face-background 'corfu-border "#ffc4cd")
     (set-face-background 'corfu-default "#282a36")
     )
+#+end_src
+**** Corfu Doc
+#+begin_src emacs-lisp
+  (use-package corfu-doc
+    :straight t
+    :hook
+    (corfu-mode-hook . corfu-doc-mode)
+    :init
+    (setq corfu-doc-auto nil)
+    :bind
+    (:map corfu-map
+    ("M-h" . corfu-doc-toggle)
+    ("M-n" . corfu-doc-scroll-up)
+    ("M-p" . corfu-doc-scroll-down)))
 #+end_src
 **** cape -- complete backends
 #+begin_src emacs-lisp
@@ -2206,6 +2330,70 @@
   (use-package tree-sitter-langs
     :straight t
     :commands tree-sitter-mode)
+  (use-package evil-textobj-tree-sitter
+    :straight t
+    :after tree-sitter
+    :config
+
+    ;; 代码块
+    ;; block.inner
+    ;; block.outer
+    ;; 函数调用
+    ;; call.inner
+    ;; call.outer
+    ;; 对象块
+    ;; class.inner
+    ;; class.outer
+    ;; 注释
+    ;; comment.outer
+    ;; 条件表达时
+    ;; conditional.inner
+    ;; conditional.outer
+    ;; 函数
+    ;; function.inner
+    ;; function.outer
+    ;; 循环
+    ;; loop.inner
+    ;; loop.outer
+    ;; 参数
+    ;; parameter.inner
+    ;; 语句行
+    ;; statement.outer
+    (evil-define-key nil evil-inner-text-objects-map
+      "f" (evil-textobj-tree-sitter-get-textobj "function.inner")
+      "p" (evil-textobj-tree-sitter-get-textobj "parameter.inner")
+      "c" (evil-textobj-tree-sitter-get-textobj "class.inner")
+      "?" (evil-textobj-tree-sitter-get-textobj "conditional.inner")
+      "r" (evil-textobj-tree-sitter-get-textobj "call.inner")
+      ";" (evil-textobj-tree-sitter-get-textobj "statement.outer")
+      "/" (evil-textobj-tree-sitter-get-textobj "comment.outer")
+      "0" (evil-textobj-tree-sitter-get-textobj "loop.inner")
+      "b" (evil-textobj-tree-sitter-get-textobj "block.inner"))
+    (evil-define-key nil evil-outer-text-objects-map
+      "f" (evil-textobj-tree-sitter-get-textobj "function.outer")
+      "p" (evil-textobj-tree-sitter-get-textobj "parameter.outer")
+      "c" (evil-textobj-tree-sitter-get-textobj "class.outer")
+      "?" (evil-textobj-tree-sitter-get-textobj "conditional.outer")
+      "r" (evil-textobj-tree-sitter-get-textobj "call.outer")
+      ";" (evil-textobj-tree-sitter-get-textobj "statement.outer")
+      "/" (evil-textobj-tree-sitter-get-textobj "comment.outer")
+      "0" (evil-textobj-tree-sitter-get-textobj "loop.outer")
+      "b" (evil-textobj-tree-sitter-get-textobj "block.outer"))
+    (evil-define-key '(normal motion visual) 'global
+      "L" (lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "parameter.inner"))
+      "H" (lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "parameter.inner" t))
+      ";f"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer"))
+      ",f"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer" t))
+      ";F"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer" nil t))
+      ",F"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer" t t))
+      ";r"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "call.outer"))
+      ",r"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "call.outer" t))
+      ";/"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "comment.outer"))
+      ",/"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "comment.outer" t))
+      ";;"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "statement.outer"))
+      ",;"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "statement.outer" t))
+      ";0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer"))
+      ",0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer" t))))
 #+end_src
 
 ** LANG
@@ -2288,9 +2476,11 @@
 #+end_src
 *** web
 #+begin_src emacs-lisp
-  (use-package request
+  (use-package verb
     :straight t
-    :commands request)
+    :init
+    (setq verb-babel-timeout 3.0)
+    :commands verb-mode)
 #+end_src
 
 * PROJECT CONFIG
@@ -2318,6 +2508,8 @@
 #+begin_src emacs-lisp
   (put 'dired-find-alternate-file 'disabled nil)
   (use-package dired
+    :init
+    (setq dired-listing-switches "-alh")
     :commands (dired dired-jump)
     :config
     (defun lmm/dired-up-alternate()
@@ -2408,7 +2600,19 @@
     (after-init-hook . global-diff-hl-mode)
     (dired-mode-hook . diff-hl-dired-mode-unless-remote)
     (magit-pre-refresh-hook . diff-hl-magit-pre-refresh)
-    (magit-post-refresh-hook . diff-hl-magit-post-refresh))
+    (magit-post-refresh-hook . diff-hl-magit-post-refresh)
+    :config
+    (evil-define-key '(normal motion) diff-hl-show-hunk-map
+      "n" #'diff-hl-show-hunk-next
+      "p" #'diff-hl-show-hunk-previous
+      "r" #'diff-hl-revert-hunk
+      "c" #'diff-hl-show-hunk-copy-original-text
+      "q" 'diff-hl-inline-popup-hide
+      (kbd "<escape>") 'diff-hl-inline-popup-hide
+      "j" 'diff-hl-inline-popup--popup-down
+      "k" 'diff-hl-inline-popup--popup-up
+      (kbd "C-f") 'diff-hl-inline-popup--popup-pagedown
+      (kbd "C-b") 'diff-hl-inline-popup--popup-pageup))
 #+end_src
 
 * WORKSPACE
@@ -2491,6 +2695,7 @@
 #+end_src
 
 * TERM
+** Install
 #+begin_src emacs-lisp
   (use-package vterm
     :straight t
@@ -2513,6 +2718,35 @@
                  (when (not (one-window-p))
                    (call-interactively 'delete-window))))
     :commands vterm)
+#+end_src
+** COMMENT Zsh Needed Config
+#+begin_src conf
+  vterm_printf(){
+      if [ -n "$TMUX" ] && ([ "${TERM%%-*}" = "tmux" ] || [ "${TERM%%-*}" = "screen" ] ); then
+          # Tell tmux to pass the escape sequences through
+          printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+      elif [ "${TERM%%-*}" = "screen" ]; then
+          # GNU screen (screen, screen-256color, screen-256color-bce)
+          printf "\eP\e]%s\007\e\\" "$1"
+      else
+          printf "\e]%s\e\\" "$1"
+      fi
+  }
+  vterm_prompt_end() {
+      vterm_printf "51;A$(whoami)@$(cat /etc/hostname):$(pwd)";
+  }
+  setopt PROMPT_SUBST
+  PROMPT=$PROMPT'%{$(vterm_prompt_end)%}'
+
+  vterm_cmd() {
+      local vterm_elisp
+      vterm_elisp=""
+      while [ $# -gt 0 ]; do
+          vterm_elisp="$vterm_elisp""$(printf '"%s" ' "$(printf "%s" "$1" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')")"
+          shift
+      done
+      vterm_printf "51;E$vterm_elisp"
+  }
 #+end_src
 
 * UTILS
@@ -2656,6 +2890,14 @@
        ;; 如果该文件不存在
        (t nil)
        )))
+#+end_src
+** News
+#+begin_src emacs-lisp
+  (use-package elfeed
+    :straight t
+    :init
+    (setq elfeed-db-directory (concat user-emacs-directory "elfeed-cache"))
+    :commands elfeed)
 #+end_src
 
 * KEY LIST
