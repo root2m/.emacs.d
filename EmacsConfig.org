@@ -3,20 +3,20 @@
 #+STARTUP: content indent
 
 * COMMENT OPEN DEBUG
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 (setq debug-on-error t)
-#+end_src
+#+END_SRC
 
 * BOOT CONFIG
 * CORE SETTINGS
 ** Fast Read
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; Increase how much is read from processes in a single chunk (default is 4kb)
   (setq read-process-output-max (* 4 1024 1024))
-#+end_src
+#+END_SRC
 
 ** COMMENT Init time
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (add-hook 'emacs-startup-hook
             (lambda ()
               (message "*** Emacs loaded in %s with %d garbage collections."
@@ -24,37 +24,37 @@
                                (float-time
                                 (time-subtract after-init-time before-init-time)))
                        gcs-done)))
-#+end_src
+#+END_SRC
 
 ** Custom file
-   #+begin_src emacs-lisp
-     (setq custom-file (locate-user-emacs-file "custom.el"))
-   #+end_src
+#+BEGIN_SRC emacs-lisp
+(setq custom-file (locate-user-emacs-file "custom.el"))
+#+END_SRC
 
 ** Open Config file
-   #+begin_src emacs-lisp
-     (defun open-init-file()
-       (interactive)
-       (find-file (concat user-emacs-directory "init.el")))
-     (defun open-config-org-file()
-       (interactive)
-       (find-file (concat user-emacs-directory "EmacsConfig.org")))
-     (global-set-key (kbd "<f2>") 'open-config-org-file)
-   #+end_src
+#+BEGIN_SRC emacs-lisp
+  (defun open-init-file()
+    (interactive)
+    (find-file (concat user-emacs-directory "init.el")))
+  (defun open-config-org-file()
+    (interactive)
+    (find-file (concat user-emacs-directory "EmacsConfig.org")))
+  (global-set-key (kbd "<f2>") 'open-config-org-file)
+#+END_SRC
 
 ** Default Coding System
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (set-language-environment "UTF-8")
   (set-default-coding-systems 'utf-8)
-#+end_src
+#+END_SRC
 
 ** Server Mode
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (server-start)
-#+end_src
+#+END_SRC
 
 ** Native Comp Support
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; 判断是否支持native-comp
   (when (featurep 'native-compile)
     ;; 关闭native-comp 生成的警告
@@ -64,10 +64,10 @@
     ;; 自定义 native comp 缓存生成路径
     (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
     (setq package-native-compile t))
-#+end_src
+#+END_SRC
 
 ** Yes Or No
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (setq use-short-answers t)
   (unless (>= emacs-major-version 28)
     (fset 'yes-or-no-p 'y-or-n-p))
@@ -85,37 +85,38 @@
                  (cond ,@(mapcar (lambda (c) (let ((c (car c))
                                             (body (cdr c)))
                                         (cons (list '= c 'ch) body))) choices)))))
-#+end_src
+#+END_SRC
 
 ** System Clipboard
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; 当变量为 t 时，evil 粘贴失效
   (setq select-enable-primary nil)
   ;; 开启系统剪贴板
   (setq select-enable-clipboard t)
-#+end_src
+#+END_SRC
 
 ** Enable Narrow Commands -- 只对目标进行编辑
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (put 'narrow-to-defun  'disabled nil)
   (put 'narrow-to-page   'disabled nil)
   (put 'narrow-to-region 'disabled nil)
-#+end_src
+#+END_SRC
 
 * PACKAGE MANAGEMENT
 ** Setup package.el to work with MELPA.
    修改国内镜像源
-   #+begin_src emacs-lisp
-     ;; (require 'package)
-     (setq package-archives '(("gnu"   . "https://elpa.zilongshanren.com/gnu/")
-                              ("melpa" . "https://elpa.zilongshanren.com/melpa/")
-                              ("org" . "https://elpa.zilongshanren.com/org/")))
-     ;; 合并 autoload io 快速启动，如果新安装包了之后需要执行 package-quickstart-refresh
-     (setq package-quickstart t)
-     ;; (package-refresh-contents)
-   #+end_src
+#+BEGIN_SRC emacs-lisp
+  ;; (require 'package)
+  (setq package-archives '(("gnu"   . "https://elpa.zilongshanren.com/gnu/")
+                           ("melpa" . "https://elpa.zilongshanren.com/melpa/")
+                           ("org" . "https://elpa.zilongshanren.com/org/")))
+  ;; 合并 autoload io 快速启动，如果新安装包了之后需要执行 package-quickstart-refresh
+  (setq package-quickstart t)
+  ;; (package-refresh-contents)
+#+END_SRC
+
 ** Straight -- git package manager
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (setq straight-check-for-modifications 'never)
   (defvar bootstrap-version)
   (let ((bootstrap-file
@@ -129,11 +130,11 @@
         (goto-char (point-max))
         (eval-print-last-sexp)))
     (load bootstrap-file nil 'nomessage))
-#+end_src
+#+END_SRC
 
 ** Installing use-package
 包管理器
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (straight-use-package 'use-package)
   ;; (unless (package-installed-p 'use-package)
   ;;   (package-initialize)
@@ -144,24 +145,24 @@
   ;; ;; (setq use-package-verbose t)
   (eval-when-compile
     (require 'use-package))
-#+end_src
+#+END_SRC
 
 ** COMMENT Use-Package Man
-    #+begin_src emacs-lisp
-      (use-package some-package-name
-        :disabled ;;停止加载不使用的内容
-        :no-require t; 不加载
-        :straight t ;;确保软件包会自动安装
-        :defer t ;;延迟t秒加载包（require 'some-package-name)
-        :init () ;;加载包之前执行的代码
-        :config () ;;加载包之后执行的代码
-        :hook () ;;钩子, 默认启用 defer t
-        :commands command-example ;;延迟加载，命令触发
-        )
-    #+end_src
+#+BEGIN_SRC emacs-lisp
+  (use-package some-package-name
+    :disabled ;;停止加载不使用的内容
+    :no-require t; 不加载
+    :straight t ;;确保软件包会自动安装
+    :defer t ;;延迟t秒加载包（require 'some-package-name)
+    :init () ;;加载包之前执行的代码
+    :config () ;;加载包之后执行的代码
+    :hook () ;;钩子, 默认启用 defer t
+    :commands command-example ;;延迟加载，命令触发
+    )
+#+END_SRC
 
 ** Install diminish, bind-key, gcmh
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package diminish
     :straight t
     )
@@ -173,11 +174,11 @@
     :straight t
     :config
     (gcmh-mode))
-#+end_src
+#+END_SRC
 
 * HELP
 ** Default Help System
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package help
     :init
     ;; 自动获取焦点
@@ -185,9 +186,10 @@
     :commands help
     :config
     (add-hook 'help-mode-hook (lambda ()(setq-local mode-line-format nil))))
-#+end_src
+#+END_SRC
+
 ** Helpful -- 更好的帮助信息
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package helpful
     :straight t
     :bind
@@ -207,48 +209,53 @@
               (pop-to-buffer buffer-name '((display-buffer-at-bottom) . ((window-height . 0.4)))))))
     :config
     (add-hook 'helpful-mode-hook (lambda()(setq-local mode-line-format nil))))
-#+end_src
+#+END_SRC
+
 ** elisp-demos -- elisp 例子
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package elisp-demos
     :defer t
     :straight t
     :config
     (advice-add 'describe-function-1 :after #'elisp-demos-advice-describe-function-1)
     (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
-#+end_src
+#+END_SRC
+
 * KEY BIND
 ** Simple Key Bind
 [[https://github.com/noctuid/general.el][General]] 直观的按键绑定
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package general
     :straight t
     :config
     (general-evil-setup t))
-#+end_src
-#+begin_src emacs-lisp
+#+END_SRC
+#+BEGIN_SRC emacs-lisp
   ;; ESC Cancels All
  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
   ;; Rebind C-u
   (global-set-key (kbd "C-M-u") 'universal-argument)
-#+end_src
+#+END_SRC
+
 ** Hydra
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package hydra
     :straight t
     :config)
-#+end_src
+#+END_SRC
+
 ** Mouse Key Bind
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (unless (< emacs-major-version 29)
     (setq pixel-scroll-precision-large-scroll-height 10)
     (setq pixel-scroll-precision-interpolation-factor 10)
     (add-hook 'after-init-hook 'pixel-scroll-precision-mode))
-#+end_src
+#+END_SRC
+
 * UI
 ** Display Line Numbers and Truncated Lines
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (global-visual-line-mode t)
 
   (setq-default display-line-numbers-type 'relative
@@ -272,51 +279,52 @@
   ;;   (progn
   ;;     ;; 关闭当前行高亮
   ;;     (global-hl-line-mode -1)))
-   #+end_src
+   #+END_SRC
 
 ** Cursor Face
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (blink-cursor-mode -1)
   (defun lmm/cursor-I-am-here ()
     "cursor, where are you ???"
     (interactive)
     )
-#+end_src
+#+END_SRC
 
 ** Bell
 *** COMMENT bell modeline color
-   #+begin_src emacs-lisp
-     (setq ring-bell-function
-           (lambda ()
-             (let ((orig-fg (face-background 'mode-line)))
-               (set-face-background 'mode-line "#a8910f")
-               (run-with-idle-timer 0.1 nil
-                                    (lambda (fg) (set-face-background 'mode-line fg))
-                                    orig-fg))))
-   #+end_src
+#+BEGIN_SRC emacs-lisp
+  (setq ring-bell-function
+        (lambda ()
+          (let ((orig-fg (face-background 'mode-line)))
+            (set-face-background 'mode-line "#a8910f")
+            (run-with-idle-timer 0.1 nil
+                                 (lambda (fg) (set-face-background 'mode-line fg))
+                                 orig-fg))))
+#+END_SRC
+
 *** visible bell
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (setq visible-bell nil)
   (setq ring-bell-function 'ignore)
-#+end_src
+#+END_SRC
 
 ** 80 line
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (when (boundp 'display-fill-column-indicator)
     (setq-default indicate-buffer-boundaries 't)
     (setq-default fill-column 80)
     ;; (add-hook 'prog-mode-hook 'display-fill-column-indicator-mode)
     )
-#+end_src
+#+END_SRC
 
 ** Icon Display
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package all-the-icons
     :straight t)
-#+end_src
+#+END_SRC
 
 ** Dashboard
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package dashboard
     :straight t
     ;; :hook (after-init-hook . dashboard-setup-startup-hook)
@@ -362,17 +370,18 @@
     ;; emacsclient启动时为dashboard
     (setq initial-buffer-choice '(lambda () (get-buffer "*dashboard*")))
     )
-#+end_src
+#+END_SRC
 
 ** Posframe
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package posframe
     :straight t
     :defer t
     )
-#+end_src
+#+END_SRC
+
 ** Face Theme
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package doom-themes
     :straight t
     :config
@@ -384,10 +393,10 @@
     (set-face-background 'line-number-current-line "#282a36")
     ;; (doom-themes-visual-bell-config)
    )
-#+end_src
+#+END_SRC
 
 ** Modeline Config
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package doom-modeline
     :straight t
     :hook
@@ -403,18 +412,18 @@
     (moody-replace-vc-mode)
     (moody-replace-eldoc-minibuffer-message-function)
     )
-#+end_src
+#+END_SRC
 
 ** Pair Color Config
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package rainbow-delimiters
     :straight t
     :hook
     (prog-mode-hook . rainbow-delimiters-mode))
-#+end_src
+#+END_SRC
 
 ** Fonts
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; 字体设置
   (cond ((member "JetBrainsMono Nerd Font" (font-family-list))
          (add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-13")))
@@ -536,10 +545,10 @@
     ;; text-scale-adjust 按键监听，＋ － 或 0 重置，q 退出
     ("q" nil "Quit ! ! !"))
 
-#+end_src
+#+END_SRC
 
 ** Whitespace Config
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (setq-default show-trailing-whitespace nil)
   (defun lmm/show-trailing-whitespace()
     "Enable display of trailing whitespace in this buffer."
@@ -567,17 +576,17 @@
   ;;                                ;; '(face lines-tail)
   ;;                                )
   ;;                    (whitespace-mode t))))
-#+end_src
+#+END_SRC
 
 ** COMMENT Symbol Highlight
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package auto-highlight-symbol
     :straight t)
-#+end_src
+#+END_SRC
 
 ** Beautiful Code
 *** COMMENT svg-tag-mode
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package svg-tag-mode
     :disabled
     :no-require t
@@ -587,24 +596,24 @@
           '(
             (":TODO:" . ((lambda (tag) (svg-tag-make tag :beg 1 :end -1))))
             )))
-#+end_src
+#+END_SRC
 
 *** hl-todo
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package hl-todo
     :straight t
     :hook
     (after-init-hook . global-hl-todo-mode))
-#+end_src
+#+END_SRC
 
 *** COMMENT highlight indent
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
 
-#+end_src
+#+END_SRC
 
 * EVIL MODE
 ** Evil Core
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package evil
     :straight t
     :init
@@ -894,9 +903,10 @@
           ("w" . evil-window-mru)
           ("W" . evil-window-next)
           ("," . evil-switch-to-windows-last-buffer)))
-#+end_src
+#+END_SRC
+
 ** COMMENT Evil-Escape
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package evil-escape
     :disabled
     :no-require t
@@ -924,10 +934,10 @@
     (setq evil-escape-inhibit-functions '(evil-visual-state-p))
     :diminish evil-escape-mode
     )
-#+end_src
+#+END_SRC
 
 ** Other Evil Plugins
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; 更多的按键绑定
   (use-package evil-collection
     :straight t
@@ -1042,10 +1052,10 @@
     (setq evil-embrace-show-help-p nil)
     :config
     (evil-embrace-enable-evil-surround-integration))
-  #+end_src
+  #+END_SRC
 
 ** Other Evil EditUtils
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package evil
     :config
     ;; 删除当前行光标前所有空格
@@ -1125,11 +1135,11 @@
     ;; (evil-define-key '(normal motion) 'global
     ;;   "r" 'evil-backward-in-word-begin)
     )
-#+end_src
+#+END_SRC
 
 * WINDOW AND BUFFER AND FRAME
 ** Utils Functions
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (defun lmm/kill-current-buffer-and-window ()
     "kill current buffer and window, if just one window, kill current buffer"
     (interactive)
@@ -1142,9 +1152,10 @@
     (:map evil-window-map
           ("D" . kill-this-buffer)
           ("d" . lmm/kill-current-buffer-and-window)))
-#+end_src
+#+END_SRC
+
 ** Window Split Config
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; 窗口布局历史切换
   (use-package winner
     :after evil
@@ -1168,9 +1179,10 @@
   (add-to-list
    'display-buffer-alist
    '("^\\*Org Src.*\\*$" (display-buffer-use-some-window)))
-#+end_src
+#+END_SRC
+
 ** Window Jump Config
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package ace-window
     :straight t
     :custom
@@ -1182,9 +1194,10 @@
     (general-define-key
      :keymaps 'evil-window-map
      "w" 'ace-window))
-#+end_src
+#+END_SRC
+
 ** Buffers Config
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package fullframe
     :disabled
     :no-require t
@@ -1231,9 +1244,10 @@
 
     (setq-default ibuffer-show-empty-filter-groups nil)
     )
-#+end_src
+#+END_SRC
+
 ** COMMENT POPUP WINDOW MANAGER
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package popwin
     :straight t
     :hook
@@ -1243,18 +1257,20 @@
     (push '("^\\*cargo-clippy.*\\*$" :regexp t :position bottom) popwin:special-display-config)
     (push '("^\\*Help.*\\*$" :regexp t :position bottom) popwin:special-display-config)
     )
-#+end_src
+#+END_SRC
+
 ** Frame Config
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (defun lmm/delete-frame-or-C-x-C-c(&optional arg)
     (interactive "P")
       (if (delete-frame-enabled-p)
           (delete-frame)
         (save-buffers-kill-terminal arg)))
-#+end_src
+#+END_SRC
+
 ** COMMENT Auto Save Window Size
 自动保存窗口尺寸
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package desktop
     :defer t
     :init
@@ -1262,20 +1278,21 @@
           desktop-auto-save-timeout 600)
     :hook
     (window-setup-hook . desktop-save-mode))
-#+end_src
+#+END_SRC
+
 * WHICH KEY
-  #+begin_src emacs-lisp
-    (use-package which-key
-      :straight t
-      :hook
-      (after-init-hook . which-key-mode)
-      :diminish which-key-mode
-      )
-  #+end_src
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :straight t
+    :hook
+    (after-init-hook . which-key-mode)
+    :diminish which-key-mode
+    )
+#+END_SRC
 
 * MINIBUFFER
 ** Minibuffer
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; 在 minibuffer 中执行 minibuffer
   (setq enable-recursive-minibuffers t)
   ;; 禁止光标移动到提示文本上
@@ -1330,9 +1347,10 @@
            :timeout 0.1
            "k" 'evil-normal-state
            ";" 'minibuffer-keyboard-quit)))
-#+end_src
+#+END_SRC
+
 ** Vertico -- 命令完成
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; minibuffer命令记录数量
   (setq-default history-length 1000)
   ;;命令历史
@@ -1405,9 +1423,10 @@
     :config
     (marginalia-mode)
     )
-#+end_src
+#+END_SRC
+
 ** Consult -- 搜索完成
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package consult
     :straight t
     :after vertico
@@ -1481,10 +1500,10 @@
     :straight t
     :after consult
     )
-#+end_src
+#+END_SRC
 
 ** Embark -- 上下文菜单
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package embark   ;;
     :straight t
     :after vertico
@@ -1545,10 +1564,10 @@
     :demand t
     :hook
     (embark-collect-mode . consult-preview-at-point-mode))
-#+end_src
+#+END_SRC
 
 * ORG MODE CONFIG
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package org
     :straight (:type built-in)
     :commands org-mode
@@ -1570,7 +1589,7 @@
     :config
     (require 'org-tempo)
     (tempo-define-template "org-src"
-                           '("#+begin_src " p '> n nil "#+end_src" >)))
+                           '("#+BEGIN_SRC " p '> n nil "#+END_SRC" >)))
 
   (use-package org-superstar
     :straight t
@@ -1581,10 +1600,11 @@
     :straight t
     :hook
     (org-mode-hook . evil-org-mode))
-#+end_src
+#+END_SRC
+
 * EDIT SETTINGS
 ** Newline
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (defun lmm/newline()
     (interactive)
     (if (nth 4 (syntax-ppss))
@@ -1592,14 +1612,16 @@
       (call-interactively 'newline)))
 
   (global-set-key (kbd "RET") #'lmm/newline)
-#+end_src
+#+END_SRC
+
 ** Repeat -- 重复命令
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package repeat
     :commands repeat)
-#+end_src
+#+END_SRC
+
 ** Search -- anzu
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package anzu
     :straight t
     :hook
@@ -1611,18 +1633,18 @@
                      :branch "master")
     :commands color-rg-search-input
     )
-#+end_src
+#+END_SRC
 
 *** Evil-auzu
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package evil-anzu
     :straight t
     :after evil anzu
     )
-#+end_src
+#+END_SRC
 
 ** Keyboard Input -- 中文输入
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package pyim
     :straight t
     :commands toggle-input-method
@@ -1718,9 +1740,10 @@
   ;;       ()))
   )
 
-#+end_src
+#+END_SRC
+
 ** Default Variable -- 系统默认变量
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (setq-default
    create-lockfiles nil                   ;; 创建锁定文件以防止其他用户同时编辑 , just like #filename
    inhibit-compacting-font-caches t
@@ -1746,124 +1769,127 @@
    ;; 列左右边距
    visual-line-fringe-indicators '(nil right-curly-arrow)
    )
-#+end_src
+#+END_SRC
 
 ** Default Mode -- 系统默认模式
 *** 自动加载文件
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (add-hook 'after-init-hook 'global-auto-revert-mode)
   (setq global-auto-revert-non-file-buffers t
         auto-revert-verbose nil)
   (diminish 'auto-revert-mode)
-#+end_src
+#+END_SRC
+
 *** 长行文件性能缓解
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package so-long
     :hook
     (after-init-hook . global-so-long-mode))
-#+end_src
+#+END_SRC
+
 *** 选中文字输入替换
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (delete-selection-mode 1)
-#+end_src
+#+END_SRC
+
 *** 关闭自动生产的保存文件
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (setq auto-save-default nil)
-#+end_src
+#+END_SRC
 
 ** Word Jump
-   #+begin_src emacs-lisp
-     (use-package avy
-       :straight t
-       :after evil
-       :init
-       (setq avy-timeout-seconds 0.3)
-       :config
-       (lmm/evil-space-leader-def
-         "aml" 'avy-move-line
-         "amr" 'avy-move-region
-         "acl" 'avy-copy-line
-         "acr" 'avy-copy-region
-         "aw" 'avy-goto-word-0
-         "akl" 'avy-kill-whole-line
-         "akr" 'avy-kill-region
-         "ayl" 'avy-kill-ring-save-whole-line
-         "ayr" 'avy-kill-ring-save-region
-         "as" 'avy-isearch
-         "ar" 'avy-resume
-         "ab" 'avy-pop-mark)
-       (defun lmm/avy-goto-word-1-regexp-and-inside-pairs (pairch &optional arg)
-         "复制指定位置括号内容并粘贴"
-         (interactive (list (read-char "char: " t)
-                            current-prefix-arg))
-         (avy-goto-word-1 pairch arg)
+#+BEGIN_SRC emacs-lisp
+  (use-package avy
+    :straight t
+    :after evil
+    :init
+    (setq avy-timeout-seconds 0.3)
+    :config
+    (lmm/evil-space-leader-def
+      "aml" 'avy-move-line
+      "amr" 'avy-move-region
+      "acl" 'avy-copy-line
+      "acr" 'avy-copy-region
+      "aw" 'avy-goto-word-0
+      "akl" 'avy-kill-whole-line
+      "akr" 'avy-kill-region
+      "ayl" 'avy-kill-ring-save-whole-line
+      "ayr" 'avy-kill-ring-save-region
+      "as" 'avy-isearch
+      "ar" 'avy-resume
+      "ab" 'avy-pop-mark)
+    (defun lmm/avy-goto-word-1-regexp-and-inside-pairs (pairch &optional arg)
+      "复制指定位置括号内容并粘贴"
+      (interactive (list (read-char "char: " t)
+                         current-prefix-arg))
+      (avy-goto-word-1 pairch arg)
 
-         (goto-char (nth 1 (syntax-ppss)))
-         (set-mark (save-excursion
-                     (forward-char 1)
-                     (skip-chars-forward " \t\n")
-                     (point)))
-         (forward-list)
-         (backward-char)
-         (skip-chars-backward " \t\n")
-         (exchange-point-and-mark)
+      (goto-char (nth 1 (syntax-ppss)))
+      (set-mark (save-excursion
+                  (forward-char 1)
+                  (skip-chars-forward " \t\n")
+                  (point)))
+      (forward-list)
+      (backward-char)
+      (skip-chars-backward " \t\n")
+      (exchange-point-and-mark)
 
-         (call-interactively 'kill-ring-save)
-         (avy-pop-mark)
-         (yank))
-       (defun lmm/avy-copy-paren-insert()
-         "复制指定位置括号内容并粘贴"
-         (interactive)
-         (save-excursion
-           (avy-goto-char ?\) current-prefix-arg)
-           (evil-yank (car (evil-a-paren)) (cadr (evil-a-paren))))
-         (evil-paste-before 1)
-         )
-       ;; TODO
-     (defun lmm/avy-copy-paren-insert(char &optional arg)
-       (interactive (list (read-char "char: " t)
-                          current-prefix-arg))
-       (when (or
-              (= char ?\()
-              (= char ?\))
-              (= char ?\[)
-              (= char ?\])
-              (= char ?\{)
-              (= char ?\})
-              (= char ?\")
-              )
-         (let ((region
+      (call-interactively 'kill-ring-save)
+      (avy-pop-mark)
+      (yank))
+    (defun lmm/avy-copy-paren-insert()
+      "复制指定位置括号内容并粘贴"
+      (interactive)
+      (save-excursion
+        (avy-goto-char ?\) current-prefix-arg)
+        (evil-yank (car (evil-a-paren)) (cadr (evil-a-paren))))
+      (evil-paste-before 1)
+      )
+    ;; TODO
+    (defun lmm/avy-copy-paren-insert(char &optional arg)
+      (interactive (list (read-char "char: " t)
+                         current-prefix-arg))
+      (when (or
+             (= char ?\()
+             (= char ?\))
+             (= char ?\[)
+             (= char ?\])
+             (= char ?\{)
+             (= char ?\})
+             (= char ?\")
+             )
+        (let ((region
                (save-excursion
                  (if (cons (avy-goto-char char arg))
                      ()
                    nil
-                     )
-                        ))))
-         )
-       )
-     )
-   #+end_src
+                   )
+                 ))))
+        )
+      )
+    )
+#+END_SRC
 
 ** Goto Last Change
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package goto-chg
     :straight t
     )
-#+end_src
+#+END_SRC
 
 ** Expand-region
-- 智能选择区域
-  #+begin_src emacs-lisp
-    (use-package expand-region
-      :straight t
-      :bind (:map evil-visual-state-map
-                  ("." . er/expand-region)
-                  ("C-." . er/contract-region)))
-  #+end_src
+智能选择区域
+#+BEGIN_SRC emacs-lisp
+  (use-package expand-region
+    :straight t
+    :bind (:map evil-visual-state-map
+                ("." . er/expand-region)
+                ("C-." . er/contract-region)))
+#+END_SRC
 
 ** Parenthes Settings
 *** Pairs
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; (when (fboundp 'electric-pair-mode)
   ;;   (add-hook 'after-init-hook 'electric-pair-mode))
   (use-package paredit
@@ -1896,10 +1922,11 @@
           ("(" . sp-backward-up-sexp))
     :config
     (require 'smartparens-config))
-#+end_src
+#+END_SRC
+
 *** Show Paren Mode
 开启括号配对显示
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package paren
     :hook
     (after-init-hook . show-paren-mode)
@@ -1924,11 +1951,11 @@
   ;;                                                            (face-attribute 'default :background)
   ;;                                                            :foreground "red")))))
   ;;                                   ))
-#+end_src
+#+END_SRC
 
 ** COMMENT Symbol-overlay
 同词高亮显示
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package symbol-overlay
     :straight t
     :hook
@@ -1941,21 +1968,21 @@
           ("M-p" . symbol-overlay-jump-prev)
           )
     )
-#+end_src
+#+END_SRC
 
 ** COMMENT Page Break Lines
 页面分割线(C-q C-l)
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package page-break-lines
     :straight t
     :hook
     (after-init-hook . global-page-break-lines-mode)
     :diminish page-break-lines-mode)
-#+end_src
+#+END_SRC
 
 ** COMMENT Browse Kill Ring
 剪贴板
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package browse-kill-ring
     :straight t
     :custom
@@ -1970,21 +1997,21 @@
     :config
     (push 'browse-kill-ring-mode page-break-lines-modes)
     )
-#+end_src
+#+END_SRC
 
 ** COMMENT Iedit -- 多区域同时编辑
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package iedit
     :straight t
     )
-#+end_src
+#+END_SRC
 
 ** COMMENT Wgrep -- sed交互式编辑缓冲区
-#+begin_src emacs-lisp
-#+end_src
+#+BEGIN_SRC emacs-lisp
+#+END_SRC
 
 ** Snippet -- 模板补全
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package yasnippet
     :straight t
     :hook
@@ -1999,10 +2026,10 @@
   (use-package yasnippet-snippets
     :straight t
     :after yasnippet)
-#+end_src
+#+END_SRC
 
 ** Multiple Cursors -- 多光标编辑
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package multiple-cursors
     :straight t
     :config
@@ -2085,12 +2112,12 @@
   ;;         hydra-multiple-cursors/mc/insert-letters
   ;;         hydra-multiple-cursors/mc/keyboard-quit
   ;;         hydra-multiple-cursors/nil))
-#+end_src
+#+END_SRC
 
 * LANG CONFIG
 ** Complete Config
 *** Company Install
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package company
     :disabled
     :no-require t
@@ -2126,10 +2153,11 @@
     (setq company-transformers '(company-sort-prefer-same-case-prefix
                                  company-sort-by-occurrence))
     )
-#+end_src
+#+END_SRC
+
 *** Corfu -- other completion tool
 **** Install
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package corfu
     :straight (:files (:defaults "extensions/*"))
     :init
@@ -2185,9 +2213,10 @@
     (set-face-background 'corfu-border "#ffc4cd")
     (set-face-background 'corfu-default "#282a36")
     )
-#+end_src
+#+END_SRC
+
 **** Corfu Doc
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package corfu-doc
     :straight t
     :hook
@@ -2199,9 +2228,10 @@
     ("M-h" . corfu-doc-toggle)
     ("M-n" . corfu-doc-scroll-up)
     ("M-p" . corfu-doc-scroll-down)))
-#+end_src
+#+END_SRC
+
 **** cape -- complete backends
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; cape-dabbrev:当前缓冲区的完整单词
   ;; cape-file:完整的文件名
   ;; cape-keyword:完整的编程语言关键字
@@ -2230,9 +2260,10 @@
                 (setq-local completion-at-point-functions
                             (append completion-at-point-functions '(cape-dabbrev cape-file))))))
     )
-#+end_src
+#+END_SRC
+
 **** kind-icon
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package kind-icon
     :straight t
     :after corfu
@@ -2245,19 +2276,19 @@
      '(kind-icon-default-style
        '(:padding 0.3 :stroke 3 :margin 0 :radius 5 :height 0.9 :scale 1.0)))
     (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
-#+end_src
+#+END_SRC
 
 ** Syntax Checking
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package flycheck
     :straight t
     :hook
     (prog-mode-hook . flycheck-mode))
-#+end_src
+#+END_SRC
 
 ** Lsp Server Config
 [[https://emacs-lsp.github.io/lsp-mode/tutorials/how-to-turn-off/][lsp display config]]
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package lsp-mode
     :straight t
     :init
@@ -2318,10 +2349,10 @@
     :no-require t
     :straight t
     :commands eglot eglot-ensure)
-#+end_src
+#+END_SRC
 
 ** Tree Sitter
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package tree-sitter
     :straight t
     :commands (tree-sitter-mode tree-sitter-hl-mode)
@@ -2394,14 +2425,15 @@
       ",;"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "statement.outer" t))
       ";0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer"))
       ",0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer" t))))
-#+end_src
+#+END_SRC
 
 ** LANG
 *** javascript
-#+begin_src
-#+end_src
+#+BEGIN_SRC
+#+END_SRC
+
 *** rust
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package rust-mode
     :straight t
     :commands rust-mode
@@ -2438,17 +2470,19 @@
     ;;   (remove-hook 'rustic-mode-hook #'rustic-setup-lsp)
     ;;   (add-hook 'rustic-mode-local-vars-hook #'rustic-setup-lsp))
     )
-#+end_src
+#+END_SRC
+
 *** emacs-lisp
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (add-hook 'emacs-lisp-mode-hook (lambda ()
                                     (setq-local company-backends '(company-elisp
                                                                    company-files
                                                                    (company-dabbrev-code company-keywords company-dabbrev)
                                                                    company-capf))))
-#+end_src
+#+END_SRC
+
 *** lua
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package lua-mode
     :straight t
     :init
@@ -2458,34 +2492,37 @@
     (setq lua-indent-string-contents t)
     (setq lua-indent-close-paren-align nil)
     :commands lua-mode)
-#+end_src
+#+END_SRC
+
 *** markdown-mode
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package markdown-mode
     :straight t
     :commands markdown-mode
     :mode
     ("README\\.md\\'" . gfm-mode)
     :init (setq markdown-command "multimarkdown"))
-#+end_src
+#+END_SRC
+
 *** json-mode
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package json-mode
     :commands json-mode
     :straight t)
-#+end_src
+#+END_SRC
+
 *** web
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package verb
     :straight t
     :init
     (setq verb-babel-timeout 3.0)
     :commands verb-mode)
-#+end_src
+#+END_SRC
 
 * PROJECT CONFIG
 ** Projectile Config
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package projectile
     :straight t
     :hook
@@ -2502,10 +2539,11 @@
   (use-package ibuffer-projectile
     :straight t
     :after projectile)
-#+end_src
+#+END_SRC
+
 * DIRED CONFIG
 避免在 dired 中前进和后退新建 buffer
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (put 'dired-find-alternate-file 'disabled nil)
   (use-package dired
     :init
@@ -2543,9 +2581,10 @@
   ;;                              (define-key evil-normal-state-local-map (kbd "-")
   ;;                                          (lambda () (interactive)
   ;;                                            (find-alternate-file "..")))))
-#+end_src
+#+END_SRC
+
 * WITH-EDITOR
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   ;; 导出环境变量 －－ EDITOR
   (use-package with-editor
     :straight t
@@ -2561,25 +2600,26 @@
     ;; (define-key (current-global-map)
     ;;             [remap shell-command] 'with-editor-shell-command)
     )
-#+end_src
+#+END_SRC
+
 * ENVIRONMENT SAVE
 保存打开过的光标位置
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package saveplace
     :hook
     (after-init-hook . save-place-mode))
-#+end_src
+#+END_SRC
 保存打开过的文件
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package recentf
     :hook
     (after-init-hook . recentf-mode)
     :init
     (setq recentf-max-saved-items 100))
-#+end_src
+#+END_SRC
 
 * GIT
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package magit
     :straight t
     :init
@@ -2590,10 +2630,10 @@
           ("gd" . magit-dispatch)
           ("gs" . magit-stage))
     )
-#+end_src
+#+END_SRC
 
 * DIFF
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package diff-hl
     :straight t
     :hook
@@ -2613,11 +2653,11 @@
       "k" 'diff-hl-inline-popup--popup-up
       (kbd "C-f") 'diff-hl-inline-popup--popup-pagedown
       (kbd "C-b") 'diff-hl-inline-popup--popup-pageup))
-#+end_src
+#+END_SRC
 
 * WORKSPACE
 ** Perspective
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package perspective
     :straight t
     :init
@@ -2666,9 +2706,10 @@
         "<" 'persp-switch-to-buffer
         "<tab>" perspective-map)
       ))
-#+end_src
+#+END_SRC
+
 ** Treemacs -- 文件树
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package treemacs
     :straight t
     :defer t
@@ -2685,18 +2726,18 @@
     :straight t
     :hook
     (dired-mode-hook . treemacs-icons-dired-enable-once))
-#+end_src
+#+END_SRC
 
 * POPUP
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package popup
     :straight t
     :no-require t)
-#+end_src
+#+END_SRC
 
 * TERM
 ** Install
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package vterm
     :straight t
     :init
@@ -2718,9 +2759,10 @@
                  (when (not (one-window-p))
                    (call-interactively 'delete-window))))
     :commands vterm)
-#+end_src
+#+END_SRC
+
 ** COMMENT Zsh Needed Config
-#+begin_src conf
+#+BEGIN_SRC conf
   vterm_printf(){
       if [ -n "$TMUX" ] && ([ "${TERM%%-*}" = "tmux" ] || [ "${TERM%%-*}" = "screen" ] ); then
           # Tell tmux to pass the escape sequences through
@@ -2747,11 +2789,11 @@
       done
       vterm_printf "51;E$vterm_elisp"
   }
-#+end_src
+#+END_SRC
 
 * UTILS
 ** 翻译
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (defun lmm/translate-word-at-point (p)
     (interactive "P")
     (let ((word (word-at-point p))
@@ -2816,9 +2858,10 @@
       "tw" 'lmm/translate-word-at-point
       "cf" 'lmm/rename-buffer-and-file-name))
 
-#+end_src
+#+END_SRC
+
 ** 文件操作
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (defun lmm/open-file-in-remote-sudo(file)
     "Open FILE as remote root"
     (interactive)
@@ -2890,15 +2933,16 @@
        ;; 如果该文件不存在
        (t nil)
        )))
-#+end_src
+#+END_SRC
+
 ** News
-#+begin_src emacs-lisp
+#+BEGIN_SRC emacs-lisp
   (use-package elfeed
     :straight t
     :init
     (setq elfeed-db-directory (concat user-emacs-directory "elfeed-cache"))
     :commands elfeed)
-#+end_src
+#+END_SRC
 
 * KEY LIST
 + word case
