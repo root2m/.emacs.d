@@ -104,7 +104,7 @@
 
 * PACKAGE MANAGEMENT
 ** Setup package.el to work with MELPA.
-   修改国内镜像源
+修改国内镜像源
 #+BEGIN_SRC emacs-lisp
   ;; (require 'package)
   (setq package-archives '(("gnu"   . "https://elpa.zilongshanren.com/gnu/")
@@ -1577,7 +1577,13 @@
           )
 
     :config
-    (set-face-attribute 'org-block nil :foreground nil)
+    (set-face-attribute 'org-block nil
+                        :foreground nil)
+    (set-face-attribute 'org-block-begin-line nil
+                        :inherit nil
+                        :background nil
+                        :foreground "cyan"
+                        :weight 'bold)
     )
   (use-package org-roam
     :straight t
@@ -2652,7 +2658,9 @@
       "j" 'diff-hl-inline-popup--popup-down
       "k" 'diff-hl-inline-popup--popup-up
       (kbd "C-f") 'diff-hl-inline-popup--popup-pagedown
-      (kbd "C-b") 'diff-hl-inline-popup--popup-pageup))
+      (kbd "C-b") 'diff-hl-inline-popup--popup-pageup)
+    (lmm/evil-space-leader-def
+      "ds" #'diff-hl-show-hunk))
 #+END_SRC
 
 * WORKSPACE
