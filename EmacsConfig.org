@@ -2120,6 +2120,18 @@
   ;;         hydra-multiple-cursors/nil))
 #+END_SRC
 
+** Better Jump
+#+BEGIN_SRC emacs-lisp
+  (use-package better-jumper
+    :straight t
+    :hook
+    (after-init-hook . better-jumper-mode)
+    :config
+    (evil-define-key '(normal motion visual) 'global
+      "\C-o" #'better-jumper-jump-backward
+      "\C-i" #'better-jumper-jump-forward))
+#+END_SRC
+
 * LANG CONFIG
 ** Complete Config
 *** Company Install
