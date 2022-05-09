@@ -2,6 +2,11 @@
 #+AUTHOR: Lmm
 #+STARTUP: content indent
 
+* TANGLE CONFIG
+#+BEGIN_SRC emacs-lisp
+;;; EmacsConfig.el -*- lexical-binding: t; -*-
+#+END_SRC
+
 * COMMENT OPEN DEBUG
 #+BEGIN_SRC emacs-lisp
 (setq debug-on-error t)
@@ -50,7 +55,8 @@
 
 ** Server Mode
 #+BEGIN_SRC emacs-lisp
-  (server-start)
+  (with-eval-after-load 'server
+    (unless (server-running-p)(server-start)))
 #+END_SRC
 
 ** Native Comp Support
@@ -432,7 +438,9 @@
         ((member "Source Code Pro" (font-family-list))
          (add-to-list 'default-frame-alist '(font . "Source Code Pro-13"))))
   ;; (add-to-list 'initial-frame-alist '(font . "Fira Code"))
-  (set-fontset-font t 'han (if (member "HarmonyOS Sans SC" (font-family-list)) "HarmonyOS Sans SC"))
+  (if (member "HarmonyOS Sans SC" (font-family-list))
+      (set-fontset-font t 'han "HarmonyOS Sans SC"))
+
   (setq-default line-spacing nil)
   ;; (set-face-attribute 'default nil
   ;;                     :font "Sarasa Mono SC Nerd"
@@ -2647,7 +2655,10 @@
       (setq-default projectile-generic-command "rg --files --hidden"))
 
     (lmm/evil-space-leader-def
-      "p" projectile-command-map))
+      "p" projectile-command-map)
+    (general-define-key
+     :keymaps 'projectile-command-map
+     "A" #'projectile-add-known-project))
 
   (use-package ibuffer-projectile
     :straight t
