@@ -405,6 +405,8 @@
 #+BEGIN_SRC emacs-lisp
   (use-package doom-modeline
     :straight t
+    :init
+    (setq doom-modeline-modal-icon nil)
     :hook
     (after-init-hook . doom-modeline-mode))
 
@@ -646,7 +648,18 @@
           ;; 粘贴替换选中文本不加入 kill ring 中
           evil-kill-on-visual-paste nil
           evil-echo-state nil
-          evil-search-module 'evil-search)
+          evil-search-module 'evil-search
+          evil-visual-char-tag "🆅"
+          evil-normal-state-tag "🅽"
+          evil-insert-state-tag "🅸"
+          evil-visual-line-tag "🅻"
+          evil-visual-block-tag "🅱"
+          evil-motion-state-tag "🅼"
+          evil-emacs-state-tag "🅴"
+          evil-operator-state-tag "🅾"
+          evil-replace-state-tag "🆁"
+          evil-visual-screen-line-tag "🆂")
+
     :config
     (general-define-key
      :states 'insert
@@ -949,6 +962,9 @@
   ;; 更多的按键绑定
   (use-package evil-collection
     :straight t
+    :config
+    (dolist (mode '(corfu vterm))
+      (delq mode evil-collection-mode-list))
     :hook
     (evil-mode-hook . evil-collection-init))
 
@@ -2205,14 +2221,12 @@
           corfu-right-margin-width 1.0
           )
     :hook
-    (after-init-hook . corfu-global-mode)
+    (after-init-hook . global-corfu-mode)
     (corfu-mode-hook . corfu-history-mode)
     :bind
     (:map corfu-map
           ("C-n" . corfu-next)
           ("C-p" . corfu-previous)
-          ;; ([remap evil-complete-next] . corfu-next)
-          ;; ([remap evil-complete-previous] . corfu-previous)
           ("M-<" . corfu-first)
           ("M->" . corfu-last)
           ("C-v" . corfu-scroll-up)
@@ -2221,9 +2235,10 @@
           ("C-." . corfu-quick-insert)
           ("C-," . corfu-quick-complete)
           ("C-i" . corfu-complete)
-          ("M-h". corfu-info-documentation)
+          ("M-h" . corfu-info-documentation)
           ("<tab>" . corfu-insert-separator)
-          ("C-SPC" . corfu-insert-separator))
+          ("C-SPC" . corfu-insert-separator)
+          ("C-g" . corfu-quit))
     :config
     ;; insert模式下按键失效，需此设置
     (general-add-advice '(corfu--setup corfu--teardown) :after 'evil-normalize-keymaps)
@@ -2278,13 +2293,15 @@
       (add-hook hook
               (lambda()
                 (setq-local completion-at-point-functions
-                            '(cape-symbol cape-keyword cape-file)))))
+                            '(cape-symbol cape-file)))))
 
     (dolist (hook '(rustic-mode-hook))
       (add-hook hook
               (lambda()
                 (setq-local completion-at-point-functions
                             (append completion-at-point-functions '(cape-dabbrev cape-file))))))
+    (evil-define-key 'insert 'global
+      (kbd "C-n") #'cape-dabbrev)
     )
 #+END_SRC
 
@@ -2403,8 +2420,12 @@
 #+BEGIN_SRC emacs-lisp
   (use-package flycheck
     :straight t
+    :init
+    (setq flycheck-buffer-switch-check-intermediate-buffers t)
     :hook
-    (prog-mode-hook . flycheck-mode))
+    (prog-mode-hook . flycheck-mode)
+    :config
+    (delq 'new-line flycheck-check-syntax-automatically))
 #+END_SRC
 
 ** Lsp Server Config
@@ -2431,6 +2452,10 @@
           lsp-enable-folding nil
           ;; 关闭 minibuffer 签名和文档显示
           lsp-signature-auto-activate nil
+          ;; 关闭 lens
+          lsp-lens-enable nil
+          ;; 关闭 headerline
+          lsp-headerline-breadcrumb-enable nil
           )
     :hook
     ;; lsp-deferred 等待buffer完全可见后启用 lsp
@@ -2739,7 +2764,8 @@
     :hook
     (after-init-hook . recentf-mode)
     :init
-    (setq recentf-max-saved-items 100))
+    (setq recentf-max-saved-items 100
+          recentf-auto-cleanup 'never))
 #+END_SRC
 
 * GIT
@@ -2790,7 +2816,8 @@
     ;; 按最近使用排序buffer
     (setq persp-sort 'access
           ;; 是否在modeline中显示
-          persp-show-modestring t)
+          persp-show-modestring t
+          persp-suppress-no-prefix-key-warning t)
     ;; :hook
     ;; (after-init-hook . persp-mode)
     :after consult
@@ -2870,6 +2897,7 @@
     (general-define-key
      "<f12>" #'vterm)
     (setq vterm-timer-delay 0.05)
+    (add-to-list 'evil-insert-state-modes 'vterm-mode)
     :config
     (add-to-list 'display-buffer-alist
                  '("\\*vterm\\*\\(<[0-9]>\\)?$"
@@ -2878,12 +2906,17 @@
      :keymaps 'vterm-mode-map
      "<f12>" (lambda ()(interactive) (if (one-window-p)
                             (switch-to-buffer (other-buffer))
-                          (delete-window))))
+                            (delete-window)))
+     "C-h" #'vterm-send-C-h
+     "C-y" #'vterm-send-C-y
+     "M-y" #'vterm-send-M-y
+     )
      (add-hook 'vterm-exit-functions
                (lambda (buffer &optional arg)
                  "Vterm exit command will call interactive func 'delete-window'"
                  (when (not (one-window-p))
                    (call-interactively 'delete-window))))
+     (evil-make-intercept-map vterm-mode-map 'insert)
     :commands vterm)
 #+END_SRC
 
