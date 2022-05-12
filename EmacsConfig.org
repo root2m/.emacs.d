@@ -136,6 +136,7 @@
         (goto-char (point-max))
         (eval-print-last-sexp)))
     (load bootstrap-file nil 'nomessage))
+  (add-to-list 'straight-built-in-pseudo-packages 'org)
 #+END_SRC
 
 ** Installing use-package
@@ -713,75 +714,6 @@
            (defvar ,name (make-sparse-keymap)
              ,(concat "Translate key " from " -> " to)))))
 
-    ;; (lmm/create-translate-key-map "s" "Ctrl")
-
-    ;; (general-define-key
-    ;;  :keymaps 'lmm/s-to-Ctrl-map
-    ;;  "a" (general-simulate-key "C-a")
-    ;;  "b" (general-simulate-key "C-b")
-    ;;  "c" (general-simulate-key "C-c")
-    ;;  "d" (general-simulate-key "C-d")
-    ;;  "e" (general-simulate-key "C-e")
-    ;;  "f" (general-simulate-key "C-f")
-    ;;  "g" (general-simulate-key "C-g")
-    ;;  "h" (general-simulate-key "C-h")
-    ;;  "i" (general-simulate-key "C-i")
-    ;;  "j" (general-simulate-key "C-j")
-    ;;  "k" (general-simulate-key "C-k")
-    ;;  "l" (general-simulate-key "C-l")
-    ;;  "m" (general-simulate-key "C-m")
-    ;;  "n" (general-simulate-key "C-n")
-    ;;  "o" (general-simulate-key "C-o")
-    ;;  "p" (general-simulate-key "C-p")
-    ;;  "q" (general-simulate-key "C-q")
-    ;;  "r" (general-simulate-key "C-r")
-    ;;  "s" (general-simulate-key "C-s")
-    ;;  "t" (general-simulate-key "C-t")
-    ;;  "u" (general-simulate-key "C-u")
-    ;;  "v" (general-simulate-key "C-v")
-    ;;  "w" (general-simulate-key "C-w")
-    ;;  "x" (general-simulate-key "C-x")
-    ;;  ";" (general-simulate-key "C-;")
-    ;;  )
-
-    ;; (define-key evil-normal-state-map "s" nil)
-    ;; (define-key evil-motion-state-map "s" nil)
-
-    ;; (general-define-key
-    ;;  :states '(normal motion)
-    ;;  "s" lmm/s-to-Ctrl-map)
-
-
-    ;; (general-define-key
-    ;;  :keymaps 'lmm/s-to-Ctrl-map
-    ;;  "a" (general-simulate-key "C-c C-a")
-    ;;  "b" (general-simulate-key "C-c C-b")
-    ;;  "c" (general-simulate-key "C-c C-c")
-    ;;  "d" (general-simulate-key "C-c C-d")
-    ;;  "e" (general-simulate-key "C-c C-e")
-    ;;  "f" (general-simulate-key "C-c C-f")
-    ;;  "g" (general-simulate-key "C-c C-g")
-    ;;  "h" (general-simulate-key "C-c C-h")
-    ;;  "i" (general-simulate-key "C-c C-i")
-    ;;  "j" (general-simulate-key "C-c C-j")
-    ;;  "k" (general-simulate-key "C-c C-k")
-    ;;  "l" (general-simulate-key "C-c C-l")
-    ;;  "m" (general-simulate-key "C-c C-m")
-    ;;  "n" (general-simulate-key "C-c C-n")
-    ;;  "o" (general-simulate-key "C-c C-o")
-    ;;  "p" (general-simulate-key "C-c C-p")
-    ;;  "q" (general-simulate-key "C-c C-q")
-    ;;  "r" (general-simulate-key "C-c C-r")
-    ;;  "s" (general-simulate-key "C-c C-s")
-    ;;  "t" (general-simulate-key "C-c C-t")
-    ;;  "u" (general-simulate-key "C-c C-u")
-    ;;  "v" (general-simulate-key "C-c C-v")
-    ;;  "w" (general-simulate-key "C-c C-w")
-    ;;  "x" (general-simulate-key "C-c C-x")
-    ;;  ";" (general-simulate-key "C-c C-;"))
-    ;; (general-define-key
-    ;;  "C-c s" lmm/s-to-Ctrl-map)
-
     (general-create-definer lmm/evil-space-leader-def
       :states '(normal motion)
       :keymaps 'override
@@ -820,30 +752,6 @@
       ("k" evil-previous-line)
       ("q" nil "Quit"))
 
-    ;; (evil-set-leader '(normal motion) (kbd "C-SPC"))
-
-    ;; (evil-define-key '(normal motion) 'global (kbd ""))
-
-    ;; (evil-define-key '(normal motion) 'global
-    ;;   (kbd "<leader>w") 'evil-window-map)
-
-    ;; (defvar lmm/leader-search-map (make-sparse-keymap)
-    ;;   "Keymap for \"leader key /\" shortcuts.")
-    ;; (define-key lmm/leader-search-map "/" evil-search-forward)
-
-    ;; (evil-define-key '(normal motion visual) 'global
-    ;;   "/" lmm/leader-search-map)
-
-    ;; (define-key lmm/leader-search-map "/" 'evil-search-forward)
-    ;; (define-key lmm/leader-search-map "?" 'evil-search-backward)
-    ;; (define-key lmm/leader-search-map "l" 'consult-line)
-    ;; (define-key lmm/leader-search-map "i" 'consult-imenu)
-    ;; (define-key lmm/leader-search-map "o" 'consult-outline)
-
-    ;; (defvar lmm/leader-comma-map (make-sparse-keymap)
-    ;;   "Keymap for \"leader key ,\" shortcuts.")
-    ;; (evil-define-key 'normal 'global
-    ;;   ";" lmm/leader-comma-map)
     (evil-define-key '(normal motion) 'global
           ;; "f" #'evil-avy-goto-char-timer
           ;; "F" #'evil-avy-goto-word-1
