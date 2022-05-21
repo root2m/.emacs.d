@@ -2411,9 +2411,19 @@
     :commands (tree-sitter-mode tree-sitter-hl-mode)
     :hook ((rust-mode-hook) . tree-sitter-hl-mode)
     )
+
+  ;; 1. git clone https://github.com/Wilfred/tree-sitter-elisp
+  ;; 2. gcc path/src/parser.c -fPIC -I path/ --shared -o elisp.so
+  ;; 3. cp path/elisp.so path/.tree-sitter-langs/bin (path/.tree-sitter-langs/bin is path of your tree-sitter-langs repo)
+
   (use-package tree-sitter-langs
     :straight t
-    :commands tree-sitter-mode)
+    :commands tree-sitter-mode
+    :config
+    (when (file-exists-p (concat tree-sitter-langs--dir "bin/elisp.so"))
+      (add-to-list 'tree-sitter-major-mode-language-alist '(emacs-lisp-mode . elisp))
+      (add-to-list 'tree-sitter-major-mode-language-alist '(lisp-interaction-mode . elisp))))
+
   (use-package evil-textobj-tree-sitter
     :straight t
     :after tree-sitter
