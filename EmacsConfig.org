@@ -649,16 +649,16 @@
           evil-kill-on-visual-paste nil
           evil-echo-state nil
           evil-search-module 'evil-search
-          evil-visual-char-tag "🆅"
-          evil-normal-state-tag "🅽"
-          evil-insert-state-tag "🅸"
-          evil-visual-line-tag "🅻"
-          evil-visual-block-tag "🅱"
-          evil-motion-state-tag "🅼"
-          evil-emacs-state-tag "🅴"
-          evil-operator-state-tag "🅾"
-          evil-replace-state-tag "🆁"
-          evil-visual-screen-line-tag "🆂")
+          evil-visual-char-tag ""
+          evil-normal-state-tag ""
+          evil-insert-state-tag ""
+          evil-visual-line-tag ""
+          evil-visual-block-tag "况"
+          evil-motion-state-tag ""
+          evil-emacs-state-tag ""
+          evil-operator-state-tag ""
+          evil-replace-state-tag ""
+          evil-visual-screen-line-tag "拓")
 
     :config
     (general-define-key
@@ -760,6 +760,7 @@
           "`" #'evil-goto-mark-line
           "U" #'evil-redo
           "t" #'repeat
+          "g/" #'evil-ex-nohighlight
           )
 
       (defvar lmm/goto-next-object-map (make-sparse-keymap))
