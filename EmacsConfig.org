@@ -13,6 +13,324 @@
 #+END_SRC
 
 * BOOT CONFIG
+#+begin_src emacs-lisp
+  ;; copy from https://github.com/emacscollective/no-littering
+
+  (defvar lmmv/no-littering-etc-directory
+    (expand-file-name (convert-standard-filename "etc/") user-emacs-directory)
+    "The directory where packages place their configuration files.
+  This variable has to be set before `no-littering' is loaded.")
+
+  (defvar lmmv/no-littering-var-directory
+    (expand-file-name (convert-standard-filename "var/") user-emacs-directory)
+    "The directory where packages place their persistent data files.
+  This variable has to be set before `no-littering' is loaded.")
+
+  ;;;###autoload
+  (defun lmm/no-littering-expand-etc (file)
+    "Expand filename FILE relative to `lmmv/no-littering-etc-directory'."
+    (expand-file-name (convert-standard-filename file)
+                      lmmv/no-littering-etc-directory))
+
+  ;;;###autoload
+  (defun lmm/no-littering-expand-var (file)
+    "Expand filename FILE relative to `lmmv/no-littering-var-directory'."
+    (expand-file-name (convert-standard-filename file)
+                      lmmv/no-littering-var-directory))
+
+  (make-directory lmmv/no-littering-etc-directory t)
+  (make-directory lmmv/no-littering-var-directory t)
+
+  (eval-after-load 'x-win
+    (let ((session-dir (lmm/no-littering-expand-var "emacs-session/")))
+      `(progn
+         (make-directory ,session-dir t)
+         (defun emacs-session-filename (session-id)
+           "Construct a filename to save the session in based on SESSION-ID.
+  This function overrides the one on `x-win' to use `no-littering'
+  directories."
+           (expand-file-name session-id ,session-dir)))))
+  (eval-after-load 'desktop
+    `(make-directory ,(lmm/no-littering-expand-var "desktop/") t))
+
+  (eval-after-load 'eshell
+    `(make-directory ,(lmm/no-littering-expand-etc "eshell/") t))
+
+  (eval-after-load 'erc
+    `(make-directory ,(lmm/no-littering-expand-var "erc/dcc/") t))
+
+  (eval-after-load 'eww
+    `(make-directory ,(lmm/no-littering-expand-var "eww/") t))
+
+  (eval-after-load 'gnus
+    `(make-directory ,(lmm/no-littering-expand-var "gnus/dribble/") t))
+
+  (eval-after-load 'newsticker
+    `(make-directory ,(lmm/no-littering-expand-var "newsticker/") t))
+
+  (eval-after-load 'org
+    `(make-directory ,(lmm/no-littering-expand-var "org/") t))
+  (eval-after-load 'shadowfile
+    `(make-directory ,(lmm/no-littering-expand-var "shadow/") t))
+
+  (eval-after-load 'bbdb
+    `(make-directory ,(lmm/no-littering-expand-var "bbdb/") t))
+
+  (eval-after-load 'bookmark+-1
+    `(make-directory ,(lmm/no-littering-expand-var "bmkp/") t))
+
+  (eval-after-load 'command-log-mode
+    `(make-directory ,(lmm/no-littering-expand-var "command-log-mode-logging/") t))
+
+  (eval-after-load 'company
+    `(make-directory ,(lmm/no-littering-expand-var "company/") t))
+
+  (eval-after-load 'elfeed
+    `(make-directory ,(lmm/no-littering-expand-var "elfeed/") t))
+
+  (eval-after-load 'emojify
+    `(make-directory ,(lmm/no-littering-expand-var "emojify/") t))
+
+  (eval-after-load 'geiser
+    `(make-directory ,(lmm/no-littering-expand-var "geiser/") t))
+
+  (eval-after-load 'helm
+    `(make-directory ,(lmm/no-littering-expand-var "helm/") t))
+
+  (eval-after-load 'jabber
+    `(make-directory ,(lmm/no-littering-expand-var "jabber/avatar-cache/") t))
+
+  (eval-after-load 'jabber
+    `(make-directory ,(lmm/no-littering-expand-var "jabber/history/") t))
+
+  (eval-after-load 'lookup
+    `(make-directory ,(lmm/no-littering-expand-etc "lookup/") t))
+
+  (eval-after-load 'lsp-mode
+    `(make-directory ,(lmm/no-littering-expand-var "lsp/") t))
+
+  (eval-after-load 'org-caldav
+    `(make-directory ,(lmm/no-littering-expand-var "org/caldav/save") t))
+
+  (eval-after-load 'projectile
+    `(make-directory ,(lmm/no-littering-expand-var "projectile/") t))
+
+  (eval-after-load 'sly
+    `(make-directory ,(lmm/no-littering-expand-var "sly/") t))
+
+  (eval-after-load 'sx
+    `(make-directory ,(lmm/no-littering-expand-var "sx/cache/") t))
+
+  (eval-after-load 'wl
+    `(make-directory ,(lmm/no-littering-expand-etc "wanderlust") t))
+
+  (eval-after-load 'xkcd
+    `(make-directory ,(lmm/no-littering-expand-var "xkcd/") t))
+
+  (eval-after-load 'yasnippet
+    `(make-directory ,(lmm/no-littering-expand-etc "yasnippet/snippets/") t))
+
+
+  (setq custom-file                      (lmm/no-littering-expand-etc "custom.el")
+        desktop-dirname                  (lmm/no-littering-expand-var "desktop/")
+        desktop-path                     (list desktop-dirname)
+        eshell-aliases-file              (lmm/no-littering-expand-etc "eshell/aliases")
+        eshell-directory-name            (lmm/no-littering-expand-var "eshell/")
+        erc-dcc-get-default-directory    (lmm/no-littering-expand-var "erc/dcc/")
+        erc-log-channels-directory       (lmm/no-littering-expand-var "erc/log-channels/")
+        eww-bookmarks-directory          (lmm/no-littering-expand-var "eww/")
+        gnus-dribble-directory           (lmm/no-littering-expand-var "gnus/dribble/")
+        gnus-init-file                   (lmm/no-littering-expand-etc "gnus/init.el")
+        newsticker-cache-filename        (lmm/no-littering-expand-var "newsticker/cache.el")
+        newsticker-dir                   (lmm/no-littering-expand-var "newsticker/data/")
+        org-clock-persist-file           (lmm/no-littering-expand-var "org/clock-persist.el")
+        org-id-locations-file            (lmm/no-littering-expand-var "org/id-locations.el")
+        org-persist-directory            (lmm/no-littering-expand-var "org/persist/")
+        org-publish-timestamp-directory  (lmm/no-littering-expand-var "org/timestamps/")
+        shadow-info-file                 (lmm/no-littering-expand-var "shadow/info.el")
+        shadow-todo-file                 (lmm/no-littering-expand-var "shadow/todo.el")
+        abm-file                         (lmm/no-littering-expand-var "autobookmarks.el")
+        bbdb-file                        (lmm/no-littering-expand-var "bbdb/bbdb.el")
+        bbdb-vcard-directory             (lmm/no-littering-expand-var "bbdb/vcard/")
+        bm-repository-file               (lmm/no-littering-expand-var "bm-repository.el")
+        bmkp-bmenu-commands-file         (lmm/no-littering-expand-var "bmkp/bmenu-commands.el")
+        bmkp-current-bookmark-file       (lmm/no-littering-expand-var "bmkp/current-bookmark.el")
+        bmkp-last-bookmark-file          (lmm/no-littering-expand-var "bmkp/last-bookmark.el")
+        clm/logging-dir                  (lmm/no-littering-expand-var "command-log-mode/logging/")
+        company-statistics-file          (lmm/no-littering-expand-var "company/statistics.el")
+        company-tabnine-binaries-folder  (lmm/no-littering-expand-var "company/tabnine-binaries")
+        elfeed-db-directory              (lmm/no-littering-expand-var "elfeed/db/")
+        elfeed-enclosure-default-dir     (lmm/no-littering-expand-var "elfeed/enclosures/")
+        elfeed-score-score-file          (lmm/no-littering-expand-etc "elfeed/score/score.el")
+        emms-directory                   (lmm/no-littering-expand-var "emms/")
+        emojify-emojis-dir               (lmm/no-littering-expand-var "emojify/")
+        geiser-repl-history-filename     (lmm/no-littering-expand-var "geiser/repl-history")
+        helm-adaptive-history-file       (lmm/no-littering-expand-var "helm/adaptive-history.el")
+        helm-backup-path                 (lmm/no-littering-expand-var "helm/backup/")
+        helm-github-stars-cache-file     (lmm/no-littering-expand-var "helm/github-stars-cache.el")
+        helm-net-curl-log-file           (lmm/no-littering-expand-var "helm/helm-curl.log")
+        jabber-avatar-cache-directory    (lmm/no-littering-expand-var "jabber/avatar-cache")
+        jabber-history-dir               (lmm/no-littering-expand-var "jabber/history")
+        lookup-init-directory            (lmm/no-littering-expand-etc "lookup/")
+        lsp-clojure-workspace-dir        (lmm/no-littering-expand-var "lsp-clojure/workspace/")
+        lsp-eslint-library-choices-file  (lmm/no-littering-expand-var "lsp/eslint-library-choices.el")
+        lsp-python-ms-dir                (lmm/no-littering-expand-var "lsp-python-ms/")
+        lsp-server-install-dir           (lmm/no-littering-expand-var "lsp/server/")
+        lsp-session-file                 (lmm/no-littering-expand-var "lsp/session.el")
+        lsp-java-workspace-dir           (lmm/no-littering-expand-var "lsp-java/workspace/")
+        lsp-java-server-install-dir      (lmm/no-littering-expand-var "lsp-java/eclipse.jdt.ls/server/")
+        org-gcal-dir                     (lmm/no-littering-expand-var "org/gcal/")
+        org-caldav-backup-file           (lmm/no-littering-expand-var "org/caldav/backup.org")
+        org-caldav-save-directory        (lmm/no-littering-expand-var "org/caldav/save")
+        org-journal-cache-file           (lmm/no-littering-expand-var "org/journal-cache.el")
+        org-recent-headings-save-file    (lmm/no-littering-expand-var "org/recent-headings.el")
+        org-registry-file                (lmm/no-littering-expand-var "org/registry.el")
+        org-roam-db-location             (lmm/no-littering-expand-var "org/org-roam.db")
+        prescient-save-file              (lmm/no-littering-expand-var "prescient-save.el")
+        projectile-cache-file            (lmm/no-littering-expand-var "projectile/cache.el")
+        projectile-known-projects-file   (lmm/no-littering-expand-var "projectile/known-projects.el")
+        sly-mrepl-history-file-name      (lmm/no-littering-expand-var "sly/mrepl-history")
+        sx-cache-directory               (lmm/no-littering-expand-var "sx/cache/")
+        wl-init-file                     (lmm/no-littering-expand-etc "wanderlust/init.el")
+        wl-folders-file                  (lmm/no-littering-expand-etc "wanderlust/folders")
+        wl-address-file                  (lmm/no-littering-expand-etc "wanderlust/address")
+        wl-alias-file                    (lmm/no-littering-expand-etc "wanderlust/alias")
+        wl-x-face-file                   (lmm/no-littering-expand-etc "wanderlust/x-face")
+        wl-temporary-file-directory      (lmm/no-littering-expand-var "wanderlust-tmp")
+        xkcd-cache-dir                   (lmm/no-littering-expand-var "xkcd/")
+        yas-snippet-dirs                 (list (lmm/no-littering-expand-etc "yasnippet/snippets/"))
+        abbrev-file-name                 (lmm/no-littering-expand-etc "abbrev.el")
+        auto-insert-directory            (lmm/no-littering-expand-etc "auto-insert/")
+        auto-save-list-file-prefix       (lmm/no-littering-expand-var "auto-save/sessions/")
+        backup-directory-alist           (list (cons "." (lmm/no-littering-expand-var "backup/")))
+        bookmark-default-file            (lmm/no-littering-expand-var "bookmark-default.el")
+        calc-settings-file               (lmm/no-littering-expand-etc "calc-settings.el")
+        diary-file                       (lmm/no-littering-expand-var "diary")
+        ecomplete-database-file          (lmm/no-littering-expand-var "ecomplete-database.el")
+        ede-project-placeholder-cache-file (lmm/no-littering-expand-var "ede-projects.el")
+        eudc-options-file                (lmm/no-littering-expand-etc "eudc-options.el")
+        filesets-menu-cache-file         (lmm/no-littering-expand-var "filesets-menu-cache.el")
+        gamegrid-user-score-file-directory (lmm/no-littering-expand-var "gamegrid-user-score/")
+        ido-save-directory-list-file     (lmm/no-littering-expand-var "ido-save-directory-list.el")
+        image-dired-db-file              (lmm/no-littering-expand-var "image-dired/db.el")
+        image-dired-dir                  (lmm/no-littering-expand-var "image-dired/")
+        image-dired-gallery-dir          (lmm/no-littering-expand-var "image-dired/gallery/")
+        image-dired-temp-image-file      (lmm/no-littering-expand-var "image-dired/temp-image")
+        image-dired-temp-rotate-image-file (lmm/no-littering-expand-var "image-dired/temp-rotate-image")
+        kkc-init-file-name               (lmm/no-littering-expand-var "kkc-init.el")
+        multisession-directory           (lmm/no-littering-expand-var "multisession/")
+        nsm-settings-file                (lmm/no-littering-expand-var "nsm-settings.el")
+        project-list-file                (lmm/no-littering-expand-var "project-list.el")
+        quickurl-url-file                (lmm/no-littering-expand-var "quickurl-url.el")
+        rcirc-log-directory              (lmm/no-littering-expand-var "rcirc-log/")
+        recentf-save-file                (lmm/no-littering-expand-var "recentf-save.el")
+        remember-data-file               (lmm/no-littering-expand-var "remember/data")
+        remember-data-directory          (lmm/no-littering-expand-var "remember/data.d/")
+        save-place-file                  (lmm/no-littering-expand-var "save-place.el")
+        savehist-file                    (lmm/no-littering-expand-var "savehist.el")
+        srecode-map-save-file            (lmm/no-littering-expand-var "srecode-map.el")
+        semanticdb-default-save-directory (lmm/no-littering-expand-var "semantic/")
+        shared-game-score-directory      (lmm/no-littering-expand-var "shared-game-score/")
+        timeclock-file                   (lmm/no-littering-expand-var "timeclock")
+        tramp-auto-save-directory        (lmm/no-littering-expand-var "tramp/auto-save/")
+        tramp-persistency-file-name      (lmm/no-littering-expand-var "tramp/persistency.el")
+        type-break-file-name             (lmm/no-littering-expand-var "type-break.el")
+        url-cache-directory              (lmm/no-littering-expand-var "url/cache/")
+        url-configuration-directory      (lmm/no-littering-expand-var "url/")
+        url-cookie-file                  (lmm/no-littering-expand-var "url/cookies.el")
+        url-history-file                 (lmm/no-littering-expand-var "url/history.el")
+
+  ;;; Third-party packages
+
+        ac-comphist-file                 (lmm/no-littering-expand-var "ac-comphist.el")
+        amx-save-file                    (lmm/no-littering-expand-var "amx-save.el")
+        anaconda-mode-installation-directory (lmm/no-littering-expand-var "anaconda-mode/")
+        annotate-file                    (lmm/no-littering-expand-var "annotations.el")
+        async-byte-compile-log-file      (lmm/no-littering-expand-var "async-bytecomp.log")
+        auto-package-update-last-update-day-path (lmm/no-littering-expand-var "auto-package-update-last-update-day")
+        bookiez-file                     (lmm/no-littering-expand-var "bookiez")
+        cider-repl-history-file          (lmm/no-littering-expand-var "cider-repl-history.el")
+        code-review-db-database-file     (lmm/no-littering-expand-var "code-review/database.sqlite")
+        code-review-download-dir         (lmm/no-littering-expand-var "code-review/downloads/")
+        code-review-log-file             (lmm/no-littering-expand-var "code-review/log")
+        conventional-changelog-tmp-dir   (lmm/no-littering-expand-var "conventional-changelog/")
+        dap-breakpoints-file             (lmm/no-littering-expand-var "dap/breakpoints.el")
+        dap-java-test-runner             (lmm/no-littering-expand-var "lsp-java/eclipse.jdt.ls/test-runner/junit-platform-console-standalone.jar")
+        dap-utils-extension-path         (lmm/no-littering-expand-var "dap/extensions/")
+        debbugs-gnu-persistency-file     (lmm/no-littering-expand-var "debbugs.el")
+        devdocs-browser-cache-directory  (lmm/no-littering-expand-var "devdocs/browser-cache/")
+        devdocs-data-dir                 (lmm/no-littering-expand-var "devdocs/data/")
+        dired-recent-directories-file    (lmm/no-littering-expand-var "dired-recent-directories.el")
+        dirvish-cache-dir                (lmm/no-littering-expand-var "dirvish/cache")
+        elbank-data-file                 (lmm/no-littering-expand-var "elbank-data.el")
+        elmo-msgdb-directory             (lmm/no-littering-expand-var "elmo/")
+        elmo-split-log-file              (lmm/no-littering-expand-var "elmo/split-log")
+        elpher-bookmarks-file            (lmm/no-littering-expand-var "elpher-bookmarks.el")
+        epkg-repository                  (lmm/no-littering-expand-var "epkgs/")
+        equake-persistent-display-file   (lmm/no-littering-expand-var "equake-persistent-display")
+        fontaine-latest-state-file       (lmm/no-littering-expand-var "fontaine-latest-state.eld")
+        forge-database-file              (lmm/no-littering-expand-var "forge/database.sqlite")
+        forge-post-directory             (lmm/no-littering-expand-var "forge/posts/")
+        geben-temporary-file-directory   (lmm/no-littering-expand-var "geben/")
+        hackernews-visited-links-file    (lmm/no-littering-expand-var "hackernews/visited-links.el")
+        historian-save-file              (lmm/no-littering-expand-var "historian-save.el")
+        indium-workspace-file            (lmm/no-littering-expand-var "indium/workspaces.el")
+        irfc-directory                   (lmm/no-littering-expand-var "irfc/")
+        irony-user-dir                   (lmm/no-littering-expand-var "irony/")
+        keyfreq-file                     (lmm/no-littering-expand-var "keyfreq.el")
+        keyfreq-file-lock                (lmm/no-littering-expand-var "keyfreq.lock")
+        libbcel-oauth-store-filename     (lmm/no-littering-expand-var "libbcel-oauth-store.el.gpg")
+        litable-list-file                (lmm/no-littering-expand-var "litable-list.el")
+        logview-cache-filename           (lmm/no-littering-expand-var "logview-cache")
+        logview-views-file               (lmm/no-littering-expand-etc "logview-views")
+        magithub-dir                     (lmm/no-littering-expand-var "magithub/")
+        magithub-cache-file              (lmm/no-littering-expand-var "magithub/cache.el")
+        mc/list-file                     (lmm/no-littering-expand-var "mc-list.el")
+        meghanada-server-install-dir     (lmm/no-littering-expand-var "meghanada/")
+        multi-compile-history-file       (lmm/no-littering-expand-var "multi-compile-history.el")
+        nix-buffer-directory-name        (lmm/no-littering-expand-var "nix-buffer/")
+        nomad-tramp-script-directory     (lmm/no-littering-expand-var "nomad-tramp/")
+        ;; The value of this variable MUST NOT end with ".el" but the
+        ;; actual file name MUST end with ".el".  Use "git blame" for
+        ;; more information.
+        notmuch-init-file                (lmm/no-littering-expand-etc "notmuch-init")
+        nov-save-place-file              (lmm/no-littering-expand-var "nov-save-place.el")
+        omnisharp-cache-directory        (lmm/no-littering-expand-var "omnisharp/cache")
+        package-quickstart-file          (lmm/no-littering-expand-var "package-quickstart.el")
+        pandoc-data-dir                  (lmm/no-littering-expand-etc "pandoc-mode/")
+        pcache-directory                 (lmm/no-littering-expand-var "pcache/")
+        pdf-view-restore-filename        (lmm/no-littering-expand-var "pdf-view-restore.el")
+        persist--directory-location      (lmm/no-littering-expand-var "persist/")
+        persistent-scratch-save-file     (lmm/no-littering-expand-var "persistent-scratch.el")
+        persp-save-dir                   (lmm/no-littering-expand-var "persp-mode/")
+        psession-elisp-objects-default-directory (lmm/no-littering-expand-var "psession/")
+        purpose-default-layout-file      (lmm/no-littering-expand-etc "window-purpose/default-layout.el")
+        purpose-layout-dirs              (list (lmm/no-littering-expand-etc "window-purpose/layouts/"))
+        pyim-dcache-directory            (lmm/no-littering-expand-var "pyim/dcache/")
+        quack-dir                        (lmm/no-littering-expand-var "quack/")
+        rfc-mode-directory               (lmm/no-littering-expand-var "rfc-mode/")
+        request-storage-directory        (lmm/no-littering-expand-var "request/storage/")
+        rime-user-data-dir               (lmm/no-littering-expand-var "rime/")
+        rmh-elfeed-org-files             (list (lmm/no-littering-expand-var "elfeed/rmh-elfeed.org"))
+        runner-init-file                 (lmm/no-littering-expand-var "runner-init.el")
+        save-kill-file-name              (lmm/no-littering-expand-var "save-kill.el")
+        save-visited-files-location      (lmm/no-littering-expand-var "save-visited-files-location")
+        smex-save-file                   (lmm/no-littering-expand-var "smex-save.el")
+        speed-type-gb-dir                (lmm/no-littering-expand-var "speed-type/")
+        svg-lib-icons-dir                (lmm/no-littering-expand-var "svg-lib/icons/")
+        tldr-directory-path              (lmm/no-littering-expand-var "tldr/")
+        transient-history-file           (lmm/no-littering-expand-var "transient/history.el")
+        transient-levels-file            (lmm/no-littering-expand-etc "transient/levels.el")
+        transient-values-file            (lmm/no-littering-expand-etc "transient/values.el")
+        treemacs-persist-file            (lmm/no-littering-expand-var "treemacs/persist.org")
+        treemacs-last-error-persist-file (lmm/no-littering-expand-var "treemacs/persist-last-error.org")
+        undo-fu-session-directory        (lmm/no-littering-expand-var "undo-fu-session/")
+        undohist-directory               (lmm/no-littering-expand-var "undohist/")
+        undo-tree-history-directory-alist (list (cons "." (lmm/no-littering-expand-var "undo-tree-hist/")))
+        user-emacs-ensime-directory      (lmm/no-littering-expand-var "ensime/")
+        vimish-fold-dir                  (lmm/no-littering-expand-var "vimish-fold/")
+        x86-lookup-cache-directory       (lmm/no-littering-expand-var "x86-lookup/cache/"))
+#+end_src
 * CORE SETTINGS
 ** Fast Read
 #+BEGIN_SRC emacs-lisp
@@ -29,11 +347,6 @@
                                (float-time
                                 (time-subtract after-init-time before-init-time)))
                        gcs-done)))
-#+END_SRC
-
-** Custom file
-#+BEGIN_SRC emacs-lisp
-(setq custom-file (locate-user-emacs-file "custom.el"))
 #+END_SRC
 
 ** Open Config file
