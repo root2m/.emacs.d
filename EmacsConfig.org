@@ -55,8 +55,11 @@
 
 ** Server Mode
 #+BEGIN_SRC emacs-lisp
-  (with-eval-after-load 'server
-    (unless (server-running-p)(server-start)))
+  (add-hook 'after-init-hook (lambda ()
+                               "Start server"
+                               (require 'server)
+                               (unless (server-running-p)
+                                 (server-start))))
 #+END_SRC
 
 ** Native Comp Support
@@ -238,11 +241,12 @@
     (general-evil-setup t))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
-  ;; ESC Cancels All
- (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+   ;; ESC Cancels All
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
-  ;; Rebind C-u
-  (global-set-key (kbd "C-M-u") 'universal-argument)
+   ;; Rebind C-u
+   (global-set-key (kbd "C-M-u") 'universal-argument)
+   (define-key universal-argument-map (kbd "C-M-u") 'universal-argument-more)
 #+END_SRC
 
 ** Hydra
@@ -588,12 +592,6 @@
   ;;                    (whitespace-mode t))))
 #+END_SRC
 
-** COMMENT Symbol Highlight
-#+BEGIN_SRC emacs-lisp
-  (use-package auto-highlight-symbol
-    :straight t)
-#+END_SRC
-
 ** Beautiful Code
 *** COMMENT svg-tag-mode
 #+BEGIN_SRC emacs-lisp
@@ -614,11 +612,6 @@
     :straight t
     :hook
     (after-init-hook . global-hl-todo-mode))
-#+END_SRC
-
-*** COMMENT highlight indent
-#+BEGIN_SRC emacs-lisp
-
 #+END_SRC
 
 * EVIL MODE
@@ -738,7 +731,7 @@
       "eb" 'eval-buffer
       "ep" 'eval-print-last-sexp
       "bk" 'kill-current-buffer
-      "j" 'evil-avy-goto-char-timer
+      "'" 'evil-avy-goto-char-timer
       "SPC" 'execute-extended-command
       ":" 'eval-expression)
     (defhydra hydra-Ctrl-quick-key(:foreign-keys warn
@@ -760,7 +753,9 @@
           "`" #'evil-goto-mark-line
           "U" #'evil-redo
           "t" #'repeat
+          "z/" #'evil-ex-nohighlight
           "g/" #'evil-ex-nohighlight
+          "g'" #'evil-avy-goto-char-2
           )
 
       (defvar lmm/goto-next-object-map (make-sparse-keymap))
@@ -812,7 +807,9 @@
         "f" #'end-of-defun)
       (evil-define-key '(normal motion visual) 'global
       ";" lmm/goto-next-object-map
-      "," lmm/goto-preview-object-map)
+      "," lmm/goto-preview-object-map
+      "f" 'evil-avy-goto-char-2
+      "F" 'evil-avy-goto-char)
 
     :bind
     (:map evil-insert-state-map
@@ -953,7 +950,8 @@
 
   ;; 快速跳转
   (use-package evil-snipe
-    :straight t
+    :disabled
+    :straight nil
     :hook
     (evil-mode-hook . evil-snipe-mode)
     :init
@@ -990,23 +988,14 @@
 #+BEGIN_SRC emacs-lisp
   (use-package evil
     :config
-    ;; 删除当前行光标前所有空格
-    (general-define-key
-     :keymaps 'evil-outer-text-objects-map
-     "SPC" (lambda ()(interactive) (cycle-spacing 0)))
-    ;; 删除当前行光标前空格，保留一个
-    (general-define-key
-     :keymaps 'evil-inner-text-objects-map
-     "SPC" 'cycle-spacing)
-
-    (evil-define-command evil-vsplit-next-buffer (&optional count)
+    (evil-define-command lmm/evil-vsplit-next-buffer (&optional count)
       "Vsplits the window and goes to the COUNT-th next buffer in the buffer list."
       :repeat nil
       (interactive "p")
       (evil-window-vsplit)
       (evil-next-buffer count))
 
-    (evil-define-command evil-vsplit-prev-buffer (&optional count)
+    (evil-define-command lmm/evil-vsplit-prev-buffer (&optional count)
       "Vsplits window and goes to the COUNT-th prev buffer in the buffer list."
       :repeat nil
       (interactive "p")
@@ -1031,41 +1020,93 @@
         (unless arg
           (select-window target-window))))
 
+    (defun lmm/vsplit-and-select-buffer(&optional arg)
+      "VSplit this buffer, switch to select buffer"
+      (interactive "P")
+      (if-let ((buffer (read-buffer-to-switch "Switch to Buffer: ")))
+          (let ((target-window (split-window-horizontally)))
+            (set-window-buffer target-window buffer)
+            (unless arg
+              (select-window target-window)))))
+
+    (defun lmm/split-and-select-buffer(&optional arg)
+      "Split this buffer, switch to select buffer"
+      (interactive "P")
+      (if-let ((buffer (read-buffer-to-switch "Switch to Buffer: ")))
+          (let ((target-window (split-window-vertically)))
+            (set-window-buffer target-window buffer)
+            (unless arg
+              (select-window target-window)))))
+
     (general-define-key
      :keymaps 'evil-window-map
      "s" 'lmm/split-other-buffer
-     "v" 'lmm/vsplit-other-buffer)
+     "v" 'lmm/vsplit-other-buffer
+     "S" 'lmm/split-and-select-buffer
+     "V" 'lmm/vsplit-and-select-buffer
+     )
 
-    (evil-define-text-object evil-inner-line (count &optional beg end type)
+    ;; 删除当前行光标前空格，保留一个
+    (evil-define-text-object lmm/evil-inner-space (count &optional beg end type)
+      "Select in space."
+      (let* ((point (point))
+             (begin (+ point (skip-chars-backward " \t")))
+             (end (+ begin (skip-chars-forward " \t"))))
+        (if (= begin end)
+            (error "Not found space!")
+          (evil-range (1+ begin) end))))
+
+    ;; 删除当前行光标前所有空格
+    (evil-define-text-object lmm/evil-outer-space (count &optional beg end type)
+      "Select outer space."
+      (let* ((point (point))
+             (begin (+ point (skip-chars-backward " \t")))
+             (end (+ begin (skip-chars-forward " \t"))))
+        (if (= begin end)
+            (error "Not found space!")
+          (evil-range begin end))))
+
+    (define-key evil-inner-text-objects-map " " 'lmm/evil-inner-space)
+    (define-key evil-outer-text-objects-map " " 'lmm/evil-outer-space)
+
+    (evil-define-operator lmm/evil-replace-paste (beg end)
+      "Select and paste"
+      (evil-visual-make-region beg (1- end) evil-visual-char)
+      (call-interactively 'evil-visual-paste))
+
+    (evil-define-key 'normal 'global
+      "R" 'lmm/evil-replace-paste)
+
+    (evil-define-text-object lmm/evil-inner-line (count &optional beg end type)
       "Select in current visual line, not \n"
       (let ((begin (save-excursion (beginning-of-line-text) (point)))
             (end (save-excursion (end-of-visual-line) (point))))
         (evil-range begin end)))
 
-    (evil-define-text-object evil-a-line (count &optional beg end type)
+    (evil-define-text-object lmm/evil-a-line (count &optional beg end type)
       "Select in current line, not \n"
       (let ((begin (save-excursion (beginning-of-line-text) (point)))
             (end (save-excursion (end-of-line) (point))))
         (evil-range begin end)))
 
-    (define-key evil-inner-text-objects-map "l" 'evil-inner-line)
-    (define-key evil-outer-text-objects-map "l" 'evil-a-line)
+    (define-key evil-inner-text-objects-map "l" 'lmm/evil-inner-line)
+    (define-key evil-outer-text-objects-map "l" 'lmm/evil-a-line)
 
-    (evil-define-motion evil-forward-in-word-begin(count &optional bigword)
+    (evil-define-motion lmm/evil-forward-in-word-begin(count &optional bigword)
       "Jump to next word"
       :type excessive
       (forward-to-word (or count 1)))
 
     ;; (evil-define-key '(normal motion) 'global
-    ;;   "w" 'evil-forward-in-word-begin)
+    ;;   "w" 'lmm/evil-forward-in-word-begin)
 
-    (evil-define-motion evil-backward-in-word-begin(count &optional bigword)
+    (evil-define-motion lmm/evil-backward-in-word-begin(count &optional bigword)
       "Backward in word begin"
       :type exclusive
       (backward-word (or count 1)))
 
     ;; (evil-define-key '(normal motion) 'global
-    ;;   "r" 'evil-backward-in-word-begin)
+    ;;   "r" 'lmm/evil-backward-in-word-begin)
     )
 #+END_SRC
 
@@ -1506,7 +1547,21 @@
     :init
     (setq org-src-window-setup 'current-window
           org-src-tab-acts-natively nil
-          )
+
+          ;; 启用todo层级关系
+          org-enforce-todo-dependencies t
+          ;; 添加完成时间
+          org-log-done 'time
+          ;; 任务完成时间记录放进抽屉, 默认为 "LOGBOOK"
+          ;; org-log-into-drawer "TODOLOG"
+          org-log-into-drawer t
+          ;; 时钟记录抽屉, 默认为 "LOGBOOK"
+          org-clock-into-drawer "CLOCKLOG")
+
+    (setq org-todo-keywords
+          '((sequence "TODO(t)" "|" "DONE(d)")
+            (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)" "|" "FIXED(f)")
+            (sequence "|" "CANCELED(c)")))
 
     :config
     (set-face-attribute 'org-block nil
@@ -1517,6 +1572,11 @@
                         :foreground "cyan"
                         :weight 'bold)
     )
+
+  (use-package org-agenda
+    :init
+    (setq org-agenda-files '("~/Notes/EveryDayTODO.org")))
+
   (use-package org-roam
     :straight t
     :init
@@ -1555,7 +1615,71 @@
 ** Repeat -- 重复命令
 #+BEGIN_SRC emacs-lisp
   (use-package repeat
-    :commands repeat)
+    :hook
+    (after-init-hook . repeat-mode)
+    :commands repeat
+    :init
+    (setq repeat-check-key nil)
+    ;; (setq repeat-exit-key " ")
+    (defvar lmmv/repeat-next-key "]")
+    (defvar lmmv/repeat-prev-key "[")
+    :config
+    (defvar lmmv/avy-repeat-map
+      (let ((map (make-sparse-keymap)))
+        (define-key map lmmv/repeat-next-key 'avy-next)
+        (define-key map lmmv/repeat-prev-key 'avy-prev)
+        map)
+      "Avy jump repeat map")
+    (put 'avy-next 'repeat-map 'lmmv/avy-repeat-map)
+    (put 'avy-prev 'repeat-map 'lmmv/avy-repeat-map)
+
+    (defvar lmmv/toggle-buffer-repeat-map
+      (let ((map (make-sparse-keymap)))
+        (define-key map lmmv/repeat-next-key 'next-buffer)
+        (define-key map lmmv/repeat-prev-key 'previous-buffer)
+        map)
+      "Next/Prev buffer repeat map")
+    (put 'next-buffer 'repeat-map 'lmmv/toggle-buffer-repeat-map)
+    (put 'previous-buffer 'repeat-map 'lmmv/toggle-buffer-repeat-map)
+
+    (defvar lmmv/evil-scroll-repeat-map
+      (let ((map (make-sparse-keymap)))
+        (define-key map lmmv/repeat-next-key 'evil-scroll-down)
+        (define-key map lmmv/repeat-prev-key 'evil-scroll-up)
+        map)
+      "Evil scroll repeat map")
+    (put 'evil-scroll-up 'repeat-map 'lmmv/evil-scroll-repeat-map)
+    (put 'evil-scroll-down 'repeat-map 'lmmv/evil-scroll-repeat-map)
+
+    (defvar lmmv/evil-scroll-page-repeat-map
+      (let ((map (make-sparse-keymap)))
+        (define-key map lmmv/repeat-next-key 'evil-scroll-page-down)
+        (define-key map lmmv/repeat-prev-key 'evil-scroll-page-up)
+        map)
+      "Evil scroll page repeat map")
+    (put 'evil-scroll-page-up 'repeat-map 'lmmv/evil-scroll-page-repeat-map)
+    (put 'evil-scroll-page-down 'repeat-map 'lmmv/evil-scroll-page-repeat-map)
+
+    (defvar lmmv/evil-toggle-buffer-repeat-map
+      (let ((map (make-sparse-keymap)))
+        (define-key map lmmv/repeat-next-key 'evil-next-buffer)
+        (define-key map lmmv/repeat-prev-key 'evil-prev-buffer)
+        map)
+      "Evil next/prev buffer repeat map")
+    (put 'evil-next-buffer 'repeat-map 'lmmv/evil-toggle-buffer-repeat-map)
+    (put 'evil-prev-buffer 'repeat-map 'lmmv/evil-toggle-buffer-repeat-map)
+
+    (defvar lmmv/diff-hl-hunk-repeat-map
+      (let ((map (make-sparse-keymap)))
+        (define-key map lmmv/repeat-next-key 'diff-hl-next-hunk)
+        (define-key map lmmv/repeat-prev-key 'diff-hl-previous-hunk)
+        map)
+      "Diff-hl-mode repeat map")
+    (put 'diff-hl-next-hunk 'repeat-map 'lmmv/diff-hl-hunk-repeat-map)
+    (put 'diff-hl-previous-hunk 'repeat-map 'lmmv/diff-hl-hunk-repeat-map)
+
+    (put 'undo 'repeat-map nil)
+    )
 #+END_SRC
 
 ** Search -- anzu
@@ -1755,57 +1879,7 @@
       "ayr" 'avy-kill-ring-save-region
       "as" 'avy-isearch
       "ar" 'avy-resume
-      "ab" 'avy-pop-mark)
-    (defun lmm/avy-goto-word-1-regexp-and-inside-pairs (pairch &optional arg)
-      "复制指定位置括号内容并粘贴"
-      (interactive (list (read-char "char: " t)
-                         current-prefix-arg))
-      (avy-goto-word-1 pairch arg)
-
-      (goto-char (nth 1 (syntax-ppss)))
-      (set-mark (save-excursion
-                  (forward-char 1)
-                  (skip-chars-forward " \t\n")
-                  (point)))
-      (forward-list)
-      (backward-char)
-      (skip-chars-backward " \t\n")
-      (exchange-point-and-mark)
-
-      (call-interactively 'kill-ring-save)
-      (avy-pop-mark)
-      (yank))
-    (defun lmm/avy-copy-paren-insert()
-      "复制指定位置括号内容并粘贴"
-      (interactive)
-      (save-excursion
-        (avy-goto-char ?\) current-prefix-arg)
-        (evil-yank (car (evil-a-paren)) (cadr (evil-a-paren))))
-      (evil-paste-before 1)
-      )
-    ;; TODO
-    (defun lmm/avy-copy-paren-insert(char &optional arg)
-      (interactive (list (read-char "char: " t)
-                         current-prefix-arg))
-      (when (or
-             (= char ?\()
-             (= char ?\))
-             (= char ?\[)
-             (= char ?\])
-             (= char ?\{)
-             (= char ?\})
-             (= char ?\")
-             )
-        (let ((region
-               (save-excursion
-                 (if (cons (avy-goto-char char arg))
-                     ()
-                   nil
-                   )
-                 ))))
-        )
-      )
-    )
+      "ab" 'avy-pop-mark))
 #+END_SRC
 
 ** Goto Last Change
@@ -1889,63 +1963,6 @@
   ;;                                                            (face-attribute 'default :background)
   ;;                                                            :foreground "red")))))
   ;;                                   ))
-#+END_SRC
-
-** COMMENT Symbol-overlay
-同词高亮显示
-#+BEGIN_SRC emacs-lisp
-  (use-package symbol-overlay
-    :straight t
-    :hook
-    ((prog-mode-hook html-mode-hook yaml-mode-hook conf-mode-hook) . symbol-overlay-mode)
-    :bind
-    (:map symbol-overlay-mode-map
-          ("M-i" . symbol-overlay-put)
-          ("M-I" . symbol-overlay-remove-all)
-          ("M-n" . symbol-overlay-jump-next)
-          ("M-p" . symbol-overlay-jump-prev)
-          )
-    )
-#+END_SRC
-
-** COMMENT Page Break Lines
-页面分割线(C-q C-l)
-#+BEGIN_SRC emacs-lisp
-  (use-package page-break-lines
-    :straight t
-    :hook
-    (after-init-hook . global-page-break-lines-mode)
-    :diminish page-break-lines-mode)
-#+END_SRC
-
-** COMMENT Browse Kill Ring
-剪贴板
-#+BEGIN_SRC emacs-lisp
-  (use-package browse-kill-ring
-    :straight t
-    :custom
-    (browse-kill-ring-separator "\f")
-    :bind
-    (("M-Y" . browse-kill-ring)
-     (:map browse-kill-ring-mode-map
-           ("C-g" . browse-kill-ring-quit)
-           ("M-n" . browse-kill-ring-forward)
-           ("M-p" . browse-kill-ring-previous))
-     )
-    :config
-    (push 'browse-kill-ring-mode page-break-lines-modes)
-    )
-#+END_SRC
-
-** COMMENT Iedit -- 多区域同时编辑
-#+BEGIN_SRC emacs-lisp
-  (use-package iedit
-    :straight t
-    )
-#+END_SRC
-
-** COMMENT Wgrep -- sed交互式编辑缓冲区
-#+BEGIN_SRC emacs-lisp
 #+END_SRC
 
 ** Snippet -- 模板补全
@@ -2474,7 +2491,11 @@
       "/" (evil-textobj-tree-sitter-get-textobj "comment.outer")
       "0" (evil-textobj-tree-sitter-get-textobj "loop.outer")
       "b" (evil-textobj-tree-sitter-get-textobj "block.outer"))
-    (evil-define-key '(normal motion visual) 'global
+
+    (defvar lmm/tree-sitter-mode-map (make-sparse-keymap)
+      "Tree sitter mode map.")
+
+    (evil-define-key '(normal motion visual) lmm/tree-sitter-mode-map
       "L" (lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "parameter.inner"))
       "H" (lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "parameter.inner" t))
       ";f"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer"))
@@ -2488,7 +2509,9 @@
       ";;"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "statement.outer"))
       ",;"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "statement.outer" t))
       ";0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer"))
-      ",0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer" t))))
+      ",0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer" t)))
+
+    (add-hook 'tree-sitter-mode-hook (lambda ()(use-local-map lmm/tree-sitter-mode-map))))
 #+END_SRC
 
 ** LANG

@@ -49,6 +49,8 @@
 
 (add-hook 'kill-emacs-hook #'lmm/emacs-build-config-file)
 
+;; 消除启动提示消息
+(fset 'display-startup-echo-area-message 'ignore)
 ;; 让hook顺序倒过来， 符合EmacsConfig.org配置编写逻辑
 (setq after-init-hook (reverse after-init-hook))
 
