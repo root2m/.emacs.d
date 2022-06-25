@@ -1677,28 +1677,24 @@
     (set-face-background 'orderless-match-face-2 nil)
     (set-face-background 'orderless-match-face-3 nil)
 
-    ;; 排除项
-    ;; !word
-    (defun lmm/orderless-dispatch-without-if-bang (pattern _index _total)
+    (defun lmm/orderless-dispatch (pattern _index _total)
       (cond
+       ;; 排除项
+       ;; !word
        ((equal "!" pattern)
         '(orderless-literal . ""))
        ((string-prefix-p "!" pattern)
-        `(orderless-without-literal . ,(substring pattern 1)))))
-
-    ;; 散列
-    ;; word~
-    ;; thws-os-wor-isd
-    (defun lmm/orderless-dispatch-flex (pattern _index _total)
-      (when (string-suffix-p "~" pattern)
-        `(orderless-flex . ,(substring pattern 0 -1))))
-
-    ;; 前缀
-    ;; `word
-    ;; wordsub
-    (defun lmm/orderless-dispatch-prefixes(pattern _index _total)
-      (when (string-prefix-p "`" pattern)
-        `(orderless-prefixes . ,(substring pattern 1))))
+        `(orderless-without-literal . ,(substring pattern 1)))
+       ;; 散列
+       ;; word~
+       ;; thws-os-wor-isd
+       ((string-suffix-p "~" pattern)
+        `(orderless-flex . ,(substring pattern 0 -1)))
+       ;; 前缀
+       ;; `word
+       ;; wordsub
+       ((string-prefix-p "`" pattern)
+        `(orderless-prefixes . ,(substring pattern 1)))))
 
     ;; (setq orderless-style-dispatchers '(lmm/orderless-dispatch-without-if-bang
     ;;                                     lmm/orderless-dispatch-flex))
@@ -2456,7 +2452,6 @@
           corfu-max-width corfu-min-width
           corfu-count 15
           corfu-auto-delay 0.3
-          corfu-right-margin-width 1.0
           )
     :hook
     (after-init-hook . global-corfu-mode)
@@ -2543,7 +2538,7 @@
     )
 #+END_SRC
 
-**** kind-icon
+**** COMMENT kind-icon
 #+BEGIN_SRC emacs-lisp
   (use-package kind-icon
     :straight t
@@ -2559,7 +2554,7 @@
     (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+END_SRC
 
-**** COMMENT kind-all-the-icon
+**** kind-all-the-icon
 #+BEGIN_SRC emacs-lisp
   (defvar kind-all-the-icons--cache nil
     "The cache of styled and padded label (text or icon).
@@ -3355,6 +3350,15 @@
     :init
     (setq elfeed-db-directory (concat user-emacs-directory "elfeed-cache"))
     :commands elfeed)
+#+END_SRC
+
+** Hyperbole 上下文操作
+#+BEGIN_SRC emacs-lisp
+  (use-package hyperbole
+    :straight t
+    :bind
+    ("M-RET" . hkey-either)
+    :commands (hkey-either hyperbole))
 #+END_SRC
 
 * KEY LIST
