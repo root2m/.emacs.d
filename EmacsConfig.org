@@ -1008,7 +1008,7 @@
      :states '(normal motion)
      "gh" 'beginning-of-line-text
      "gl" 'end-of-line
-     ;; "," evil-window-map
+     "," evil-window-map
      )
 
     (defmacro lmm/create-translate-key-map(from to)
@@ -1027,7 +1027,7 @@
       :non-normal-prefix "C-SPC"
       :prefix "SPC")
     (lmm/evil-space-leader-def
-      "w" evil-window-map
+      ;; "w" evil-window-map
       "," 'switch-to-buffer
       "<" 'switch-to-buffer
       "si" 'imenu
@@ -1119,8 +1119,8 @@
         "}" #'evil-next-close-brace
         "f" #'end-of-defun)
       (evil-define-key '(normal motion visual) 'global
-      ";" lmm/goto-next-object-map
-      "," lmm/goto-preview-object-map
+      ;; ";" lmm/goto-next-object-map
+      ;; "," lmm/goto-preview-object-map
       "f" 'evil-avy-goto-char-2
       "F" 'evil-avy-goto-char)
 
@@ -1141,7 +1141,7 @@
           ("p" . evil-prev-buffer)
           ("w" . evil-window-mru)
           ("W" . evil-window-next)
-          ("," . evil-switch-to-windows-last-buffer)))
+          ("." . evil-switch-to-windows-last-buffer)))
 #+END_SRC
 
 ** COMMENT Evil-Escape
@@ -1253,11 +1253,11 @@
           :map evil-outer-text-objects-map
           ("a" . evil-outer-arg)
           :map evil-normal-state-map
-          (",a" . evil-backward-arg)
-          (";a" . evil-forward-arg)
+          ("[a" . evil-backward-arg)
+          ("]a" . evil-forward-arg)
           :map evil-motion-state-map
-          (",a" . evil-backward-arg)
-          (";a" . evil-forward-arg)
+          ("[a" . evil-backward-arg)
+          ("]a" . evil-forward-arg)
           )
     )
 
@@ -1479,7 +1479,7 @@
     :config
     (general-define-key
      :keymaps 'evil-window-map
-     "w" 'ace-window))
+     "," 'ace-window))
 #+END_SRC
 
 ** Buffers Config
@@ -2806,18 +2806,18 @@
     (evil-define-key '(normal motion visual) lmm/tree-sitter-mode-map
       "L" (lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "parameter.inner"))
       "H" (lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "parameter.inner" t))
-      ";f"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer"))
-      ",f"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer" t))
-      ";F"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer" nil t))
-      ",F"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer" t t))
-      ";r"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "call.outer"))
-      ",r"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "call.outer" t))
-      ";/"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "comment.outer"))
-      ",/"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "comment.outer" t))
-      ";;"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "statement.outer"))
-      ",;"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "statement.outer" t))
-      ";0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer"))
-      ",0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer" t)))
+      "]f"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer"))
+      "[f"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer" t))
+      "]F"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer" nil t))
+      "[F"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer" t t))
+      "]r"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "call.outer"))
+      "[r"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "call.outer" t))
+      "]/"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "comment.outer"))
+      "[/"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "comment.outer" t))
+      "];"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "statement.outer"))
+      "[;"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "statement.outer" t))
+      "]0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer"))
+      "[0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer" t)))
 
     (add-hook 'tree-sitter-mode-hook (lambda ()(use-local-map lmm/tree-sitter-mode-map))))
 #+END_SRC
