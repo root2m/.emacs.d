@@ -1181,7 +1181,7 @@
   (use-package evil-collection
     :straight t
     :config
-    (dolist (mode '(corfu vterm))
+    (dolist (mode '(corfu))
       (delq mode evil-collection-mode-list))
     :hook
     (evil-mode-hook . evil-collection-init))
@@ -2915,6 +2915,11 @@
     :commands verb-mode)
 #+END_SRC
 
+*** sh
+#+BEGIN_SRC emacs-lisp
+  (setq sh-basic-offset 2)
+#+END_SRC
+
 * PROJECT CONFIG
 ** Projectile Config
 #+BEGIN_SRC emacs-lisp
@@ -3146,7 +3151,7 @@
     (general-define-key
      "<f12>" #'vterm)
     (setq vterm-timer-delay 0.05)
-    (add-to-list 'evil-insert-state-modes 'vterm-mode)
+    ;; (add-to-list 'evil-insert-state-modes 'vterm-mode)
     :config
     (add-to-list 'display-buffer-alist
                  '("\\*vterm\\*\\(<[0-9]>\\)?$"
@@ -3165,7 +3170,7 @@
                  "Vterm exit command will call interactive func 'delete-window'"
                  (when (not (one-window-p))
                    (call-interactively 'delete-window))))
-     (evil-make-intercept-map vterm-mode-map 'insert)
+     ;; (evil-make-intercept-map vterm-mode-map 'insert)
     :commands vterm)
 #+END_SRC
 
