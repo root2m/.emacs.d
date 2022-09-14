@@ -13,7 +13,8 @@
 #+END_SRC
 
 * BOOT CONFIG
-#+begin_src emacs-lisp
+** Clean
+#+BEGIN_SRC emacs-lisp
   ;; copy from https://github.com/emacscollective/no-littering
 
   (defvar lmmv/no-littering-etc-directory
@@ -330,7 +331,13 @@
         user-emacs-ensime-directory      (lmm/no-littering-expand-var "ensime/")
         vimish-fold-dir                  (lmm/no-littering-expand-var "vimish-fold/")
         x86-lookup-cache-directory       (lmm/no-littering-expand-var "x86-lookup/cache/"))
-#+end_src
+#+END_SRC
+
+** pgtk config
+#+BEGIN_SRC emacs-lisp
+(setq pgtk-wait-for-event-timeout 0.001)
+#+END_SRC
+
 * CORE SETTINGS
 ** Fast Read
 #+BEGIN_SRC emacs-lisp
@@ -1026,6 +1033,14 @@
       :prefix-map 'lmm/evil-space-leader-def-map
       :non-normal-prefix "C-SPC"
       :prefix "SPC")
+
+    (defun lmm/SPC-SPC()
+      "Select active minibuffer window, or call execute-extended-command if nil"
+      (interactive)
+      (if-let (window (active-minibuffer-window))
+          (select-window window)
+        (call-interactively #'execute-extended-command)))
+
     (lmm/evil-space-leader-def
       ;; "w" evil-window-map
       "," 'switch-to-buffer
@@ -1045,7 +1060,7 @@
       "ep" 'eval-print-last-sexp
       "bk" 'kill-current-buffer
       "'" 'evil-avy-goto-char-timer
-      "SPC" 'execute-extended-command
+      "SPC" 'lmm/SPC-SPC
       ":" 'eval-expression)
     (defhydra hydra-Ctrl-quick-key(:foreign-keys warn
                                                  :hint nil)
@@ -1278,12 +1293,12 @@
       "s" #'evil-snipe-s
       "S" #'evil-snipe-S)
     (set-face-attribute 'evil-snipe-matches-face nil
-                        :background nil
+                        :background "unspecified"
                         :foreground "red"
                         :weight 'normal
                         :underline '(:color "red" :position 0))
     (set-face-attribute 'evil-snipe-first-match-face nil
-                        :background nil
+                        :background "unspecified"
                         :foreground nil
                         :underline nil
                         :weight 'normal))
@@ -1479,7 +1494,8 @@
     :config
     (general-define-key
      :keymaps 'evil-window-map
-     "," 'ace-window))
+     "," 'ace-window
+     "D" 'ace-delete-window))
 #+END_SRC
 
 ** Buffers Config
@@ -1672,10 +1688,10 @@
           completion-category-defaults nil
           completion-category-overrides '((file (styles partial-completion))))
     :config
-    (set-face-background 'orderless-match-face-0 nil)
-    (set-face-background 'orderless-match-face-1 nil)
-    (set-face-background 'orderless-match-face-2 nil)
-    (set-face-background 'orderless-match-face-3 nil)
+    (set-face-background 'orderless-match-face-0 "unspecified")
+    (set-face-background 'orderless-match-face-1 "unspecified")
+    (set-face-background 'orderless-match-face-2 "unspecified")
+    (set-face-background 'orderless-match-face-3 "unspecified")
 
     (defun lmm/orderless-dispatch (pattern _index _total)
       (cond
@@ -1720,11 +1736,10 @@
     (global-set-key [remap goto-line] 'consult-goto-line)
     (consult-customize
      consult-ripgrep consult-git-grep consult-grep
+     consult-theme
      consult-bookmark consult-recent-file consult-xref
      consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
      :preview-key (kbd "M-."))
-    (advice-add #'completing-read-multiple
-                :override #'consult-completing-read-multiple)
     ;; 替换系统完成
     (setq completion-in-region-function
           (lambda (&rest args)
@@ -1732,6 +1747,8 @@
                        #'consult-completion-in-region
                      #'completion--in-region)
                    args)))
+    (setq consult-narrow-key (kbd "<"))
+    (setq consult-find-args "find . -not ( -wholename */.* -prune -o -name node_modules -prune )")
 
     (defun lmm/consult-symbol-at-point (&optional n)
       "get symbol at current point, search geted symbol at consult-line"
@@ -1777,6 +1794,7 @@
       "si" (lambda ()(interactive) (if (eq major-mode 'org-mode)(consult-org-heading)(consult-imenu)))
       "sI" 'consult-imenu-multi
       "fr" 'consult-recent-file
+      "sr" 'consult-ripgrep
       )
     )
   (use-package consult-flycheck
@@ -1875,10 +1893,10 @@
 
     :config
     (set-face-attribute 'org-block nil
-                        :foreground nil)
+                        :foreground "unspecified")
     (set-face-attribute 'org-block-begin-line nil
                         :inherit nil
-                        :background nil
+                        :background "unspecified"
                         :foreground "cyan"
                         :weight 'bold)
     )
@@ -2303,7 +2321,7 @@
     (setq show-paren-delay 0)
     (set-face-attribute 'show-paren-match nil
                         :underline '(:color "red" :position 0)
-                        :background nil
+                        :background "unspecified"
                         :foreground "red"
                         :weight 'bold
                         ))
@@ -2330,7 +2348,7 @@
     (prog-mode-hook . yas-minor-mode)
     :config
     (set-face-attribute 'yas-field-highlight-face nil
-                        :background nil
+                        :background "unspecified"
                         :underline '(:color "white" :position 0)
                         :inherit nil))
 
@@ -2747,12 +2765,12 @@
     (lmm/evil-space-leader-def
       "ls" 'lsp-signature-activate)
     (set-face-attribute 'lsp-face-highlight-textual nil
-                        :background nil
+                        :background "unspecified"
                         :underline '(:color "#fce38a" :position 0)
-                        :foreground nil
+                        :foreground "unspecified"
                         )
-    ;; (set-face-attribute 'lsp-face-highlight-write nil :background nil)
-    ;; (set-face-attribute 'lsp-face-highlight-read nil :background nil)
+    ;; (set-face-attribute 'lsp-face-highlight-write nil :background "unspecified")
+    ;; (set-face-attribute 'lsp-face-highlight-read nil :background "unspecified")
     :commands lsp)
 
   (use-package lsp-ui
