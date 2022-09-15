@@ -1027,7 +1027,7 @@
              ,(concat "Translate key " from " -> " to)))))
 
     (general-create-definer lmm/evil-space-leader-def
-      :states '(normal motion)
+      :states '(normal motion insert)
       :keymaps 'override
       :prefix-command 'lmm/evil-space-leader-def-command
       :prefix-map 'lmm/evil-space-leader-def-map
