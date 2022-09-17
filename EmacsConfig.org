@@ -3493,6 +3493,51 @@
     :commands (hkey-either hyperbole))
 #+END_SRC
 
+** Insert current time
+#+BEGIN_SRC emacs-lisp
+  (defun lmm/insert-current-time()
+    "Insert current time, select format."
+    (interactive)
+    (insert
+     (completing-read "Select time format: "
+                      (let ((time (current-time))
+                            (format-string-list '("yyyy-mm-dd                   -> %F"
+                                                  "dd-mm-yyyy                   -> %d-%m-%Y"
+                                                  "mm/dd/yy                     -> %D"
+                                                  "%R"
+                                                  "%T"
+                                                  "%r"
+                                                  "yyyy-mm-dd HH:MM:SS(24-hour) -> %F %T"
+                                                  "yyyy-mm-dd HH:MM:SS(12-hour) -> %F %r"
+                                                  "%Y %m %d %A"
+                                                  "%F-%R"
+                                                  "%Y %m %d %H:%M"
+                                                  "%c"
+                                                  "%x")))
+                        (mapcar (lambda(s)(format-time-string s time)) format-string-list)))))
+#+END_SRC
+
+** Set alpha
+#+BEGIN_SRC emacs-lisp
+  (defun lmm/alpha-increase()
+    (interactive)
+    (when (>= emacs-major-version 29)
+      (let* ((wf (window-frame))
+             (fp (frame-parameter wf 'alpha-background)))
+        (if fp
+            (unless (= 0 fp)
+              (set-frame-parameter wf 'alpha-background (1- fp)))
+          (set-frame-parameter wf 'alpha-background 99)))))
+
+  (defun lmm/alpha-decrease()
+    (interactive)
+    (if-let* ((version (>= emacs-major-version 29))
+              (wf (window-frame))
+              (fp (frame-parameter wf 'alpha-background)))
+        (unless (= 100 fp)
+          (set-frame-parameter wf 'alpha-background (1+ fp)))))
+#+END_SRC
+
 * KEY LIST
 + word case
   - M-u upcase-dwim 转换单词或者标记区域为大写
