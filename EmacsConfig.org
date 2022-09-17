@@ -584,6 +584,23 @@
     (add-hook 'after-init-hook 'pixel-scroll-precision-mode))
 #+END_SRC
 
+** Another
+#+BEGIN_SRC emacs-lisp
+  (defmacro lmm/define-key-remap (map from-map &rest keys)
+    "(lmm/define-key-remap setmap from-map \"C-n\" command ...)
+    => (define-key setmap [remap from-map-C-n-command] #'command)"
+    (declare (indent 1))
+    (let ((num 1)
+          li
+          ocommd)
+      (dolist (km keys)
+        (if (= (% num 2) 0)
+            (push `(define-key ,map [remap ,ocommd] ,km) li)
+          (setq ocommd (lookup-key (eval from-map) (kbd km))))
+        (setq num (1+ num)))
+      `(progn ,@li)))
+#+END_SRC
+
 * UI
 ** Display Line Numbers and Truncated Lines
 #+BEGIN_SRC emacs-lisp
