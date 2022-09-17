@@ -1795,6 +1795,25 @@
                                   (number-to-string n)
                                 nil)))
 
+    (defun consult-ripgrep-up-directory ()
+      "restart current consult-ripgrep search in the parent directory"
+      (interactive)
+      (let ((parent-dir (file-name-directory (directory-file-name default-directory))))
+        (when parent-dir
+          (run-at-time 0 nil
+                       #'consult-ripgrep
+                       parent-dir
+                       (ignore-errors
+                         (buffer-substring-no-properties
+                          (1+ (minibuffer-prompt-end)) (point-max))))))
+      (minibuffer-quit-recursive-edit))
+
+    (consult-customize
+     consult-ripgrep
+     :keymap (let ((map (make-sparse-keymap)))
+               (define-key map (kbd "M-<up>") #'consult-ripgrep-up-directory)
+               map))
+
     (lmm/evil-space-leader-def
       "sb" 'consult-line
       "sB" 'consult-line-multi
