@@ -1347,50 +1347,6 @@
       (evil-window-vsplit)
       (evil-prev-buffer count))
 
-    (defun lmm/vsplit-other-buffer (&optional arg)
-      "VSplit this window"
-      (interactive "P")
-      (split-window-horizontally)
-      (let ((target-window (next-window)))
-        (set-window-buffer target-window (other-buffer))
-        (unless arg
-          (select-window target-window))))
-
-    (defun lmm/split-other-buffer (&optional arg)
-      "Split this window"
-      (interactive "P")
-      (split-window-vertically)
-      (let ((target-window (next-window)))
-        (set-window-buffer target-window (other-buffer))
-        (unless arg
-          (select-window target-window))))
-
-    (defun lmm/vsplit-and-select-buffer(&optional arg)
-      "VSplit this buffer, switch to select buffer"
-      (interactive "P")
-      (if-let ((buffer (read-buffer-to-switch "Switch to Buffer: ")))
-          (let ((target-window (split-window-horizontally)))
-            (set-window-buffer target-window buffer)
-            (unless arg
-              (select-window target-window)))))
-
-    (defun lmm/split-and-select-buffer(&optional arg)
-      "Split this buffer, switch to select buffer"
-      (interactive "P")
-      (if-let ((buffer (read-buffer-to-switch "Switch to Buffer: ")))
-          (let ((target-window (split-window-vertically)))
-            (set-window-buffer target-window buffer)
-            (unless arg
-              (select-window target-window)))))
-
-    (general-define-key
-     :keymaps 'evil-window-map
-     "s" 'lmm/split-other-buffer
-     "v" 'lmm/vsplit-other-buffer
-     "S" 'lmm/split-and-select-buffer
-     "V" 'lmm/vsplit-and-select-buffer
-     )
-
     ;; 删除当前行光标前空格，保留一个
     (evil-define-text-object lmm/evil-inner-space (count &optional beg end type)
       "Select in space."
@@ -1423,16 +1379,14 @@
       "R" 'lmm/evil-replace-paste)
 
     (evil-define-text-object lmm/evil-inner-line (count &optional beg end type)
-      "Select in current visual line, not \n"
+      "Select in current line, only have text"
       (let ((begin (save-excursion (beginning-of-line-text) (point)))
-            (end (save-excursion (end-of-visual-line) (point))))
+            (end (pos-eol)))
         (evil-range begin end)))
 
     (evil-define-text-object lmm/evil-a-line (count &optional beg end type)
-      "Select in current line, not \n"
-      (let ((begin (save-excursion (beginning-of-line-text) (point)))
-            (end (save-excursion (end-of-line) (point))))
-        (evil-range begin end)))
+      "Select in current line"
+      (evil-range (pos-bol) (pos-eol)))
 
     (define-key evil-inner-text-objects-map "l" 'lmm/evil-inner-line)
     (define-key evil-outer-text-objects-map "l" 'lmm/evil-a-line)
@@ -1464,6 +1418,49 @@
     (if (and (window-full-width-p) (window-full-height-p))
         (kill-current-buffer)
       (kill-buffer-and-window)))
+
+  (defun lmm/vsplit-other-buffer (&optional arg)
+    "VSplit this window"
+    (interactive "P")
+    (split-window-horizontally)
+    (let ((target-window (next-window)))
+      (set-window-buffer target-window (other-buffer))
+      (unless arg
+        (select-window target-window))))
+
+  (defun lmm/split-other-buffer (&optional arg)
+    "Split this window"
+    (interactive "P")
+    (split-window-vertically)
+    (let ((target-window (next-window)))
+      (set-window-buffer target-window (other-buffer))
+      (unless arg
+        (select-window target-window))))
+
+  (defun lmm/vsplit-and-select-buffer(&optional arg)
+    "VSplit this buffer, switch to select buffer"
+    (interactive "P")
+    (if-let ((buffer (read-buffer-to-switch "Switch to Buffer: ")))
+        (let ((target-window (split-window-horizontally)))
+          (set-window-buffer target-window buffer)
+          (unless arg
+            (select-window target-window)))))
+
+  (defun lmm/split-and-select-buffer(&optional arg)
+    "Split this buffer, switch to select buffer"
+    (interactive "P")
+    (if-let ((buffer (read-buffer-to-switch "Switch to Buffer: ")))
+        (let ((target-window (split-window-vertically)))
+          (set-window-buffer target-window buffer)
+          (unless arg
+            (select-window target-window)))))
+
+  (general-define-key
+   :keymaps 'evil-window-map
+   "s" 'lmm/split-other-buffer
+   "v" 'lmm/vsplit-other-buffer
+   "S" 'lmm/split-and-select-buffer
+   "V" 'lmm/vsplit-and-select-buffer)
 
   (use-package evil
     :bind
