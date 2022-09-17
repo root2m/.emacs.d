@@ -584,7 +584,7 @@
     (add-hook 'after-init-hook 'pixel-scroll-precision-mode))
 #+END_SRC
 
-** Another
+** Utils
 #+BEGIN_SRC emacs-lisp
   (defmacro lmm/define-key-remap (map from-map &rest keys)
     "(lmm/define-key-remap setmap from-map \"C-n\" command ...)
