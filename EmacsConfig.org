@@ -2574,6 +2574,14 @@
             '(orderless)))
     (add-hook 'lsp-completion-mode-hook 'lmm/lsp-mode-setup-completion)
 
+    (defun corfu-move-to-minibuffer ()
+      (interactive)
+      (let ((completion-extra-properties corfu--extra)
+            completion-cycle-threshold completion-cycling)
+        (apply #'consult-completion-in-region completion-in-region--data)))
+
+    (define-key corfu-map "\M-m" #'corfu-move-to-minibuffer)
+
 
     (set-face-background 'corfu-current "#44475a")
     (set-face-background 'corfu-border "#ffc4cd")
