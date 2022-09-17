@@ -2144,12 +2144,6 @@
     ;; (custom-set-variables
     ;;  '(pyim-english-input-switch-functions '(pyim-probe-program-mode)))
 
-  (defun pyim-preview-delete-string ()
-    "删除已经插入 buffer 的 preview 预览字符串。"
-    (when (and pyim-preview-overlay (overlay-start pyim-preview-overlay))
-      (delete-region (overlay-start pyim-preview-overlay)
-                     (overlay-end pyim-preview-overlay))))
-
     (general-define-key
      :keymaps 'pyim-mode-map
      "," 'pyim-previous-page
