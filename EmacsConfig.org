@@ -3172,45 +3172,109 @@
           ;; 是否在modeline中显示
           persp-show-modestring t
           persp-suppress-no-prefix-key-warning t)
-    ;; :hook
-    ;; (after-init-hook . persp-mode)
     :after consult
     :config
     (progn
       (persp-mode t)
       ;; consult buffers by persp
+      (consult-customize consult--source-buffer :hidden t :default nil :narrow ?B)
+      (delq 'consult--source-buffer consult-buffer-sources)
+
       (defvar lmm/perspective-consult--source-buffer
-        `(:name     ,(format "Buffers ( %s )" (persp-current-name))
-                    :narrow   ?b
-                    :category buffer
-                    :face     consult-buffer
-                    :history  buffer-name-history
-                    :state    ,#'consult--buffer-state
-                    :default  t
-                    :items
-                    ,(lambda ()(interactive) (persp-current-buffer-names)))
-        "Buffer candidate source for `persp-buffers'.")
+        (list :name     (format "Persp Buffers (%s)" (persp-current-name))
+              :narrow   ?b
+              :category 'buffer
+              :history 'buffer-name-history
+              :state    #'consult--buffer-state
+              :default  t
+              :items
+              #'(lambda () (consult--buffer-query :sort 'visibility
+                                                  :predicate '(lambda (buf) (persp-is-current-buffer buf t))
+                                                  :as #'buffer-name))))
 
+      (add-to-list 'consult-buffer-sources 'lmm/perspective-consult--source-buffer)
 
-      (defcustom lmm/perspective-consult-buffer-sources
-        '(lmm/perspective-consult--source-buffer
-          consult--source-recent-file
-          consult--source-bookmark
-          consult--source-project-buffer
-          consult--source-project-recent-file)
-        "Sources used by `consult-buffer'.
-  See also `consult-project-buffer-sources'.
-  See `consult--multi' for a description of the source data structure."
-        :type '(repeat symbol))
+      (defvar lmm/consult--source-org-buffer
+        (list :name     "Org Buffer"
+              :category 'buffer
+              :hidden t
+              :narrow   ?o
+              :face     'consult-buffer
+              :history  'buffer-name-history
+              :state    #'consult--buffer-state
+              :new
+              (lambda (name)
+                (with-current-buffer (get-buffer-create name)
+                  (insert "#+TITLE: " name "\n\n")
+                  (org-mode)
+                  (consult--buffer-action (current-buffer))))
+              :items
+              (lambda ()
+                (mapcar #'buffer-name
+                        (seq-filter
+                         (lambda (x)
+                           (eq (buffer-local-value 'major-mode x) 'org-mode))
+                         (persp-get-buffers))))))
+      (add-to-list 'consult-buffer-sources 'lmm/consult--source-org-buffer 'append)
+
+      (defvar lmm/consult--source-vterm-buffer
+        (list :name     "vterm Buffer"
+              :category 'buffer
+              :hidden t
+              :narrow   ?v
+              :face     'consult-buffer
+              :history  'buffer-name-history
+              :state    #'consult--buffer-state
+              :items
+              (lambda ()
+                (mapcar #'buffer-name
+                        (seq-filter
+                         (lambda (x)
+                           (eq (buffer-local-value 'major-mode x) 'vterm-mode))
+                         (persp-get-buffers))))))
+      ;; (add-to-list 'consult-buffer-sources 'lmm/consult--source-vterm-buffer 'append)
+
+      (defvar lmm/consult--source-dired-buffer
+        (list :name     "Dired Buffer"
+              :category 'buffer
+              :hidden t
+              :narrow   ?d
+              :face     'consult-buffer
+              :history  'buffer-name-history
+              :state    #'consult--buffer-state
+              :items
+              (lambda ()
+                (mapcar #'buffer-name
+                        (seq-filter
+                         (lambda (x)
+                           (eq (buffer-local-value 'major-mode x) 'dired-mode))
+                         (persp-get-buffers))))))
+      ;; (add-to-list 'consult-buffer-sources 'lmm/consult--source-dired-buffer 'append)
+
+      (defun lmm/persp-consult-all-buffer()
+        "Perspective all buffer by consult"
+        (interactive)
+        (persp-switch-to-buffer
+         (car (consult--multi
+               (mapcar (lambda (p) `(:name ,p
+                                           :category buffer
+                                           :face consult-buffer
+                                           :default ,(string= "main" p)
+                                           :items
+                                           ,(persp-get-buffer-names p)))
+                  (persp-names))
+               :prompt "Persp All Buffer: "
+               :history nil
+               :sort nil
+               ))))
 
       (general-define-key
        :keymaps 'perspective-map
        "<tab>" 'persp-switch
        "d" (lambda ()(interactive)(persp-kill (persp-current-name))))
       (lmm/evil-space-leader-def
-        ;; "," (lambda ()(interactive)(consult-buffer lmm/perspective-consult-buffer-sources))
-        "," 'persp-switch-to-buffer*
-        "<" 'persp-switch-to-buffer
+        "," #'consult-buffer
+        "<" #'lmm/persp-consult-all-buffer
         "<tab>" perspective-map)
       ))
 #+END_SRC
