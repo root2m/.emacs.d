@@ -3346,53 +3346,61 @@
 
 ** COMMENT Zsh Needed Config
 #+BEGIN_SRC sh
-  function vterm_printf(){
-    if [ -n "$TMUX" ] && ([ "${TERM%%-*}" = "tmux" ] || [ "${TERM%%-*}" = "screen" ] ); then
-      # Tell tmux to pass the escape sequences through
-      printf "\ePtmux;\e\e]%s\007\e\\" "$1"
-    elif [ "${TERM%%-*}" = "screen" ]; then
-      # GNU screen (screen, screen-256color, screen-256color-bce)
-      printf "\eP\e]%s\007\e\\" "$1"
-    else
-      printf "\e]%s\e\\" "$1"
-    fi
-  }
-  function vterm_prompt_end() {
-    vterm_printf "51;A$(whoami)@$(cat /etc/hostname):$(pwd)";
-  }
-  setopt PROMPT_SUBST
-  PROMPT=$PROMPT'%{$(vterm_prompt_end)%}'
+  if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
+    function vterm_printf(){
+      if [ -n "$TMUX" ] && ([ "${TERM%%-*}" = "tmux" ] || [ "${TERM%%-*}" = "screen" ] ); then
+        # Tell tmux to pass the escape sequences through
+        printf "\ePtmux;\e\e]%s\007\e\\" "$1"
+      elif [ "${TERM%%-*}" = "screen" ]; then
+        # GNU screen (screen, screen-256color, screen-256color-bce)
+        printf "\eP\e]%s\007\e\\" "$1"
+      else
+        printf "\e]%s\e\\" "$1"
+      fi
+    }
+    function vterm_prompt_end() {
+      vterm_printf "51;A$(whoami)@$(cat /etc/hostname):$(pwd)";
+    }
 
-  function vterm_cmd() {
-    local vterm_elisp
-    vterm_elisp=""
-    while [ $# -gt 0 ]; do
-      vterm_elisp="$vterm_elisp""$(printf '"%s" ' "$(printf "%s" "$1" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')")"
-      shift
-    done
-    vterm_printf "51;E$vterm_elisp"
-  }
+    # setopt PROMPT_SUBST
+    # PROMPT=$PROMPT'%{$(vterm_prompt_end)%}'
 
-  function find_file() {
-    vterm_cmd find-file "$(realpath "${@:-.}")"
-  }
+    function vterm_cmd() {
+      local vterm_elisp
+      vterm_elisp=""
+      while [ $# -gt 0 ]; do
+        vterm_elisp="$vterm_elisp""$(printf '"%s" ' "$(printf "%s" "$1" | sed -e 's|\\|\\\\|g' -e 's|"|\\"|g')")"
+        shift
+      done
+      vterm_printf "51;E$vterm_elisp"
+    }
 
-  alias e="find_file"
+    function find_file() {
+      vterm_cmd find-file "$(realpath "${@:-.}")"
+    }
+
+    alias e="find_file"
+  fi
 #+END_SRC
 
 * TRAMP
-自定义远程主机 shell, 需要远程主机提供清晰可识别的提示符, 此假设bash的提示符够简单
 #+BEGIN_SRC emacs-lisp
   (use-package tramp
+    :init
+    (setq tramp-terminal-type "EmacsTramp")
     :config
+    ;; 远程提示符复杂时会无法连接,需要提供简单清晰的提示符,可覆盖远程 shell,
+    ;; 覆盖远程 shell,只作用于 sshx 和 plink。
     (add-to-list 'tramp-connection-properties
                  (list (regexp-quote "/ssh:.*")
                        "remote-shell" "/usr/bin/bash"))
+    ;; 其他远程shell需要在配置开头加上
+    ;; [[ $TERM == "EmacsTramp" ]] && PS1='$ ' && return
+    ;; 或者 zsh:
+    ;; [[ $TERM == "EmacsTramp" ]] && unsetopt zle && PS1='$ ' && return
+    ;; TERM 值应与 tramp-terminal-type 相同
     :commands tramp
     )
-  ;; 或者也可以在远程zsh配置上加上
-  ;; [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
-  ;; TERM 值应与 tramp-terminal-type 相同
 #+END_SRC
 
 * UTILS
