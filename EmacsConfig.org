@@ -2835,7 +2835,7 @@
   (use-package tree-sitter
     :straight t
     :commands (tree-sitter-mode tree-sitter-hl-mode)
-    :hook ((rust-mode-hook) . tree-sitter-hl-mode)
+    :hook (rust-mode-hook . tree-sitter-hl-mode)
     )
 
   ;; 1. git clone https://github.com/Wilfred/tree-sitter-elisp
