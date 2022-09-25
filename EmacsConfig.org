@@ -1917,7 +1917,9 @@
           ;; org-log-into-drawer "TODOLOG"
           org-log-into-drawer t
           ;; 时钟记录抽屉, 默认为 "LOGBOOK"
-          org-clock-into-drawer "CLOCKLOG")
+          org-clock-into-drawer "CLOCKLOG"
+          ;; capture file
+          org-default-notes-file (expand-file-name "org/capture-notes.org" user-emacs-directory))
 
     (setq org-todo-keywords
           '((sequence "TODO(t)" "|" "DONE(d)")
@@ -3551,8 +3553,6 @@
 #+BEGIN_SRC emacs-lisp
   (use-package elfeed
     :straight t
-    :init
-    (setq elfeed-db-directory (concat user-emacs-directory "elfeed-cache"))
     :commands elfeed)
 #+END_SRC
 
