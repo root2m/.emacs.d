@@ -2861,12 +2861,42 @@
       "lds" 'lsp-ui-doc-show
       "ldh" 'lsp-ui-doc-hide
       ))
+#+END_SRC
 
+** Another Lsp Server
+#+BEGIN_SRC emacs-lisp
   (use-package eglot
     :disabled
     :no-require t
     :straight t
     :commands eglot eglot-ensure)
+
+  ;; very fast lsp server
+  ;; need python module
+  ;; pip install epc orjson
+  ;; need emacs plugin
+  ;; posframe markdown-mode yasnippet
+  ;; https://github.com/manateelazycat/lsp-bridge
+  (use-package lsp-bridge
+    :straight (:host github
+                     :repo "manateelazycat/lsp-bridge"
+                     :branch "master"
+                     :files (:defaults "acm/*")
+                     :build nil)
+    :load-path "straight/repos/lsp-bridge"
+    :init
+    (setq lsp-bridge-enable-log nil
+          lsp-bridge-enable-debug nil)
+    :commands (lsp-bridge-mode global-lsp-bridge-mode)
+    ;; :hook
+    ;; (prog-mode-hook . lsp-bridge-mode)
+    ;; (lsp-bridge-mode-hook . acm-mode)
+    :config
+    (advice-add 'acm-update :after #'evil-normalize-keymaps)
+    (evil-make-overriding-map acm-mode-map)
+    (define-key acm-mode-map (kbd "C-n") #'acm-select-next)
+    (define-key acm-mode-map (kbd "C-p") #'acm-select-prev)
+    )
 #+END_SRC
 
 ** Tree Sitter
