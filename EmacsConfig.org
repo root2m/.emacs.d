@@ -1921,7 +1921,7 @@
           ;; 时钟记录抽屉, 默认为 "LOGBOOK"
           org-clock-into-drawer "CLOCKLOG"
           ;; capture file
-          org-default-notes-file (expand-file-name "org/capture-notes.org" user-emacs-directory))
+          org-default-notes-file "~/.org/captures.org")
 
     (setq org-todo-keywords
           '((sequence "TODO(t)" "|" "DONE(d)")
@@ -1940,13 +1940,48 @@
 
   (use-package org-agenda
     :init
-    (setq org-agenda-files '("~/Notes/EveryDayTODO.org")))
+    (defvar org-agenda-files nil)
+    ;; all agenda files.
+    (dolist (path '("~/.org/EveryDayTODO.org"))
+      (when (file-exists-p path)
+        (add-to-list 'org-agenda-files path))))
 
   (use-package org-roam
     :straight t
     :init
-    (setq org-roam-directory "~/Notes/org-roam")
-    :commands org-roma)
+    (setq org-roam-directory (file-truename "~/.org/org-roam/")
+          org-roam-node-display-template (concat "${title:50} "
+                                                 (propertize "${tags}" 'face 'org-tag))
+          org-roam-capture-templates '(("d" "file name have time" plain "%?"
+                                        :target
+                                        (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+TITLE: ${title}\n#+DATE: %<<%F %A %T>>\n#+STARTUP: indent content\n")
+                                        :unnarrowed t)
+                                       ("n" "file name no time" plain "%?"
+                                        :target
+                                        (file+head "${slug}.org" "#+TITLE: ${title}\n#+DATE: %<<%F %A %T>>\n#+STARTUP: indent content\n")
+                                        :unnarrowed t)
+                                        ("t" "add TODO" entry "* TODO %?"
+                                        :target
+                                        (file+head "${slug}.org" "#+TITLE: ${title}\n#+DATE: %<<%F %A %T>>\n#+STARTUP: indent content\n")
+                                        :unnarrowed t))
+          org-roam-dailies-capture-templates '(("d" "default" entry "* %?"
+                                                :target
+                                                (file+head "%<%Y-%m-%d>.org" "#+TITLE: %<%Y-%m-%d>\n#+DATE: %<<%F %A %T>>\n#+STARTUP: indent content\n")
+                                                :unnarrowed t
+                                                )
+                                                ("t" "todo" entry "* TODO %?"
+                                                :target
+                                                (file+head "%<%Y-%m-%d>.org" "#+TITLE: %<%Y-%m-%d>\n#+DATE: %<<%F %A %T>>\n#+STARTUP: indent content\n")
+                                                :unnarrowed t)))
+    :commands org-roma
+    :config
+    (lmm/evil-space-leader-def
+      "of" #'org-roam-node-find
+      "oc" #'org-roam-capture
+      "oo" #'org-open-at-point
+      "oi" #'org-roam-node-insert
+      "o." #'org-roam-dailies-goto-today
+      ))
 
   (use-package org-tempo
     :config
