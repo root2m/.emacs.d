@@ -979,16 +979,16 @@
           evil-kill-on-visual-paste nil
           evil-echo-state nil
           evil-search-module 'evil-search
-          evil-visual-char-tag ""
-          evil-normal-state-tag ""
-          evil-insert-state-tag ""
-          evil-visual-line-tag ""
-          evil-visual-block-tag "况"
-          evil-motion-state-tag ""
-          evil-emacs-state-tag ""
-          evil-operator-state-tag ""
-          evil-replace-state-tag ""
-          evil-visual-screen-line-tag "拓")
+          evil-visual-char-tag (propertize "" 'face '(:foreground "cyan"))
+          evil-normal-state-tag (propertize "" 'face '(:foreground "cyan"))
+          evil-insert-state-tag (propertize "" 'face '(:foreground "cyan"))
+          evil-visual-line-tag (propertize "" 'face '(:foreground "cyan"))
+          evil-visual-block-tag (propertize "况" 'face '(:foreground "cyan"))
+          evil-motion-state-tag (propertize "" 'face '(:foreground "cyan"))
+          evil-emacs-state-tag (propertize "" 'face '(:foreground "cyan"))
+          evil-operator-state-tag (propertize "" 'face '(:foreground "cyan"))
+          evil-replace-state-tag (propertize "" 'face '(:foreground "cyan"))
+          evil-visual-screen-line-tag (propertize "拓" 'face '(:foreground "cyan")))
 
     :config
     (general-define-key
