@@ -482,7 +482,7 @@
   (use-package some-package-name
     :disabled ;;停止加载不使用的内容
     :no-require t; 不加载
-    :straight t ;;确保软件包会自动安装
+    :ensure t ;;确保软件包会自动安装
     :defer t ;;延迟t秒加载包（require 'some-package-name)
     :init () ;;加载包之前执行的代码
     :config () ;;加载包之后执行的代码
@@ -3362,9 +3362,9 @@
 #+BEGIN_SRC emacs-lisp
   (use-package vterm
     :straight t
+    :bind
+    ("<f12>" . vterm)
     :init
-    (general-define-key
-     "<f12>" #'vterm)
     (setq vterm-timer-delay 0.05)
     ;; (add-to-list 'evil-insert-state-modes 'vterm-mode)
     :config
@@ -3373,9 +3373,6 @@
                    display-buffer-at-bottom))
     (general-define-key
      :keymaps 'vterm-mode-map
-     ;; "<f12>" (lambda (&optional count)(interactive "p") (if (one-window-p)
-     ;;                        (switch-to-buffer (other-buffer))
-     ;;                        (delete-window)))
      "<f12>" (lambda (&optional count)(interactive "p")
                (cond ((> count 1) (delete-window)(vterm count))
                      ((one-window-p)
@@ -3386,12 +3383,35 @@
      "M-y" #'vterm-send-M-y
      "C-q" #'vterm-send-next-key
      )
-     (add-hook 'vterm-exit-functions
-               (lambda (buffer &optional arg)
-                 "Vterm exit command will call interactive func 'delete-window'"
-                 (when (not (one-window-p))
-                   (call-interactively 'delete-window))))
-     ;; (evil-make-intercept-map vterm-mode-map 'insert)
+
+    (general-define-key
+     :states 'insert
+     :keymaps 'vterm-mode-map
+     "j" #'evil-vterm-escape)
+
+    (defun evil-vterm-escape()
+      "Vterm escape key \"jk\"."
+      (interactive)
+      (when (eq evil-state 'insert)
+        (vterm-send-key "j")
+        (let ((evt (read-event nil nil 0.1)))
+          (cond ((and (characterp evt)
+                      (equal ?k evt))
+                 (vterm-send-key "")
+                 (call-interactively #'evil-normal-state)
+                 )
+                ((null evt))
+                (t
+                 (setq unread-command-events
+                       (append unread-command-events (list evt))))
+                ))))
+
+    (add-hook 'vterm-exit-functions
+              (lambda (buffer &optional arg)
+                "Vterm exit command will call interactive func 'delete-window'"
+                (when (not (one-window-p))
+                  (call-interactively 'delete-window))))
+    ;; (evil-make-intercept-map vterm-mode-map 'insert)
     :commands vterm)
 #+END_SRC
 
