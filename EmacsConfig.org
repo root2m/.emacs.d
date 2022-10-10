@@ -3464,6 +3464,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
         (let ((evt (read-event nil nil 0.1)))
           (cond ((and (characterp evt)
                       (equal ?k evt))
+                 (evil-repeat-stop)
                  (vterm-send-key "")
                  (call-interactively #'evil-normal-state)
                  )
@@ -3472,6 +3473,23 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
                  (setq unread-command-events
                        (append unread-command-events (list evt))))
                 ))))
+
+    (defun +evil-vterm-delete-char()
+      (interactive)
+      (vterm-goto-char (point))
+      (call-interactively #'vterm-send-C-d))
+
+    (defun +evil-vterm-append()
+      (interactive)
+      (vterm-goto-char (point))
+      (call-interactively #'evil-append)
+      (call-interactively #'vterm-send-right))
+
+    (general-define-key
+     :states 'normal
+     :keymaps 'vterm-mode-map
+     "x" #'+evil-vterm-delete-char
+     "a" #'+evil-vterm-append)
 
     (add-hook 'vterm-exit-functions
               (lambda (buffer &optional arg)
