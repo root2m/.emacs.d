@@ -1965,7 +1965,7 @@
                                         :target
                                         (file+head "${slug}.org" "#+TITLE: ${title}\n#+DATE: %<<%F %A %T>>\n#+STARTUP: indent content\n")
                                         :unnarrowed t)
-                                        ("t" "add TODO" entry "* TODO %?"
+                                       ("t" "add TODO" entry "* TODO %?"
                                         :target
                                         (file+head "${slug}.org" "#+TITLE: ${title}\n#+DATE: %<<%F %A %T>>\n#+STARTUP: indent content\n")
                                         :unnarrowed t))
@@ -1974,19 +1974,19 @@
                                                 (file+head "%<%Y-%m-%d>.org" "#+TITLE: %<%Y-%m-%d>\n#+DATE: %<<%F %A %T>>\n#+STARTUP: indent content\n")
                                                 :unnarrowed t
                                                 )
-                                                ("t" "todo" entry "* TODO %?"
+                                               ("t" "todo" entry "* TODO %?"
                                                 :target
                                                 (file+head "%<%Y-%m-%d>.org" "#+TITLE: %<%Y-%m-%d>\n#+DATE: %<<%F %A %T>>\n#+STARTUP: indent content\n")
                                                 :unnarrowed t)))
-    :commands org-roma
-    :config
     (lmm/evil-space-leader-def
       "of" #'org-roam-node-find
       "oc" #'org-roam-capture
       "oo" #'org-open-at-point
       "oi" #'org-roam-node-insert
       "o." #'org-roam-dailies-goto-today
-      ))
+      )
+    :commands org-roma
+    )
 
   (use-package org-tempo
     :config
