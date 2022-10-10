@@ -3478,6 +3478,13 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
                 "Vterm exit command will call interactive func 'delete-window'"
                 (when (not (one-window-p))
                   (call-interactively 'delete-window))))
+
+    (defun +tramp-vterm-set-prompt()
+      "If use tramp, auto recover shell prompt."
+      (when (tramp-tramp-file-p buffer-file-name)
+        (vterm-send-string "TERM=xterm-256color exec $SHELL")
+        (vterm-send-return)))
+    (add-hook 'vterm-mode-hook '+tramp-vterm-set-prompt)
     ;; (evil-make-intercept-map vterm-mode-map 'insert)
     :commands vterm)
 #+END_SRC
@@ -3525,7 +3532,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
 #+BEGIN_SRC emacs-lisp
   (use-package tramp
     :init
-    (setq tramp-terminal-type "EmacsTramp")
+    (setq tramp-terminal-type "dumb")
     :config
     ;; 远程提示符复杂时会无法连接,需要提供简单清晰的提示符,可覆盖远程 shell,
     ;; 覆盖远程 shell,只作用于 sshx 和 plink。
@@ -3533,9 +3540,9 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
                  (list (regexp-quote "/ssh:.*")
                        "remote-shell" "/usr/bin/bash"))
     ;; 其他远程shell需要在配置开头加上
-    ;; [[ $TERM == "EmacsTramp" ]] && PS1='$ ' && return
+    ;; [[ $TERM == "dumb" ]] && PS1='$ ' && return
     ;; 或者 zsh:
-    ;; [[ $TERM == "EmacsTramp" ]] && unsetopt zle && PS1='$ ' && return
+    ;; [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
     ;; TERM 值应与 tramp-terminal-type 相同
     :commands tramp
     )
