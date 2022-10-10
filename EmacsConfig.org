@@ -900,33 +900,25 @@
 
 ** Whitespace Config
 #+BEGIN_SRC emacs-lisp
-  (setq-default show-trailing-whitespace nil)
-  (defun lmm/show-trailing-whitespace()
-    "Enable display of trailing whitespace in this buffer."
-    (setq-local show-trailing-whitespace t))
-  (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook))
-          (add-hook hook 'lmm/show-trailing-whitespace))
+  ;; (setq-default show-trailing-whitespace nil)
+  ;; (defun lmm/show-trailing-whitespace()
+  ;;   "Enable display of trailing whitespace in this buffer."
+  ;;   (setq-local show-trailing-whitespace t))
+  ;; (dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook))
+  ;;         (add-hook hook 'lmm/show-trailing-whitespace))
 
-  ;; (dolist (hook '(emacs-lisp-mode-hook))
-  ;;   (add-hook hook (lambda()
-  ;;                    "Enable highlight whitespace"
-  ;;                    (setq-local whitespace-style
-  ;;                                ;; trailing : enable highlight trail space
-  ;;                                '(face trailing lines-tail)
-  ;;                                ;; '(face lines-tail)
-  ;;                                whitespace-line-column 80)
-  ;;                    (whitespace-mode t))))
+  (dolist (hook '(prog-mode-hook))
+    (add-hook hook (lambda()
+                     "Enable highlight whitespace"
+                     (setq-local whitespace-style '(face trailing lines-tail)
+                                 whitespace-line-column 80)
+                       (whitespace-mode t))))
 
-
-  ;; (dolist (hook '(org-mode-hook text-mode-hook))
-  ;;   (add-hook hook (lambda ()
-  ;;                    "Enable highlight whitespace"
-  ;;                    (setq-local whitespace-style
-  ;;                                ;; trailing : enable highlight trail space
-  ;;                                '(face trailing)
-  ;;                                ;; '(face lines-tail)
-  ;;                                )
-  ;;                    (whitespace-mode t))))
+  (dolist (hook '(org-mode-hook text-mode-hook))
+    (add-hook hook (lambda()
+                     "Enable highlight whitespace"
+                     (setq-local whitespace-style '(face trailing))
+                     (whitespace-mode t))))
 #+END_SRC
 
 ** Beautiful Code
