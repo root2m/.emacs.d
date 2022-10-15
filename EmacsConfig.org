@@ -1512,15 +1512,53 @@
   (use-package ace-window
     :straight t
     :custom
-    (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+    ;; (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
     (aw-background nil)
     :hook
     (after-init-hook . ace-window-display-mode)
     :config
+
+    (defmacro +ace-auto-select-window (key)
+      "Define ace select window function, KEY is a char."
+      (let ((funname (intern (format "+ace-select-window-%s" (char-to-string key)))))
+        `(progn (defun ,funname (arg)
+                  ,(format   "Select a window %s.
+  Perform an action based on ARG described below.
+
+  By default, behaves like extended `other-window'.
+  See `aw-scope' which extends it to work with frames.
+
+  Prefixed with one \\[universal-argument], does a swap between the
+  selected window and the current window, so that the selected
+  buffer moves to current window (and current buffer moves to
+  selected window).
+
+  Prefixed with two \\[universal-argument]'s, deletes the selected
+  window."(char-to-string key))
+                  (interactive "p")
+                  (setq unread-command-events
+                        (append unread-command-events
+                                (list ,key)))
+                  (ace-window arg))
+                ',funname)))
+
     (general-define-key
      :keymaps 'evil-window-map
      "," 'ace-window
-     "D" 'ace-delete-window))
+     "D" 'ace-delete-window
+     "1" (+ace-auto-select-window ?1)
+     "2" (+ace-auto-select-window ?2)
+     "3" (+ace-auto-select-window ?3)
+     "4" (+ace-auto-select-window ?4)
+     "5" (+ace-auto-select-window ?5)
+     "6" (+ace-auto-select-window ?6)
+     "7" (+ace-auto-select-window ?7)
+     "8" (+ace-auto-select-window ?8)
+     "9" (+ace-auto-select-window ?9)
+     ))
+
+  (global-set-key (kbd "C-M-j") #'scroll-other-window)
+  (global-set-key (kbd "C-M-k") #'scroll-other-window-down)
 #+END_SRC
 
 ** Buffers Config
