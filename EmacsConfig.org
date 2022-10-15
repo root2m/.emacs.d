@@ -3167,14 +3167,14 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     (setq dired-listing-switches "-alh")
     :commands (dired dired-jump)
     :config
-    (defun lmm/dired-up-alternate()
+    (defun +dired-up-alternate()
       "Dired up directory -- alternate"
       (interactive)
       (if (equal major-mode 'dired-mode)
           (find-alternate-file "..")
         (message "You not in dired-mode")))
 
-    (defun lmm/dired-find-alternate-file-if-directory()
+    (defun +dired-find-alternate-file-if-directory()
       "dired-mode:
     dired-find-alternate-file if you select is a directory"
       (interactive)
