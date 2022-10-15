@@ -3184,20 +3184,27 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
             (when (yes-or-no-p "This is a file, you sure open this file?")
               (dired-find-file)))
         (message "You not in dired-mode")))
+
+    (defvar +dired-recent-dir-list nil)
+    (defun +dired-push-dir()
+      (when dired-directory
+        (add-to-list '+dired-recent-dir-list dired-directory)))
+
+    (defun +dired-goto-recent-dir(path)
+      "Dired goto recent directory."
+      (interactive (list (completing-read "Goto recent path: "
+                                          +dired-recent-dir-list)))
+      (when (and path (file-exists-p path))
+        (find-alternate-file path)))
+    (add-hook 'dired-after-readin-hook '+dired-push-dir)
+    (evil-define-key* 'normal dired-mode-map "gj" #'+dired-goto-recent-dir)
+
     (general-define-key
      :states '(normal motion)
      :keymaps 'dired-mode-map
-     "h" 'lmm/dired-up-alternate
-     "l" 'lmm/dired-find-alternate-file-if-directory))
+     "h" '+dired-up-alternate
+     "l" '+dired-find-alternate-file-if-directory))
 
-  ;; (with-eval-after-load 'dired
-  ;;   (define-key dired-mode-map (kbd "<return>") 'dired-find-alternate-file)
-  ;;   (define-key dired-mode-map (kbd "-") (lambda () (interactive)
-  ;;                                          (find-alternate-file ".."))))
-  ;; (add-hook 'dired-mode-hook (lambda ()
-  ;;                              (define-key evil-normal-state-local-map (kbd "-")
-  ;;                                          (lambda () (interactive)
-  ;;                                            (find-alternate-file "..")))))
 #+END_SRC
 
 * WITH-EDITOR
