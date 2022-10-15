@@ -1248,8 +1248,10 @@
 
     (general-define-key
      :states 'normal
-     "gc" (general-key-dispatch 'evilnc-comment-operator
-            "l" 'evilnc-comment-or-uncomment-lines)))
+     "gc" #'evilnc-comment-operator)
+
+    (define-key evil-inner-text-objects-map "c" #'evilnc-inner-comment)
+    (define-key evil-outer-text-objects-map "c" #'evilnc-outer-comment))
 
   ;; 括号修改
   (use-package evil-surround
