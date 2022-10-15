@@ -774,15 +774,17 @@
 ** Fonts
 #+BEGIN_SRC emacs-lisp
   ;; 字体设置
-  (cond ((member "JetBrainsMono Nerd Font" (font-family-list))
+  (let ((fonts (font-family-list)))
+   (cond ((member "JetBrainsMono Nerd Font" fonts)
          (add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-13")))
-        ((member "Fira Code" (font-family-list))
+        ((member "Fira Code" fonts)
          (add-to-list 'default-frame-alist '(font . "Fira Code-13")))
-        ((member "Source Code Pro" (font-family-list))
+        ((member "Source Code Pro" fonts)
          (add-to-list 'default-frame-alist '(font . "Source Code Pro-13"))))
+   (when (member "HarmonyOS Sans SC" fonts)
+     (set-fontset-font t 'han "HarmonyOS Sans SC")
+     (add-to-list 'face-font-rescale-alist '("HarmonyOS Sans SC" . 1.2))))
   ;; (add-to-list 'initial-frame-alist '(font . "Fira Code"))
-  (if (member "HarmonyOS Sans SC" (font-family-list))
-      (set-fontset-font t 'han "HarmonyOS Sans SC"))
 
   (setq-default line-spacing nil)
   ;; (set-face-attribute 'default nil
