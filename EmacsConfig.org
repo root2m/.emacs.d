@@ -3233,7 +3233,9 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     (after-init-hook . recentf-mode)
     :init
     (setq recentf-max-saved-items 100
-          recentf-auto-cleanup 'never))
+          recentf-auto-cleanup 'never)
+    :config
+    (recentf-load-list))
 #+END_SRC
 
 * GIT
