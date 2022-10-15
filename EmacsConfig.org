@@ -3134,6 +3134,13 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
   (setq sh-basic-offset 2)
 #+END_SRC
 
+*** yaml
+#+BEGIN_SRC emacs-lisp
+  (use-package yaml-mode
+    :straight t
+     )
+#+END_SRC
+
 * PROJECT CONFIG
 ** Projectile Config
 #+BEGIN_SRC emacs-lisp
