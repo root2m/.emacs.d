@@ -771,29 +771,20 @@
     (prog-mode-hook . rainbow-delimiters-mode))
 #+END_SRC
 
-** Fonts
+** Fonts 字体配置
+*** frame default font
 #+BEGIN_SRC emacs-lisp
-  ;; 字体设置
   (let ((fonts (font-family-list)))
    (cond ((member "JetBrainsMono Nerd Font" fonts)
          (add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-13")))
         ((member "Fira Code" fonts)
          (add-to-list 'default-frame-alist '(font . "Fira Code-13")))
         ((member "Source Code Pro" fonts)
-         (add-to-list 'default-frame-alist '(font . "Source Code Pro-13"))))
-   (when (member "HarmonyOS Sans SC" fonts)
-     (set-fontset-font t 'han "HarmonyOS Sans SC")
-     (add-to-list 'face-font-rescale-alist '("HarmonyOS Sans SC" . 1.2))))
-  ;; (add-to-list 'initial-frame-alist '(font . "Fira Code"))
+         (add-to-list 'default-frame-alist '(font . "Source Code Pro-13")))))
+#+END_SRC
 
-  (setq-default line-spacing nil)
-  ;; (set-face-attribute 'default nil
-  ;;                     :font "Sarasa Mono SC Nerd"
-  ;;                     ;; :slant 'normal
-  ;;                     ;; :weight 'normal
-  ;;                     :height 130
-  ;;                     ;; :width 'normal
-  ;;                     )
+*** ligature 连体字符配置
+#+BEGIN_SRC emacs-lisp
   ;; Fira Code Symbol 字符集
   ;; www  \ue100     **   \ue101    ***  \ue102    **/  \ue103
   ;;  *>  \ue104     */   \ue105     \\  \ue106    \\\  \ue107
@@ -834,14 +825,14 @@
        (lambda (s)
          (setq idx (1+ idx))
          (let* ((code (+ #Xe100 idx))
-            (width (string-width s))
-            (prefix ())
-            (suffix '(?\s (Br . Br)))
-            (n 1))
-       (while (< n width)
-         (setq prefix (append prefix '(?\s (Br . Bl))))
-         (setq n (1+ n)))
-       (cons s (append prefix suffix (list (decode-char 'ucs code))))))
+                (width (string-width s))
+                (prefix ())
+                (suffix '(?\s (Br . Br)))
+                (n 1))
+           (while (< n width)
+             (setq prefix (append prefix '(?\s (Br . Bl))))
+             (setq n (1+ n)))
+           (cons s (append prefix suffix (list (decode-char 'ucs code))))))
        list)))
 
   (defconst fira-code-mode--ligatures
@@ -864,11 +855,11 @@
   (defun fira-code-mode--enable ()
     "Enable Fira Code ligatures in current buffer."
     (if (member "Fira Code Symbol" (font-family-list))
-     (progn
-       (setq-local fira-code-mode--old-prettify-alist prettify-symbols-alist)
-       (setq-local prettify-symbols-alist (append (fira-code-mode--make-alist fira-code-mode--ligatures) fira-code-mode--old-prettify-alist))
-       (prettify-symbols-mode t))
-     (user-error "Fira Code Symbol Not Found, Enable Failed")))
+        (progn
+          (setq-local fira-code-mode--old-prettify-alist prettify-symbols-alist)
+          (setq-local prettify-symbols-alist (append (fira-code-mode--make-alist fira-code-mode--ligatures) fira-code-mode--old-prettify-alist))
+          (prettify-symbols-mode t))
+      (user-error "Fira Code Symbol Not Found, Enable Failed")))
 
   (defun fira-code-mode--disable ()
     "Disable Fira Code ligatures in current buffer."
@@ -889,6 +880,22 @@
 
   ;; (add-hook 'prog-mode-hook 'fira-code-mode)
 
+#+END_SRC
+
+*** COMMENT other config options
+#+BEGIN_SRC emacs-lisp
+  ;; 字符集配置
+  (set-fontset-font t 'han "font family name")
+
+  ;; 字体缩放配置
+  (add-to-list 'face-font-rescale-alist '("font family name" . 1.2))
+
+  ;; 行距配置
+  (setq-default line-spacing 1)
+#+END_SRC
+
+*** utils
+#+BEGIN_SRC emacs-lisp
   (defhydra hydra-text-scale()
     "Change font size"
     ;; 减小字体
@@ -897,7 +904,6 @@
     ("k" text-scale-decrease "Text Scale Decrease")
     ;; text-scale-adjust 按键监听，＋ － 或 0 重置，q 退出
     ("q" nil "Quit ! ! !"))
-
 #+END_SRC
 
 ** Whitespace Config
