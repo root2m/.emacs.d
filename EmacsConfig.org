@@ -2246,56 +2246,24 @@
                  (funcall-interactively 'pyim-quit-clear)
                  (funcall-interactively 'evil-normal-state))
            "l" 'toggle-input-method))
+    (defun +pyim-probe-program-comment-mode ()
+      "激活这个 pyim 探针函数后，comment 中输入中文。
+  注：仅仅影响 `prog-mode' 衍生的 mode 。
 
-  ;;   (general-define-key
-  ;;    :keymaps 'pyim-mode-map
-  ;;    "," 'pyim-previous-page
-  ;;    "." 'pyim-next-page
-  ;;    "j" (general-key-dispatch (lambda () (interactive)
-  ;;                                (pyim-self-insert-command))
-  ;;          :timeout 0.1
-  ;;          "k" 'lmm/pyim-evil-insert-to-normal-state
-  ;;          "l" (lambda () (interactive)
-  ;;                (cond (lmmv/pyim-ch-input-state
-  ;;                       (pyim-preview-delete-overlay)
-  ;;                       (funcall-interactively 'pyim-quit-clear)
-  ;;                       (funcall-interactively 'pyim-deactivate)
-  ;;                       (setq-local lmmv/pyim-ch-input-state nil))
-  ;;                      (t
-  ;;                       (pyim-preview-delete-overlay)
-  ;;                       (funcall-interactively 'pyim-quit-clear)
-  ;;                       (funcall-interactively 'pyim-activate)
-  ;;                       (setq-local lmmv/pyim-ch-input-state t))
-  ;;                    ))))
-  ;; (general-define-key
-  ;;      :states 'insert
-  ;;      "j" (general-key-dispatch 'self-insert-command
-  ;;            :timeout 0.1
-  ;;            "k" 'evil-normal-state
-  ;;            "l" (lambda()(interactive)(if (string-equal current-input-method "pyim")
-  ;;                                          (progn (funcall-interactively 'pyim-activate)
-  ;;                                                 (setq-local lmmv/pyim-ch-input-state t))
-  ;;                                        (insert ?j?l)))))
+  用于：`pyim-english-input-switch-functions' 。"
+      (interactive)
+      (and (derived-mode-p 'prog-mode)
+           (not (nth 4 (syntax-ppss)))))
 
-    (let* ((file (concat user-emacs-directory "pyim/dicts/pyim-greatdict.pyim.gz")))
-      (if (file-exists-p file)
-          (if (featurep 'pyim)
-              (pyim-extra-dicts-add-dict
-               `(:name "Greatdict"
-                       :file ,file
-                       :coding utf-8-unix
-                       :dict-type pinyin-dict
-                       ))
-            (message "pyim not install !!!"))
-        (message (format "pyim dict file \"%s\" not found !!!" file))))
-
-
-  ;; (let* ((dictspath (concat user-emacs-directory "pyim/dicts"))
-  ;;        (dictfiles (directory-files dictspath)))
-  ;;   (if dictfiles
-  ;;       ()))
-  )
-
+    ;; 断言函数表，任意结果 non nil 切换至英文。
+    (setq pyim-english-input-switch-functions '(+pyim-probe-program-comment-mode
+                                                ))
+    ;; 断言函数表，任意结果 non nil 切换至半角标点。
+    (setq pyim-punctuation-half-width-functions
+          '(pyim-probe-punctuation-line-beginning ;；行首半角
+            pyim-probe-punctuation-after-punctuation ;半角后半角
+            ))
+    )
 #+END_SRC
 
 ** Default Variable -- 系统默认变量
