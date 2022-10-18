@@ -2888,8 +2888,8 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
           )
     :hook
     ;; lsp-deferred 等待buffer完全可见后启用 lsp
-    ((c-mode-hook python-mode) . lsp-deferred)
-    (lsp-mode . lsp-enable-which-key-integration)
+    ((c-mode-hook) . lsp-deferred)
+    (lsp-mode-hook . lsp-enable-which-key-integration)
     :config
     ;; (delq 'company-capf company-backends)
     ;; (add-to-list 'company-backends 'company-capf)
