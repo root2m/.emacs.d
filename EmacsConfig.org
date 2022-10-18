@@ -2213,28 +2213,12 @@
     :init
     (setq default-input-method "pyim")
     (setq pyim-default-scheme 'quanpin)
-    (setq pyim-punctuation-translate-p '(no auto yes))
+    (setq pyim-page-tooltip '(posframe minibuffer popup))
     :config
-    ;; (setq pyim-dicts
-    ;;       `((:name "Greatdict" :file ,(concat user-emacs-directory "pyim/dicts/pyim-greatdict.pyim"))))
-
-  ;;   (defvar lmmv/pyim-ch-input-state t
-  ;;     "插入模式下中文输入状态")
-
-  ;;   (defun lmm/pyim-evil-insert-to-normal-state()
-  ;;     (interactive)
-  ;;     (if lmmv/pyim-ch-input-state
-  ;;         (funcall-interactively 'pyim-deactivate))
-  ;;     (funcall-interactively 'evil-normal-state))
-
-  ;;   (defun lmm/pyim-evil-normal-to-insert-state()
-  ;;     (interactive)
-  ;;     (if lmmv/pyim-ch-input-state
-  ;;         (funcall-interactively 'pyim-activate)))
-
-    ;; 代替默认
-    ;; (custom-set-variables
-    ;;  '(pyim-english-input-switch-functions '(pyim-probe-program-mode)))
+    (dolist (file (directory-files (expand-file-name  "etc/pyim/dicts/" user-emacs-directory)
+                                   t
+                                   directory-files-no-dot-files-regexp))
+      (add-to-list 'pyim-dicts `(:name ,(file-name-base file) :file ,file)))
 
     (general-define-key
      :keymaps 'pyim-mode-map
