@@ -1423,6 +1423,20 @@
 
     ;; (evil-define-key '(normal motion) 'global
     ;;   "r" 'lmm/evil-backward-in-word-begin)
+
+    (evil-define-operator lmm/evil-narrow-region(beg end)
+      "Narrow selected region."
+      (narrow-to-region beg end))
+
+    (defun lmm/evil-narrow()
+      "Restrict editing in this buffer to the current region.
+  if `buffer-narrowed-p' return non-nil, call interactive `widen'"
+      (interactive)
+      (if (buffer-narrowed-p)
+          (call-interactively 'widen)
+        (call-interactively 'lmm/evil-narrow-region)))
+
+    (evil-define-key* 'normal 'global "zn" #'lmm/evil-narrow)
     )
 #+END_SRC
 
