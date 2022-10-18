@@ -991,36 +991,36 @@
           evil-visual-screen-line-tag (propertize "拓" 'face '(:foreground "cyan")))
 
     :config
-      (evil-define-key* nil evil-ex-completion-map
-        (kbd "C-a") 'beginning-of-line
-        (kbd "C-b") 'backward-char
-        (kbd "C-c") 'abort-recursive-edit
-        (kbd "C-d") 'delete-char
-        (kbd "C-f") 'forward-char
-        (kbd "C-k") 'kill-line
-        (kbd "C-v") 'evil-ex-command-window
-        (kbd "M-n") 'next-complete-history-element
-        (kbd "M-p") 'previous-complete-history-element)
-      (evil-define-key* nil evil-ex-search-keymap
-        (kbd "C-a") 'beginning-of-line
-        (kbd "C-b") 'backward-char
-        (kbd "C-c") 'abort-recursive-edit
-        (kbd "C-d") 'delete-char
-        (kbd "C-f") 'forward-char
-        (kbd "C-k") 'kill-line
-        (kbd "C-v") 'evil-ex-command-window
-        (kbd "M-n") 'next-complete-history-element
-        (kbd "M-p") 'previous-complete-history-element)
-      (evil-define-key* nil evil-eval-map
-        (kbd "C-a") 'beginning-of-line
-        (kbd "C-b") 'backward-char
-        (kbd "C-c") 'abort-recursive-edit
-        (kbd "C-d") 'delete-char
-        (kbd "C-f") 'forward-char
-        (kbd "C-k") 'kill-line
-        (kbd "C-v") 'evil-ex-command-window
-        (kbd "M-n") 'next-complete-history-element
-        (kbd "M-p") 'previous-complete-history-element)
+    (evil-define-key* nil evil-ex-completion-map
+      (kbd "C-a") 'beginning-of-line
+      (kbd "C-b") 'backward-char
+      (kbd "C-c") 'abort-recursive-edit
+      (kbd "C-d") 'delete-char
+      (kbd "C-f") 'forward-char
+      (kbd "C-k") 'kill-line
+      (kbd "C-v") 'evil-ex-command-window
+      (kbd "M-n") 'next-complete-history-element
+      (kbd "M-p") 'previous-complete-history-element)
+    (evil-define-key* nil evil-ex-search-keymap
+      (kbd "C-a") 'beginning-of-line
+      (kbd "C-b") 'backward-char
+      (kbd "C-c") 'abort-recursive-edit
+      (kbd "C-d") 'delete-char
+      (kbd "C-f") 'forward-char
+      (kbd "C-k") 'kill-line
+      (kbd "C-v") 'evil-ex-command-window
+      (kbd "M-n") 'next-complete-history-element
+      (kbd "M-p") 'previous-complete-history-element)
+    (evil-define-key* nil evil-eval-map
+      (kbd "C-a") 'beginning-of-line
+      (kbd "C-b") 'backward-char
+      (kbd "C-c") 'abort-recursive-edit
+      (kbd "C-d") 'delete-char
+      (kbd "C-f") 'forward-char
+      (kbd "C-k") 'kill-line
+      (kbd "C-v") 'evil-ex-command-window
+      (kbd "M-n") 'next-complete-history-element
+      (kbd "M-p") 'previous-complete-history-element)
     (general-define-key
      :states 'insert
      "j" (general-key-dispatch 'self-insert-command
@@ -1104,82 +1104,100 @@
       ("q" nil "Quit"))
 
     (evil-define-key '(normal motion) 'global
-          ;; "f" #'evil-avy-goto-char-timer
-          ;; "F" #'evil-avy-goto-word-1
-          "q" #'evil-execute-macro
-          "Q" #'evil-record-macro
-          "'" #'evil-goto-mark
-          "`" #'evil-goto-mark-line
-          "U" #'evil-redo
-          "t" #'repeat
-          "z/" #'evil-ex-nohighlight
-          "g/" #'evil-ex-nohighlight
-          "g'" #'evil-avy-goto-char-2
-          )
+      ;; "f" #'evil-avy-goto-char-timer
+      ;; "F" #'evil-avy-goto-word-1
+      "q" #'evil-execute-macro
+      "Q" #'evil-record-macro
+      "'" #'evil-goto-mark
+      "`" #'evil-goto-mark-line
+      "U" #'evil-redo
+      "t" #'repeat
+      "z/" #'evil-ex-nohighlight
+      "g/" #'evil-ex-nohighlight
+      "g'" #'evil-avy-goto-char-2
+      )
 
-      (defvar lmm/goto-next-object-map (make-sparse-keymap))
-      (defvar lmm/goto-preview-object-map (make-sparse-keymap))
-      (general-define-key
-       :keymaps 'lmm/goto-preview-object-map
-        "SPC" #'evil-collection-unimpaired-insert-newline-above
-        "L" #'evil-collection-unimpaired-first-error
-        "P" #'evil-collection-unimpaired-paste-above
-        "Q" #'evil-collection-unimpaired-first-error
-        "b" #'evil-prev-buffer
-        "e" #'evil-collection-unimpaired-move-text-up
-        "l" #'evil-collection-unimpaired-previous-error
-        "n" #'evil-collection-unimpaired-previous-SCM-conflict-marker
-        "p" #'evil-collection-unimpaired-paste-above
-        "q" #'evil-collection-unimpaired-previous-error
-        "6" #'evil-collection-unimpaired-b64-encode
-        "u" #'evil-collection-unimpaired-url-encode
-        "'" #'evil-previous-mark-line
-        "(" #'evil-previous-open-paren
-        "[" #'evil-backward-section-begin
-        "]" #'evil-backward-section-end
-        "`" #'evil-previous-mark
-        "s" #'evil-prev-flyspell-error
-        "{" #'evil-previous-open-brace
-        "f" #'beginning-of-defun)
+    (defvar lmm/goto-next-object-map (make-sparse-keymap))
+    (defvar lmm/goto-preview-object-map (make-sparse-keymap))
+    (general-define-key
+     :keymaps 'lmm/goto-preview-object-map
+     "SPC" #'evil-collection-unimpaired-insert-newline-above
+     "L" #'evil-collection-unimpaired-first-error
+     "P" #'evil-collection-unimpaired-paste-above
+     "Q" #'evil-collection-unimpaired-first-error
+     "b" #'evil-prev-buffer
+     "e" #'evil-collection-unimpaired-move-text-up
+     "l" #'evil-collection-unimpaired-previous-error
+     "n" #'evil-collection-unimpaired-previous-SCM-conflict-marker
+     "p" #'evil-collection-unimpaired-paste-above
+     "q" #'evil-collection-unimpaired-previous-error
+     "6" #'evil-collection-unimpaired-b64-encode
+     "u" #'evil-collection-unimpaired-url-encode
+     "'" #'evil-previous-mark-line
+     "(" #'evil-previous-open-paren
+     "[" #'evil-backward-section-begin
+     "]" #'evil-backward-section-end
+     "`" #'evil-previous-mark
+     "s" #'evil-prev-flyspell-error
+     "{" #'evil-previous-open-brace
+     "f" #'beginning-of-defun)
 
-      (general-define-key
-       :keymaps 'lmm/goto-next-object-map
-        "SPC" #'evil-collection-unimpaired-insert-newline-below
-        "L" #'evil-collection-unimpaired-last-error
-        "Q" #'evil-collection-unimpaired-last-error
-        "b" #'evil-next-buffer
-        "l" #'evil-collection-unimpaired-next-error
-        "e" #'evil-collection-unimpaired-move-text-down
-        "n" #'evil-collection-unimpaired-next-SCM-conflict-marker
-        "P" #'evil-collection-unimpaired-paste-below
-        "p" #'evil-collection-unimpaired-paste-below
-        "q" #'evil-collection-unimpaired-next-error
-        "6" #'evil-collection-unimpaired-b64-decode
-        "u" #'evil-collection-unimpaired-url-decode
-        "'" #'evil-next-mark-line
-        ")" #'evil-next-close-paren
-        "[" #'evil-forward-section-end
-        "]" #'evil-forward-section-begin
-        "`" #'evil-next-mark
-        "s" #'evil-next-flyspell-error
-        "}" #'evil-next-close-brace
-        "f" #'end-of-defun)
-      (evil-define-key '(normal motion visual) 'global
+    (general-define-key
+     :keymaps 'lmm/goto-next-object-map
+     "SPC" #'evil-collection-unimpaired-insert-newline-below
+     "L" #'evil-collection-unimpaired-last-error
+     "Q" #'evil-collection-unimpaired-last-error
+     "b" #'evil-next-buffer
+     "l" #'evil-collection-unimpaired-next-error
+     "e" #'evil-collection-unimpaired-move-text-down
+     "n" #'evil-collection-unimpaired-next-SCM-conflict-marker
+     "P" #'evil-collection-unimpaired-paste-below
+     "p" #'evil-collection-unimpaired-paste-below
+     "q" #'evil-collection-unimpaired-next-error
+     "6" #'evil-collection-unimpaired-b64-decode
+     "u" #'evil-collection-unimpaired-url-decode
+     "'" #'evil-next-mark-line
+     ")" #'evil-next-close-paren
+     "[" #'evil-forward-section-end
+     "]" #'evil-forward-section-begin
+     "`" #'evil-next-mark
+     "s" #'evil-next-flyspell-error
+     "}" #'evil-next-close-brace
+     "f" #'end-of-defun)
+    (evil-define-key '(normal motion visual) 'global
       ;; ";" lmm/goto-next-object-map
       ;; "," lmm/goto-preview-object-map
       "f" 'evil-avy-goto-char-2
       "F" 'evil-avy-goto-char)
 
+    (defun +open-new-line-down(count)
+      (interactive "p")
+      (end-of-line)
+      (newline count)
+      (indent-for-tab-command))
+    (defun +open-new-line-up(count)
+      (interactive "p")
+      (beginning-of-line)
+      (newline count)
+      (forward-line -1)
+      (indent-for-tab-command))
+    (defun +beginning-of-line-or-text-line()
+      (interactive)
+      (if (bolp)
+          (beginning-of-line-text)
+        (beginning-of-visual-line)))
     :bind
     (:map evil-insert-state-map
-          ("C-a" . beginning-of-visual-line)
+          ("C-a" . +beginning-of-line-or-text-line)
           ("C-e" . end-of-visual-line)
-          ("C-h" . evil-delete-backward-char)
           ("C-d" . evil-delete-char)
           ("C-k" . kill-line)
-          ;; ("C-p" . previous-line)
-          ;; ("C-n" . next-line)
+          ("C-p" . previous-line)
+          ("C-n" . next-line)
           ("C-g" . evil-normal-state)
+          ("C-y" . yank)
+          ("C-<return>" . +open-new-line-down)
+          ("M-<return>" . +open-new-line-up)
           :map evil-window-map
           ("d" . kill-buffer-and-window)
           ("x" . kill-current-buffer)
