@@ -1190,37 +1190,6 @@
           ("." . evil-switch-to-windows-last-buffer)))
 #+END_SRC
 
-** COMMENT Evil-Escape
-#+BEGIN_SRC emacs-lisp
-  (use-package evil-escape
-    :disabled
-    :no-require t
-    :straight t
-    :hook
-    (evil-mode-hook . evil-escape-mode)
-    :init
-    (setq-default evil-escape-key-sequence "jk")
-    ;; 只在指定主模式当中启用
-    ;; (setq evil-escape-enable-only-for-major-modes '(prog-mode
-    ;;                                                 org-mode
-    ;;                                                 org-src-mode
-    ;;                                                 emacs-lisp-mode
-    ;;                                                 ))
-    ;; 只在指定主模式当中禁用
-    (setq-default evil-escape-excluded-major-modes '(help-mode
-                                                     ibuffer-mode
-                                                     dired-mode
-                                                     Info-mode
-                                                     undo-tree-mode))
-
-    (add-hook 'magit-mode-hook (lambda ()
-                                 (setq-local evil-escape-inhibit t)))
-    ;; 当表中的函数返回非 nil 时禁止使用
-    (setq evil-escape-inhibit-functions '(evil-visual-state-p))
-    :diminish evil-escape-mode
-    )
-#+END_SRC
-
 ** Other Evil Plugins
 #+BEGIN_SRC emacs-lisp
   ;; 更多的按键绑定
