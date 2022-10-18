@@ -2580,45 +2580,6 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
 
 * LANG CONFIG
 ** Complete Config
-*** Company Install
-#+BEGIN_SRC emacs-lisp
-  (use-package company
-    :disabled
-    :no-require t
-    :straight t
-    :hook
-    (after-init-hook . global-company-mode)
-    :init
-    (setq tab-always-indent 'complete)
-    :config
-    (dolist (backend '(company-eclim company-semantic))
-      (delq backend company-backends))
-    (define-key company-active-map (kbd "C-n") 'company-select-next)
-    (define-key company-active-map (kbd "C-p") 'company-select-previous)
-    (define-key company-active-map (kbd "C-h") nil)
-    ;; (define-key company-active-map (kbd "C-g") 'company-above)
-    (define-key company-active-map (kbd "C-i") 'company-complete-common)
-    (define-key company-active-map (kbd "C-v") 'company-next-page)
-    (define-key company-active-map (kbd "M-v") 'company-previous-page)
-    (define-key company-active-map (kbd "C-w") nil)
-    (define-key company-active-map (kbd "M-<" ) 'company-select-first)
-    (define-key company-active-map (kbd "M->" ) 'company-select-last)
-    (add-to-list 'completion-styles 'initials t)
-    (setq-default company-dabbrev-other-buffers 'all
-                  company-tooltip-align-annotations t
-                  company-idle-delay 0
-                  company-show-numbers nil
-                  company-require-match nil
-                  company-dabbrev-ignore-case nil
-                  company-dabbrev-downcase nil
-                  company-tooltip-maximum-width 80
-                  company-tooltip-minimum-width 50)
-    ;; 优先考虑匹配前缀的候选者
-    (setq company-transformers '(company-sort-prefer-same-case-prefix
-                                 company-sort-by-occurrence))
-    )
-#+END_SRC
-
 *** Corfu -- other completion tool
 **** Install
 #+BEGIN_SRC emacs-lisp
@@ -2720,18 +2681,15 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
                     emacs-lisp-mode-hook
                     lisp-interaction-mode-hook))
       (add-hook hook
-              (lambda()
-                (setq-local completion-at-point-functions
-                            '(cape-symbol cape-file)))))
+                (lambda()
+                  (setq-local completion-at-point-functions
+                              '(cape-symbol cape-file)))))
 
     (dolist (hook '(rustic-mode-hook))
       (add-hook hook
-              (lambda()
-                (setq-local completion-at-point-functions
-                            (append completion-at-point-functions '(cape-dabbrev cape-file))))))
-    (evil-define-key 'insert 'global
-      (kbd "C-n") #'cape-dabbrev)
-    )
+                (lambda()
+                  (setq-local completion-at-point-functions
+                              (append completion-at-point-functions '(cape-dabbrev cape-file)))))))
 #+END_SRC
 
 **** COMMENT kind-icon
