@@ -2892,6 +2892,9 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     ;; (prog-mode-hook . lsp-bridge-mode)
     ;; (lsp-bridge-mode-hook . acm-mode)
     :config
+    (add-hook 'lsp-bridge-mode-hook (lambda ()
+                                      (when (and (featurep 'corfu) corfu-mode)
+                                        (corfu-mode -1))))
     (advice-add 'acm-update :after #'evil-normalize-keymaps)
     (evil-make-overriding-map acm-mode-map)
     (define-key acm-mode-map (kbd "C-n") #'acm-select-next)
