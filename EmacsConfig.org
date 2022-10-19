@@ -815,11 +815,11 @@
 #+BEGIN_SRC emacs-lisp
   (let ((fonts (font-family-list)))
    (cond ((member "JetBrainsMono Nerd Font" fonts)
-         (add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-13")))
+         (add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-14")))
         ((member "Fira Code" fonts)
-         (add-to-list 'default-frame-alist '(font . "Fira Code-13")))
+         (add-to-list 'default-frame-alist '(font . "Fira Code-14")))
         ((member "Source Code Pro" fonts)
-         (add-to-list 'default-frame-alist '(font . "Source Code Pro-13")))))
+         (add-to-list 'default-frame-alist '(font . "Source Code Pro-14")))))
 #+END_SRC
 
 *** ligature 连体字符配置
@@ -1060,12 +1060,19 @@
       (kbd "C-v") 'evil-ex-command-window
       (kbd "M-n") 'next-complete-history-element
       (kbd "M-p") 'previous-complete-history-element)
-    (general-define-key
-     :states 'insert
-     "j" (general-key-dispatch 'self-insert-command
-           :timeout 0.1
-           "k" 'evil-normal-state
-           "l" 'toggle-input-method))
+    ;; (general-define-key
+    ;;  :states 'insert
+    ;;  "j" (general-key-dispatch 'self-insert-command
+    ;;        :timeout 0.1
+    ;;        "k" 'evil-normal-state
+    ;;        "l" 'toggle-input-method))
+    (evil-define-key* 'insert 'global
+      "j" (lmm/key-dispath-command-def 'self-insert-command 0.2 t
+                                       "k" 'evil-normal-state
+                                       "l" 'toggle-input-method
+                                       "w" 'forward-to-word
+                                       "b" 'backward-to-word
+                                       ))
 
     (setq evil-emacs-state-modes nil)
     (setq evil-insert-state-modes nil)
