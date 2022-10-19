@@ -2994,6 +2994,14 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     (add-hook 'tree-sitter-mode-hook (lambda ()(use-local-map lmm/tree-sitter-mode-map))))
 #+END_SRC
 
+** Format Code
+#+BEGIN_SRC emacs-lisp
+  (use-package apheleia
+    :straight t
+    :commands apheleia-format-buffer
+    )
+#+END_SRC
+
 ** LANG
 *** javascript
 #+BEGIN_SRC
