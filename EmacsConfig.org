@@ -599,6 +599,45 @@
           (setq ocommd (lookup-key (eval from-map) (kbd km))))
         (setq num (1+ num)))
       `(progn ,@li)))
+
+  (defvar lmm/key-dispath-overlay (make-overlay 0 0))
+  (defun lmm/key-dispath-command-def (callback delay put-overlay &rest keybinds)
+    "CALLBACK: if key not matched, call CALLBACK.
+  DELAY: If the optional argument SECONDS is non-nil, it should be a number
+  specifying the maximum number of seconds to wait for input.  If no
+  input arrives in that time, return nil.  SECONDS may be a floating-point value.
+  PUT-OVERLAY: if is function, call function, function need return overlay.
+  nil is close display overlay.
+  non nil display default `lmm/key-dispath-overlay'.
+  KEYBINDS: is binds."
+    (lambda ()(interactive)
+      (let* ((this-key (this-command-keys))
+             (p (point))
+             (overlay
+              (cond ((functionp put-overlay)
+                     (funcall put-overlay))
+                    ((null put-overlay) nil)
+                    ((and (eobp) (= (current-column) 0))
+                     (overlay-put lmm/key-dispath-overlay 'display (concat "\n" this-key))
+                     (move-overlay lmm/key-dispath-overlay (1- p) p))
+                    ((eolp)
+                     (overlay-put lmm/key-dispath-overlay 'display (concat this-key "\n"))
+                     (move-overlay lmm/key-dispath-overlay p (1+ p)))
+                    (t
+                     (overlay-put lmm/key-dispath-overlay 'display this-key)
+                     (move-overlay lmm/key-dispath-overlay p (1+ p)))))
+             (evt (read-event nil nil delay))
+             command)
+        (and overlay (delete-overlay overlay))
+        (cond ((and (characterp evt)
+                    (setq command (plist-get keybinds (char-to-string evt) 'equal)))
+               (call-interactively command))
+              ((null evt)
+               (call-interactively callback))
+              (t
+               (call-interactively callback)
+               (setq unread-command-events
+                     (append unread-command-events (list evt))))))))
 #+END_SRC
 
 * UI
