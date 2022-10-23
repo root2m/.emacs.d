@@ -634,6 +634,7 @@
                (call-interactively command))
               ((null evt)
                (call-interactively callback))
+              ((< evt 0))
               (t
                (call-interactively callback)
                (setq unread-command-events
@@ -815,11 +816,11 @@
 #+BEGIN_SRC emacs-lisp
   (let ((fonts (font-family-list)))
    (cond ((member "JetBrainsMono Nerd Font" fonts)
-         (add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-14")))
+         (add-to-list 'default-frame-alist '(font . "JetBrainsMono Nerd Font-13")))
         ((member "Fira Code" fonts)
-         (add-to-list 'default-frame-alist '(font . "Fira Code-14")))
+         (add-to-list 'default-frame-alist '(font . "Fira Code-13")))
         ((member "Source Code Pro" fonts)
-         (add-to-list 'default-frame-alist '(font . "Source Code Pro-14")))))
+         (add-to-list 'default-frame-alist '(font . "Source Code Pro-13")))))
 #+END_SRC
 
 *** ligature 连体字符配置
@@ -1459,11 +1460,13 @@
 
     (evil-define-operator lmm/evil-narrow-region(beg end)
       "Narrow selected region."
+      :repeat nil
       (narrow-to-region beg end))
 
-    (defun lmm/evil-narrow()
+    (evil-define-command lmm/evil-narrow()
       "Restrict editing in this buffer to the current region.
   if `buffer-narrowed-p' return non-nil, call interactive `widen'"
+      :repeat nil
       (interactive)
       (if (buffer-narrowed-p)
           (call-interactively 'widen)
@@ -1865,7 +1868,10 @@
                    args)))
     (setq consult-narrow-key (kbd "<"))
     (setq consult-find-args "find . -not ( -wholename */.* -prune -o -name node_modules -prune )")
-
+    (set-face-attribute 'consult-preview-line nil
+                        :foreground "#1E2029"
+                        :background "#61bfff"
+                        :extend nil)
     (defun lmm/consult-symbol-at-point (&optional n)
       "get symbol at current point, search geted symbol at consult-line"
       (interactive)
@@ -1910,11 +1916,139 @@
                           (1+ (minibuffer-prompt-end)) (point-max))))))
       (minibuffer-quit-recursive-edit))
 
-    (consult-customize
-     consult-ripgrep
-     :keymap (let ((map (make-sparse-keymap)))
-               (define-key map (kbd "M-<up>") #'consult-ripgrep-up-directory)
-               map))
+    ;; (defvar consult-toggle-search-current-command nil)
+    ;; (defvar consult-toggle-search-initial-string nil)
+
+    ;; (defun consult-toggle-search (&optional action default-text async)
+    ;;   "search in current buffer or current directory
+    ;;     -> search in all buffer or up directory."
+    ;;   (interactive)
+    ;;   (cond
+    ;;    ((and (minibufferp) (equal this-command 'consult-toggle-search))
+    ;;     (let* ((string (buffer-substring-no-properties (minibuffer-prompt-end)
+    ;;                                                    (point-max)))
+    ;;            args)
+    ;;       (pcase consult-toggle-search-current-command
+    ;;         ('consult-line
+    ;;          (setq args '(consult-line-multi nil)))
+
+    ;;         ('consult-imenu
+    ;;          (setq args '(consult-imenu-multi)))
+
+    ;;         ((or 'consult-ripgrep 'consult-find 'consult-grep)
+    ;;          (when-let ((parent-dir
+    ;;                      (file-name-directory (directory-file-name default-directory))))
+    ;;            (setq args `(,consult-toggle-search-current-command ,parent-dir))))
+
+    ;;         ('consult-git-grep
+    ;;          (setq args '(consult-ripgrep))
+    ;;          (when (not (string-match-p "^#" string))
+    ;;            (setq string (consult--async-split-initial string))))
+
+    ;;         ('consult-line-multi
+    ;;          (setq args '(consult-ripgrep)
+    ;;                string (consult--async-split-initial string)))
+
+    ;;         ('consult-outline
+    ;;          (setq args '(consult-line))))
+
+    ;;       (when args
+    ;;         (run-at-time 0 nil (lambda (comm)
+    ;;                              ;; consult--customize-get 依赖 this-command
+    ;;                              (setq this-command (car comm))
+    ;;                              (setq consult-toggle-search-initial-string string)
+    ;;                              (unwind-protect
+    ;;                                  (apply comm)
+    ;;                                (setq consult-toggle-search-initial-string nil
+    ;;                                      consult-toggle-search-current-command nil)
+    ;;                                (remove-hook 'pre-command-hook '+consult-delete-default-contents))) args)
+    ;;         (minibuffer-quit-recursive-edit))
+    ;;       ))
+    ;;    (t
+    ;;     (setq consult-toggle-search-current-command this-command)
+    ;;     (if-let ((string consult-toggle-search-initial-string))
+    ;;         (or (setq consult-toggle-search-initial-string nil) string)
+    ;;       (setq string (cond
+    ;;                     ((functionp action)
+    ;;                      (funcall action))
+    ;;                     ((stringp action)
+    ;;                      action)
+    ;;                     ((equal action t)
+    ;;                      (thing-at-point 'symbol t))
+    ;;                     ((null action) nil)
+    ;;                     (t
+    ;;                      (thing-at-point action t))))
+
+    ;;       (cond ((and string default-text)
+    ;;              (add-hook 'pre-command-hook '+consult-delete-default-contents)
+    ;;              (let ((hook (make-symbol "+consult-goto-minibuffer-beg")))
+    ;;                (fset hook (lambda ()
+    ;;                             (remove-hook 'minibuffer-setup-hook hook)
+    ;;                             (goto-char (if async
+    ;;                                            (+ (length (consult--async-split-initial ""))
+    ;;                                               (minibuffer-prompt-end))
+    ;;                                          (minibuffer-prompt-end)))))
+    ;;                (add-hook 'minibuffer-setup-hook hook))
+    ;;              (if async
+    ;;                  (consult--async-split-initial (propertize string 'face 'shadow))
+    ;;                (propertize string 'face 'shadow)))
+    ;;             (t
+    ;;              (if async
+    ;;                  (consult--async-split-initial string)
+    ;;                string))))
+    ;;     )))
+
+    ;; (defun +consult-delete-default-contents()
+    ;;   (cond ((member this-command '(self-insert-command
+    ;;                                 yank
+    ;;                                 yank-pop))
+    ;;          (remove-hook 'pre-command-hook '+consult-delete-default-contents)
+    ;;          (when (minibufferp)
+    ;;            (delete-region (point) (point-max))))
+    ;;         ((member this-command '(previous-line
+    ;;                                 next-line
+    ;;                                 vertico-next
+    ;;                                 vertico-previous)))
+    ;;         (t
+    ;;          (when (minibufferp)
+    ;;            (put-text-property (point) (point-max) 'face 'default))
+    ;;          (remove-hook 'pre-command-hook '+consult-delete-default-contents))))
+
+    ;; (consult-customize
+    ;;  consult-line
+    ;;  consult-imenu
+    ;;  consult-find
+    ;;  consult-line-multi
+    ;;  consult-imenu-multi
+    ;;  consult-outline
+    ;;  consult-org-heading
+    ;;  consult-grep
+    ;;  consult-git-grep
+    ;;  consult-ripgrep
+    ;;  :keymap (let ((map (make-sparse-keymap)))
+    ;;            (define-key map (kbd "C-t") #'consult-toggle-search)
+    ;;            map)
+    ;;  consult-line
+    ;;  consult-line-multi
+    ;;  consult-outline
+    ;;  :initial (consult-toggle-search t t)
+    ;;  consult-imenu
+    ;;  consult-imenu-multi
+    ;;  :initial (consult-toggle-search)
+    ;;  consult-find
+    ;;  consult-ripgrep
+    ;;  consult-grep
+    ;;  consult-git-grep
+    ;;  :initial (consult-toggle-search nil nil t)
+    ;;  )
+
+    (when (featurep 'evil)
+      (evil-define-operator lmm/evil-consult(beg end)
+        "Consult select region"
+        :repeat nil
+        (consult-line
+         (buffer-substring-no-properties beg end)))
+      (evil-define-key* '(normal motion) 'global "gs" #'lmm/evil-consult))
 
     (lmm/evil-space-leader-def
       "sb" 'consult-line
