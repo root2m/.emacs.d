@@ -1486,48 +1486,48 @@
         (kill-current-buffer)
       (kill-buffer-and-window)))
 
-  (defun lmm/vsplit-other-buffer (&optional arg)
+  (defun lmm/split-window-right (&optional arg)
     "VSplit this window"
     (interactive "P")
-    (split-window-horizontally)
+    (split-window-right)
     (let ((target-window (next-window)))
       (set-window-buffer target-window (other-buffer))
       (unless arg
         (select-window target-window))))
 
-  (defun lmm/split-other-buffer (&optional arg)
+  (defun lmm/split-window-below (&optional arg)
     "Split this window"
     (interactive "P")
-    (split-window-vertically)
+    (split-window-below)
     (let ((target-window (next-window)))
       (set-window-buffer target-window (other-buffer))
       (unless arg
         (select-window target-window))))
 
-  (defun lmm/vsplit-and-select-buffer(&optional arg)
+  (defun lmm/split-window-right-select-buffer(&optional arg)
     "VSplit this buffer, switch to select buffer"
     (interactive "P")
     (if-let ((buffer (read-buffer-to-switch "Switch to Buffer: ")))
-        (let ((target-window (split-window-horizontally)))
+        (let ((target-window (split-window-right)))
           (set-window-buffer target-window buffer)
           (unless arg
             (select-window target-window)))))
 
-  (defun lmm/split-and-select-buffer(&optional arg)
+  (defun lmm/split-window-below-select-buffer(&optional arg)
     "Split this buffer, switch to select buffer"
     (interactive "P")
     (if-let ((buffer (read-buffer-to-switch "Switch to Buffer: ")))
-        (let ((target-window (split-window-vertically)))
+        (let ((target-window (split-window-below)))
           (set-window-buffer target-window buffer)
           (unless arg
             (select-window target-window)))))
 
   (general-define-key
    :keymaps 'evil-window-map
-   "s" 'lmm/split-other-buffer
-   "v" 'lmm/vsplit-other-buffer
-   "S" 'lmm/split-and-select-buffer
-   "V" 'lmm/vsplit-and-select-buffer)
+   "s" 'lmm/split-window-below
+   "v" 'lmm/split-window-right
+   "S" 'lmm/split-window-below-select-buffer
+   "V" 'lmm/split-window-right-select-buffer)
 
   (use-package evil
     :bind
