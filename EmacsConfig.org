@@ -1117,6 +1117,7 @@
       (interactive)
       (if-let (window (active-minibuffer-window))
           (select-window window)
+          (setq this-command 'execute-extended-command)
         (call-interactively #'execute-extended-command)))
 
     (lmm/evil-space-leader-def
@@ -1214,7 +1215,7 @@
     (evil-define-key '(normal motion visual) 'global
       ;; ";" lmm/goto-next-object-map
       ;; "," lmm/goto-preview-object-map
-      "f" 'evil-avy-goto-char-2
+      "f" 'evil-avy-goto-word-1
       "F" 'evil-avy-goto-char)
 
     (defun +open-new-line-down(count)
@@ -1250,7 +1251,7 @@
           ("x" . kill-current-buffer)
           ("n" . evil-next-buffer)
           ("p" . evil-prev-buffer)
-          ("w" . evil-window-mru)
+          ("m" . evil-window-mru)
           ("W" . evil-window-next)
           ("." . evil-switch-to-windows-last-buffer)))
 #+END_SRC
@@ -1592,9 +1593,10 @@
   Prefixed with two \\[universal-argument]'s, deletes the selected
   window."(char-to-string key))
                   (interactive "p")
-                  (setq unread-command-events
-                        (append unread-command-events
-                                (list ,key)))
+                  (when (> 1 (count-windows))
+                    (setq unread-command-events
+                          (append unread-command-events
+                                  (list ,key))))
                   (ace-window arg))
                 ',funname)))
 
@@ -1602,6 +1604,7 @@
      :keymaps 'evil-window-map
      "," 'ace-window
      "D" 'ace-delete-window
+     "O" 'ace-delete-other-windows
      "1" (+ace-auto-select-window ?1)
      "2" (+ace-auto-select-window ?2)
      "3" (+ace-auto-select-window ?3)
@@ -2170,6 +2173,8 @@
                         :background "unspecified"
                         :foreground "cyan"
                         :weight 'bold)
+
+    (add-hook 'org-mode-hook 'org-indent-mode)
     )
 
   (use-package org-agenda
@@ -2276,6 +2281,7 @@
     (org-agenda-finalize-hook . org-modern-agenda))
 
   (use-package evil-org
+    :disabled
     :straight t
     :hook
     (org-mode-hook . evil-org-mode))
@@ -3356,7 +3362,13 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
      :states '(normal motion)
      :keymaps 'dired-mode-map
      "h" '+dired-up-alternate
-     "l" '+dired-find-alternate-file-if-directory))
+     "l" '+dired-find-alternate-file-if-directory)
+
+    (lmm/evil-space-leader-def
+      "df" 'dired
+      "d." 'dired-at-point
+      "dj" 'dired-jump)
+    )
 
 #+END_SRC
 
