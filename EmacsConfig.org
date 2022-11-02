@@ -2078,20 +2078,19 @@
 
 ** Embark -- 上下文菜单
 #+BEGIN_SRC emacs-lisp
-  (use-package embark   ;;
+  (use-package embark
     :straight t
-    :after vertico
-    :init
     :bind
-    (("C-;". embark-act)
-     :map vertico-map
-          ("C-." . (lambda ()(interactive)
-                     (let ((embark-quit-after-action nil))
-                                             (embark-act))))
-          ;; 导出当前列表到额外buffer，然后执行各种操作
-          ("C-;" . embark-act)
-          ("C-c C-o" . embark-export)
-          )
+    (("C-;" . embark-act)
+     :map minibuffer-local-map
+     ("C-." . (lambda ()(interactive)
+                (let ((embark-quit-after-action nil))
+                  (embark-act))))
+     ("C-;" . embark-act)
+     ("C-t" . embark-become)
+     ;; 导出当前列表到额外buffer，然后执行各种操作
+     ("C-c C-o" . embark-export)
+     )
     :config
     ;; embark menu with which key
     (defun embark-which-key-indicator ()
@@ -2131,13 +2130,106 @@
 
     (advice-add #'embark-completing-read-prompter
                 :around #'embark-hide-which-key-indicator)
+
+
+    (defvar-keymap embark-become-helpful-map
+      :doc "Key map for embark become helpful."
+      "x" 'execute-extended-command
+      "f" 'helpful-callable
+      "c" 'helpful-command
+      "F" 'describe-face
+      "v" 'helpful-variable
+      "s" 'helpful-symbol
+      "M" 'helpful-macro
+      "m" 'woman
+      "I" 'describe-input-method
+      "i" 'info-display-manual)
+
+    (add-to-list 'embark-become-keymaps 'embark-become-helpful-map)
+    (define-key embark-file-map "s" 'lmm/sudo-find-file)
     )
   (use-package embark-consult
     :straight t
     :after (embark consult)
     :demand t
     :hook
-    (embark-collect-mode . consult-preview-at-point-mode))
+    (embark-collect-mode . consult-preview-at-point-mode)
+    :config
+
+    (defmacro embark-consult-search-def(name &optional async up-d)
+      `(defun ,(intern (if up-d
+                           (format "+%S-up-directory"  name)
+                         (format "+%S" name)))
+           ,@(if async
+                 '((&optional argu)
+                   (interactive "P"))
+               '(()(interactive)))
+         (minibuffer-with-setup-hook
+             (:append (lambda ()
+                        (when-let ((contents (minibuffer-contents))
+                                   (initial (consult--async-split-initial ""))
+                                   (beg (minibuffer-prompt-end)))
+                          ,(if async
+                               `(unless (string-match-p (concat "^" initial) contents)
+                                  (goto-char beg)
+                                  (insert initial)
+                                  (goto-char (point-max)))
+                             `(when (string-match-p (concat "^" initial) contents)
+                                (delete-region beg (+ (length initial) beg)))))))
+           (setq this-command ',name)
+           ,(cond (up-d
+                   `(funcall-interactively ',name (file-name-directory (directory-file-name default-directory))))
+                  (async
+                   `(if argu
+                        (funcall-interactively ',name (file-name-directory (directory-file-name default-directory)))
+                      (command-execute ',name)))
+                  (t
+                   `(command-execute ',name))))))
+
+    (defvar-keymap embark-consult-all-search-map
+      :doc "Keymap for Consult all search commands"
+      "o" 'consult-outline
+      "h" 'consult-org-heading
+      "a" 'consult-org-agenda
+      "i" 'consult-imenu
+      "I" 'consult-imenu-multi
+      "l" 'consult-line
+      "L" 'consult-line-multi
+      "g" 'consult-grep
+      "r" 'consult-ripgrep
+      "G" 'consult-git-grep
+      "f" 'consult-find
+      "F" 'consult-locate
+      "m" 'consult-man)
+
+    (fset 'embark-consult-all-search-map embark-consult-all-search-map)
+
+    (defvar-keymap embark-become-consult-search-map
+      :doc "Key map for embark become consult search."
+      :parent embark-meta-map
+      "c" 'embark-consult-all-search-map
+      "C-u" 'universal-argument
+      "r" (embark-consult-search-def consult-ripgrep t)
+      "R" (embark-consult-search-def consult-ripgrep t t)
+      "g" (embark-consult-search-def consult-grep t)
+      "G" (embark-consult-search-def consult-grep t t)
+      "f" (embark-consult-search-def consult-find t)
+      "F" (embark-consult-search-def consult-find t t)
+      "t" (embark-consult-search-def consult-git-grep t)
+      "T" (embark-consult-search-def consult-git-grep t t)
+      "m" (embark-consult-search-def consult-man t)
+      "p" (embark-consult-search-def consult-locate t)
+      "y" (embark-consult-search-def consult-yank-from-kill-ring)
+      "l" (embark-consult-search-def consult-line)
+      "L" (embark-consult-search-def consult-line-multi)
+      "i" (embark-consult-search-def consult-imenu)
+      "I" (embark-consult-search-def consult-imenu-multi)
+      "h" (embark-consult-search-def consult-org-heading)
+      "o" (embark-consult-search-def consult-outline)
+      "a" (embark-consult-search-def consult-org-agenda))
+
+    (add-to-list 'embark-become-keymaps 'embark-become-consult-search-map)
+    )
 #+END_SRC
 
 * ORG MODE CONFIG
