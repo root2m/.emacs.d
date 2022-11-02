@@ -1251,7 +1251,7 @@
           ("x" . kill-current-buffer)
           ("n" . evil-next-buffer)
           ("p" . evil-prev-buffer)
-          ("m" . evil-window-mru)
+          ("w" . nil)
           ("W" . evil-window-next)
           ("." . evil-switch-to-windows-last-buffer)))
 #+END_SRC
@@ -1561,7 +1561,7 @@
    '("^\\*.*\\*$" (display-buffer-at-bottom) (window-height . 0.4)))
   (add-to-list
    'display-buffer-alist
-   '("^\\*Org Src.*\\*$" (display-buffer-use-some-window)))
+   '("^\\*Org Src.*\\*$" (display-buffer-same-window)))
 #+END_SRC
 
 ** Window Jump Config
@@ -1593,7 +1593,7 @@
   Prefixed with two \\[universal-argument]'s, deletes the selected
   window."(char-to-string key))
                   (interactive "p")
-                  (when (> 1 (count-windows))
+                  (when (> (count-windows) 2)
                     (setq unread-command-events
                           (append unread-command-events
                                   (list ,key))))
@@ -1602,7 +1602,8 @@
 
     (general-define-key
      :keymaps 'evil-window-map
-     "," 'ace-window
+     "," 'evil-window-mru
+     "w s" 'ace-swap-window
      "D" 'ace-delete-window
      "O" 'ace-delete-other-windows
      "1" (+ace-auto-select-window ?1)
@@ -2145,7 +2146,7 @@
     :straight (:type built-in)
     :commands org-mode
     :init
-    (setq org-src-window-setup 'current-window
+    (setq org-src-window-setup 'plain
           org-src-tab-acts-natively nil
 
           ;; 启用todo层级关系
