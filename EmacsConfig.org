@@ -586,59 +586,69 @@
 
 ** Utils
 #+BEGIN_SRC emacs-lisp
-  (defmacro lmm/define-key-remap (map from-map &rest keys)
-    "(lmm/define-key-remap setmap from-map \"C-n\" command ...)
-    => (define-key setmap [remap from-map-C-n-command] #'command)"
-    (declare (indent 1))
-    (let ((num 1)
-          li
-          ocommd)
-      (dolist (km keys)
-        (if (= (% num 2) 0)
-            (push `(define-key ,map [remap ,ocommd] ,km) li)
-          (setq ocommd (lookup-key (eval from-map) (kbd km))))
-        (setq num (1+ num)))
-      `(progn ,@li)))
-
-  (defvar lmm/key-dispath-overlay (make-overlay 0 0))
-  (defun lmm/key-dispath-command-def (callback delay put-overlay &rest keybinds)
+  (defmacro lmm/key-dispath-command-def (callback
+                                         delay
+                                         put-overlay
+                                         &rest keybinds)
     "CALLBACK: if key not matched, call CALLBACK.
-  DELAY: If the optional argument SECONDS is non-nil, it should be a number
-  specifying the maximum number of seconds to wait for input.  If no
-  input arrives in that time, return nil.  SECONDS may be a floating-point value.
-  PUT-OVERLAY: if is function, call function, function need return overlay.
-  nil is close display overlay.
-  non nil display default `lmm/key-dispath-overlay'.
-  KEYBINDS: is binds."
-    (lambda ()(interactive)
-      (let* ((this-key (this-command-keys))
-             (p (point))
-             (overlay
-              (cond ((functionp put-overlay)
-                     (funcall put-overlay))
-                    ((null put-overlay) nil)
-                    ((and (eobp) (= (current-column) 0))
-                     (overlay-put lmm/key-dispath-overlay 'display (concat "\n" this-key))
-                     (move-overlay lmm/key-dispath-overlay (1- p) p))
-                    ((eolp)
-                     (overlay-put lmm/key-dispath-overlay 'display (concat this-key "\n"))
-                     (move-overlay lmm/key-dispath-overlay p (1+ p)))
-                    (t
-                     (overlay-put lmm/key-dispath-overlay 'display this-key)
-                     (move-overlay lmm/key-dispath-overlay p (1+ p)))))
-             (evt (read-event nil nil delay))
-             command)
-        (and overlay (delete-overlay overlay))
-        (cond ((and (characterp evt)
-                    (setq command (plist-get keybinds (char-to-string evt) 'equal)))
-               (call-interactively command))
-              ((null evt)
-               (call-interactively callback))
-              ((< evt 0))
-              (t
-               (call-interactively callback)
-               (setq unread-command-events
-                     (append unread-command-events (list evt))))))))
+      DELAY: If the optional argument SECONDS is non-nil, it should be a number
+      specifying the maximum number of seconds to wait for input.  If no
+      input arrives in that time, return nil.  SECONDS may be a floating-point value.
+      PUT-OVERLAY: if is function, call function, function need return overlay.
+      nil is close display overlay.
+      KEYBINDS: is binds."
+    (let ((ov-name (make-symbol (format "lmm/key-dispath-overlay-%d" gensym-counter))))
+      `(progn
+         ,(when put-overlay `(defvar ,ov-name (make-overlay 0 0)))
+         (defun ,(gensym "lmm/key-dispath-") ()
+           (interactive)
+           (let* ((this-key (this-command-keys))
+                  (p (point))
+                  (overlay
+                   ,(let ((o (eval put-overlay)))
+                      (cond ((null o) nil)
+                            ((eq o 'override-char)
+                             `(cond (executing-kbd-macro nil)
+                                    (buffer-read-only nil)
+                                    ((and (eobp) (bolp))
+                                     (overlay-put ,ov-name 'display (concat "\n" this-key))
+                                     (move-overlay ,ov-name (1- p) p))
+                                    ((eolp)
+                                     (overlay-put ,ov-name 'display (concat this-key "\n"))
+                                     (move-overlay ,ov-name p (1+ p)))
+                                    (t
+                                     (overlay-put ,ov-name 'display this-key)
+                                     (move-overlay ,ov-name p (1+ p)))))
+                            ((eq o 'after-char)
+                             `(cond (executing-kbd-macro nil)
+                                    (buffer-read-only nil)
+                                    (t
+                                     (overlay-put ,ov-name 'after-string this-key)
+                                     (move-overlay ,ov-name p p))))
+                            ((functionp o)
+                             `(funcall ,put-overlay))
+                            ((overlayp o)
+                             `(cond (executing-kbd-macro nil)
+                                    (buffer-read-only nil)
+                                    (t
+                                     (move-overlay ,put-overlay p (1+ p))))))))
+                  ;; if use read-event delay, this-command-keys can't read read-event keys.
+                  (evt (with-timeout (,delay nil)
+                         (read-event)))
+                  command)
+             ,(when put-overlay '(and overlay (delete-overlay overlay)))
+             (cond ((and (characterp evt)
+                         (setq command (plist-get ',(mapcar 'eval keybinds) (char-to-string evt) 'equal)))
+                    (let ((this-command command))
+                      (command-execute command)))
+                   ((null evt)
+                    (let ((this-command ,callback))
+                      (command-execute ,callback)))
+                   (t
+                    (let ((this-command ,callback))
+                      (command-execute ,callback))
+                    (setq unread-command-events
+                          (append unread-command-events (list evt))))))))))
 #+END_SRC
 
 * UI
@@ -1068,7 +1078,7 @@
     ;;        "k" 'evil-normal-state
     ;;        "l" 'toggle-input-method))
     (evil-define-key* 'insert 'global
-      "j" (lmm/key-dispath-command-def 'self-insert-command 0.2 t
+      "j" (lmm/key-dispath-command-def 'self-insert-command 0.2 'after-char
                                        "k" 'evil-normal-state
                                        "l" 'toggle-input-method
                                        "w" 'forward-to-word
