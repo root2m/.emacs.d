@@ -3489,7 +3489,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
       (delq 'consult--source-buffer consult-buffer-sources)
 
       (defvar lmm/perspective-consult--source-buffer
-        (list :name     (format "Persp Buffers (%s)" (persp-current-name))
+        (list :name     (format "Current Persp Buffers")
               :narrow   ?b
               :category 'buffer
               :history 'buffer-name-history
