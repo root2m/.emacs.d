@@ -1985,6 +1985,8 @@
       "sb" 'consult-line
       "sB" 'consult-line-multi
       "sf" 'consult-focus-lines
+      "sd" 'consult-find
+      "sF" 'consult-find
       "s.s" 'lmm/consult-symbol-at-point
       "s.S" 'lmm/consult-symbol-at-point-multi
       "s.w" 'lmm/consult-word-at-point
@@ -3439,8 +3441,8 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     :commands magit-status magit-dispatch
     :bind
     (:map lmm/evil-space-leader-def-map
-          ("gd" . magit-dispatch)
-          ("gs" . magit-stage))
+          ("gi" . magit-dispatch)
+          ("g." . magit))
     )
 #+END_SRC
 
@@ -3466,7 +3468,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
       (kbd "C-f") 'diff-hl-inline-popup--popup-pagedown
       (kbd "C-b") 'diff-hl-inline-popup--popup-pageup)
     (lmm/evil-space-leader-def
-      "ds" #'diff-hl-show-hunk))
+      "gd" #'diff-hl-show-hunk))
 #+END_SRC
 
 * WORKSPACE
