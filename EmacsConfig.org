@@ -640,13 +640,13 @@
              (cond ((and (characterp evt)
                          (setq command (plist-get ',(mapcar 'eval keybinds) (char-to-string evt) 'equal)))
                     (let ((this-command command))
-                      (command-execute command)))
+                      (call-interactively command)))
                    ((null evt)
                     (let ((this-command ,callback))
-                      (command-execute ,callback)))
+                      (call-interactively ,callback)))
                    (t
                     (let ((this-command ,callback))
-                      (command-execute ,callback))
+                      (call-interactively ,callback))
                     (setq unread-command-events
                           (append unread-command-events (list evt))))))))))
 #+END_SRC
