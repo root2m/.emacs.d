@@ -1461,6 +1461,26 @@
     ;; (evil-define-key '(normal motion) 'global
     ;;   "w" 'lmm/evil-forward-in-word-begin)
 
+    (evil-define-motion lmm/evil-forward-WORD-end (count)
+      "Move the cursor to the end of the COUNT-th next WORD."
+      :type inclusive
+      (let ((thing 'symbol)
+            (count (or count 1)))
+        (evil-signal-at-bob-or-eob count)
+        ;; Evil special behaviour: e or E on a one-character word in
+        ;; operator state does not move point
+        (unless (and (evil-operator-state-p)
+                     (= 1 count)
+                     (let ((bnd (bounds-of-thing-at-point 'symbol)))
+                       (and bnd
+                            (= (car bnd) (point))
+                            (= (cdr bnd) (1+ (point)))))
+                     (looking-at "[[:word:]]"))
+          (evil-forward-end thing count))))
+
+    (evil-define-key* '(normal motion visual) 'global
+      "E" #'lmm/evil-forward-WORD-end)
+
     (evil-define-motion lmm/evil-backward-in-word-begin(count &optional bigword)
       "Backward in word begin"
       :type exclusive
