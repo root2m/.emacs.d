@@ -4002,8 +4002,3 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
         (unless (= 100 fp)
           (set-frame-parameter wf 'alpha-background (1+ fp)))))
 #+END_SRC
-
-* KEY LIST
-+ word case
-  - M-u upcase-dwim 转换单词或者标记区域为大写
-  - C-U capitalize-dwim 转换单词或者标记区域所有单词首个字母为大写
