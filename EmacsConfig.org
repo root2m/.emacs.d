@@ -1807,6 +1807,8 @@
   (setq-default history-length 1000)
   ;;命令历史
   (use-package savehist
+    :config
+    (add-to-list 'savehist-additional-variables 'url-proxy-services)
     :hook
     (after-init-hook . savehist-mode))
   (use-package vertico  ;;命令补全
