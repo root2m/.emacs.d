@@ -2917,7 +2917,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
       (add-hook hook
                 (lambda()
                   (setq-local completion-at-point-functions
-                              '(cape-symbol cape-file)))))
+                              '(elisp-completion-at-point cape-dabbrev cape-symbol cape-file)))))
 
     (dolist (hook '(rustic-mode-hook))
       (add-hook hook
