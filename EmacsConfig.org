@@ -2852,7 +2852,6 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
           ("C-." . corfu-quick-insert)
           ("C-," . corfu-quick-complete)
           ("C-i" . corfu-complete)
-          ("M-h" . corfu-info-documentation)
           ("<tab>" . corfu-insert-separator)
           ("C-SPC" . corfu-insert-separator)
           ("C-g" . corfu-quit))
@@ -2879,21 +2878,21 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     (set-face-background 'corfu-border "#ffc4cd")
     (set-face-background 'corfu-default "#282a36")
     )
-#+END_SRC
 
-**** Corfu Doc
-#+BEGIN_SRC emacs-lisp
-  (use-package corfu-doc
-    :straight t
+  ;; built in corfu
+  (use-package corfu-popupinfo
+    :custom
+    (corfu-popupinfo-delay nil)
     :hook
-    (corfu-mode-hook . corfu-doc-mode)
-    :init
-    (setq corfu-doc-auto nil)
+    (corfu-mode-hook . corfu-popupinfo-mode)
     :bind
     (:map corfu-map
-    ("M-h" . corfu-doc-toggle)
-    ("M-n" . corfu-doc-scroll-up)
-    ("M-p" . corfu-doc-scroll-down)))
+          ("M-h" . corfu-popupinfo-documentation)
+          ("M-t" . corfu-popupinfo-toggle)
+          ("M-." . corfu-popupinfo-location)
+          :map corfu-popupinfo-map
+          ("M-n" . corfu-popupinfo-scroll-up)
+          ("M-p" . corfu-popupinfo-scroll-down)))
 #+END_SRC
 
 **** cape -- complete backends
