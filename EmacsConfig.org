@@ -354,6 +354,11 @@
     (interactive)
     (find-file (concat user-emacs-directory "EmacsConfig.org")))
   (global-set-key (kbd "<f2>") 'open-config-org-file)
+
+  (defun lmm/open-config-file (file)
+    "Open user config FILE."
+    (interactive (list (read-file-name "Emacs Config: " user-emacs-directory)))
+    (when file (find-file file)))
 #+END_SRC
 
 ** Default Coding System
