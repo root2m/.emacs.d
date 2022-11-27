@@ -1429,9 +1429,10 @@
     (define-key evil-outer-text-objects-map " " 'lmm/evil-outer-space)
 
     (evil-define-operator lmm/evil-replace-paste (beg end)
-      "Select and paste"
-      (evil-visual-make-region beg (1- end) evil-visual-char)
-      (call-interactively 'evil-visual-paste))
+      "Select and replace from kill ring"
+      (when-let ((text (current-kill 0)))
+        (delete-region beg end)
+        (insert-for-yank text)))
 
     (evil-define-key 'normal 'global
       "R" 'lmm/evil-replace-paste)
