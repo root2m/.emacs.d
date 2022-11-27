@@ -2038,8 +2038,10 @@
      ("C-t" . embark-become)
      ;; 导出当前列表到额外buffer，然后执行各种操作
      ("C-c C-o" . embark-export)
-     )
+     :map help-map
+     ("b" . embark-bindings))
     :config
+    (setq prefix-help-command #'embark-prefix-help-command)
     ;; embark menu with which key
     (defun embark-which-key-indicator ()
       "An embark indicator that displays keymaps using which-key.
