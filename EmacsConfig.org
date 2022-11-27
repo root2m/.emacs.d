@@ -3867,46 +3867,17 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
       "cf" 'lmm/rename-buffer-and-file-name))
 
 #+END_SRC
-*** go-translate
+*** google-translate
 #+BEGIN_SRC emacs-lisp
-  (use-package go-translate
+  (use-package google-translate
     :straight t
-    :commands gts-do-translate
-    :config
-    (setq gts-translate-list '(("en" "zh")))
-    (setq gts-default-translator
-          (gts-translator :picker
-                          (gts-prompt-picker)
-                          ;;(gts-noprompt-picker)
-                          ;;(gts-noprompt-picker :texter (gts-whole-buffer-texter))
-
-                          :engines
-                          (list
-                           (gts-bing-engine)
-                           ;; (gts-google-engine :parser (gts-google-summary-parser))
-                           ;; (gts-google-rpc-engine)
-
-                           ;;(gts-google-engine)
-                           ;;(gts-google-rpc-engine)
-                           ;;(gts-deepl-engine :auth-key "2e20bade-88e9-02f3-169f-ab3c445d7984:fx" :pro nil)
-
-                           ;;(gts-google-engine :parser (gts-google-summary-parser))
-                           ;;(gts-google-engine :parser (gts-google-parser))
-                           ;;(gts-google-rpc-engine :parser (gts-google-rpc-summary-parser))
-                           )
-
-                          :render
-                          (gts-buffer-render)
-
-                          ;;(gts-posframe-pop-render)
-                          ;;(gts-posframe-pop-render :backcolor "#333333" :forecolor "#ffffff")
-
-                          ;;(gts-posframe-pin-render)
-                          ;;(gts-posframe-pin-render :position (cons 1200 20))
-                          ;;(gts-posframe-pin-render :width 80 :height 25 :position (cons 1000 20) :forecolor "#ffffff" :backcolor "#111111")
-
-                          ;;(gts-kill-ring-render)
-                          )))
+    :init
+    (setq google-translate-default-source-language "en"
+          google-translate-default-target-language "zh-CN"
+          google-translate-pop-up-buffer-set-focus t)
+    :bind
+    (:map lmm/evil-space-leader-def-map
+          ("t." . google-translate-at-point)))
 #+END_SRC
 
 ** 文件操作
