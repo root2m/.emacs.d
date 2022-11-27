@@ -2221,14 +2221,14 @@
     )
 
   (use-package org-agenda
-    :init
-    (defvar org-agenda-files nil)
+    :config
     ;; all agenda files.
     (dolist (path '("~/.org/EveryDayTODO.org"))
       (when (file-exists-p path)
         (add-to-list 'org-agenda-files path))))
 
   (use-package org-roam
+    :disabled
     :straight t
     :init
     (setq org-roam-directory (file-truename "~/.org/org-roam/")
@@ -2328,6 +2328,27 @@
     :straight t
     :hook
     (org-mode-hook . evil-org-mode))
+#+END_SRC
+
+* Notes
+#+BEGIN_SRC emacs-lisp
+  (use-package denote
+    :straight t
+    :init
+    (setq denote-directory "~/.notes")
+    :bind
+    (:map lmm/evil-space-leader-def-map
+          ("nn" . denote)
+          ("nc" . denote)
+          ("nt" . denote-type)
+          ("nf" . denote-open-or-create)
+          ("no" . denote-link-find-file)
+          ("ni" . denote-link))
+    :config
+    (set-face-attribute 'denote-faces-keywords nil :background "pink4"
+                        :foreground "white")
+    (set-face-foreground 'denote-faces-title "cyan")
+    (set-face-attribute 'denote-faces-date nil :inherit 'shadow))
 #+END_SRC
 
 * EDIT SETTINGS
