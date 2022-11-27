@@ -1168,6 +1168,7 @@
       "z/" #'evil-ex-nohighlight
       "g/" #'evil-ex-nohighlight
       "g'" #'evil-avy-goto-char-2
+      "z." #'evil-toggle-fold
       )
 
     (defvar lmm/goto-next-object-map (make-sparse-keymap))
