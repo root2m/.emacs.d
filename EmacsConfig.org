@@ -511,19 +511,18 @@
     (general-evil-setup t))
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
-   ;; ESC Cancels All
+  ;; ESC Cancels All
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
-   ;; Rebind C-u
-   (global-set-key (kbd "C-M-u") 'universal-argument)
-   (define-key universal-argument-map (kbd "C-M-u") 'universal-argument-more)
+  ;; Rebind C-u
+  (global-set-key (kbd "C-M-u") 'universal-argument)
+  (define-key universal-argument-map (kbd "C-M-u") 'universal-argument-more)
 #+END_SRC
 
 ** Hydra
 #+BEGIN_SRC emacs-lisp
   (use-package hydra
-    :straight t
-    :config)
+    :straight t)
 #+END_SRC
 
 ** Mouse Key Bind
