@@ -328,18 +328,7 @@
         x86-lookup-cache-directory       (lmm/no-littering-expand-var "x86-lookup/cache/"))
 #+END_SRC
 
-** pgtk config
-#+BEGIN_SRC emacs-lisp
-(setq pgtk-wait-for-event-timeout 0.001)
-#+END_SRC
-
 * CORE SETTINGS
-** Fast Read
-#+BEGIN_SRC emacs-lisp
-  ;; Increase how much is read from processes in a single chunk (default is 4kb)
-  (setq read-process-output-max (* 4 1024 1024))
-#+END_SRC
-
 ** Open Config file
 #+BEGIN_SRC emacs-lisp
   (defun open-init-file()
