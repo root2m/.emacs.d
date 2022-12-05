@@ -2824,6 +2824,31 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
       (+toggle-selective-display column)))
 #+END_SRC
 
+** Text Conver
+#+BEGIN_SRC emacs-lisp
+  (defun lmm/conver-thing-word(region)
+    "Conver thing at point word."
+    (interactive (list (bounds-of-thing-at-point 'word)))
+    (when region
+      (let* ((case-fold-search nil)
+            (beg (car region))
+            (end (cdr region))
+            (substring (buffer-substring-no-properties beg end))
+            (capitalize-rx "^[[:upper:]][^[:upper:]]*$")
+            (uppercase-rx "^[[:upper:]]*$")
+            (lowercase-rx "^[[:lower:]]*$"))
+        (cond
+         ((string-match lowercase-rx substring nil t)
+          (capitalize-region beg end))
+         ((string-match capitalize-rx substring nil t)
+          (upcase-region beg end))
+         (t
+          (downcase-region beg end))))))
+
+  (evil-define-key* 'insert 'global
+    (kbd "C-t") #'lmm/conver-thing-word)
+#+END_SRC
+
 * LANG CONFIG
 ** Complete Config
 *** Corfu -- other completion tool
