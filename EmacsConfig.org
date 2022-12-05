@@ -990,6 +990,8 @@
           evil-visual-screen-line-tag (propertize "拓" 'face '(:foreground "cyan")))
 
     :config
+    (evil-set-command-property 'evil-upcase :move-point nil)
+
     (evil-define-key* nil evil-ex-completion-map
       (kbd "C-a") 'beginning-of-line
       (kbd "C-b") 'backward-char
@@ -1356,6 +1358,27 @@
 #+BEGIN_SRC emacs-lisp
   (use-package evil
     :config
+    ;; fix built in evil-yank.
+    (evil-define-operator evil-yank (beg end type register yank-handler)
+    "Save the characters in motion into the kill-ring."
+    :move-point nil
+    :repeat nil
+    (interactive "<R><x><y>")
+    (let ((evil-was-yanked-without-register
+           (and evil-was-yanked-without-register (not register))))
+      (cond
+       ((and (fboundp 'cua--global-mark-active)
+             (fboundp 'cua-copy-region-to-global-mark)
+             (cua--global-mark-active))
+        (cua-copy-region-to-global-mark beg end))
+       ((eq type 'block)
+        (evil-yank-rectangle beg end register yank-handler))
+       ((memq type '(line screen-line))
+        (evil-yank-lines beg end register yank-handler))
+       (t
+        (evil-yank-characters beg end register yank-handler)
+        ))))
+
     (evil-define-command lmm/evil-vsplit-next-buffer (&optional count)
       "Vsplits the window and goes to the COUNT-th next buffer in the buffer list."
       :repeat nil
