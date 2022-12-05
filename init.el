@@ -7,6 +7,9 @@
 (defvar lmmv/emacs-in-wsl (file-exists-p "/mnt/wsl")
   "Emacs if run wsl, is t else nil.")
 
+(defvar lmmv/emacs-nox-p (string-match "--with-x=no" system-configuration-options nil t)
+  "Emacs if no x, is t else nil.")
+
 (when lmmv/emacs-in-wsl
   (let ((path (replace-regexp-in-string "/mnt[^:]*:?" "" (getenv "PATH"))))
     (setenv "PATH" path)
@@ -24,26 +27,32 @@
 (defvar lmmv/emacs-config-tangle-file (concat (file-name-base lmmv/emacs-config-file) ".el")
   "Config file for 'lmmv/emacs-config-file', if it is a org file.")
 
-(defun lmm/emacs-load-user-config()
+(defun lmm/emacs-build-config-file(&optional load)
   "Load config file, '.el' or '.org' file."
-  (interactive)
+  (interactive "P")
   (let* ((init-file (expand-file-name  lmmv/emacs-config-tangle-file user-emacs-directory))
-         (init-org-file (expand-file-name lmmv/emacs-config-file user-emacs-directory)))
-    (if (file-exists-p init-file)
-        (load-file init-file)
-      (if (file-exists-p init-org-file)
-          (org-babel-load-file init-org-file)
-        (display-warning :warning (format "File %s not exitsed!!!" init-org-file))))))
+         (init-org-file (expand-file-name lmmv/emacs-config-file user-emacs-directory))
+         (fun (make-symbol "lmm/org-babel-get-src-block-info-change")))
+    (when lmmv/emacs-nox-p
+      (fset fun (lambda (info)
+                  (when info
+                    (if (assq :nox (nth 2 info))
+                        (setf (cdr (assq :tangle (nth 2 info))) init-file)
+                      (setf (cdr (assq :tangle (nth 2 info))) "no")))
+                  info))
+      (advice-add 'org-babel-get-src-block-info :filter-return fun))
+    (cond ((and (numberp load) (> load 4))
+           (org-babel-load-file init-org-file))
+          (load
+           (if (file-exists-p init-file)
+               (load-file init-file)
+             (org-babel-load-file init-org-file)))
+          (t
+           (org-babel-tangle-file init-org-file init-file)))
+    (when lmmv/emacs-nox-p
+      (advice-remove 'org-babel-get-src-block-info fun))))
 
-(lmm/emacs-load-user-config)
-
-(defun lmm/emacs-build-config-file()
-  "Build config file for org, add to 'kill-emacs-hook'."
-  (interactive)
-  (let* ((init-file (expand-file-name  lmmv/emacs-config-tangle-file user-emacs-directory))
-         (init-org-file (expand-file-name lmmv/emacs-config-file user-emacs-directory)))
-    (when (file-exists-p init-org-file)
-      (org-babel-tangle-file init-org-file init-file))))
+(lmm/emacs-build-config-file 'load)
 
 (add-hook 'kill-emacs-hook #'lmm/emacs-build-config-file)
 
