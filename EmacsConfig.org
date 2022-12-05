@@ -2575,6 +2575,120 @@
     :init
     (setq avy-timeout-seconds 0.3)
     :config
+
+    (defmacro lmm/avy-action-thing-def (thing &optional action avy-back-action avy-cmd)
+      "THING: set to `bounds-of-thing-at-point' keywords or `evil'.
+  AVY-JUMP-ACTION: avy jump command.
+  ACTION: function or cut, copy, swap, kill, del, yank.
+  if ACTION is function, need return cons region (beg . end)."
+      (declare (debug t) (indent t))
+      (let ((range-fun (cond ((functionp thing)
+                              `(funcall ',thing))
+                             ((eq thing 'evil)
+                              `(evil-save-state
+                                 (evil-change-state 'operator)
+                                 (if-let* ((command (evil-read-motion))
+                                           (motion (nth 0 command))
+                                           (range (evil-motion-range motion (nth 1 command) (nth 2 command))))
+                                     (cons (car range) (cadr range))
+                                   (user-error "Motion Select Error. motion: %S. range: %S." motion range)
+                                   nil)))
+                             (t
+                              `(bounds-of-thing-at-point ',(or thing 'word)))))
+            (save-current-p (or (eq action 'swap) avy-back-action)))
+        `(progn
+           (defun ,(intern (format "lmm/avy-%S-%S" (or action "action") (or thing "thing"))) ()
+             (interactive)
+             (let* (goto-string
+                    ,@(when save-current-p
+                        '(back-string
+                          back-beg
+                          back-end
+                          (back-point (point))))
+                    (avy-action-oneshot
+                     (lambda (res)
+                       (funcall 'avy-action-goto res)
+                       (let* ((range ,range-fun)
+                              (beg (car range))
+                              (end (cdr range)))
+                         (when (and beg end)
+                           (setq goto-string
+                                 ,(if (and (functionp action) (not (commandp action)))
+                                      `(funcall ',action beg end)
+                                    '(buffer-substring-no-properties beg end)))
+                           ,(cond ((commandp action)
+                                   `(funcall-interactively ',action beg end))
+                                  ((memq action '(cut del))
+                                   `(unless buffer-read-only
+                                      (delete-region beg end)))
+                                  ((eq action 'swap)
+                                   `(unless buffer-read-only
+                                      (when (stringp back-string)
+                                        (delete-region beg end)
+                                        (goto-char beg)
+                                        (insert back-string))))
+                                  ((eq action 'kill)
+                                   `(funcall-interactively 'kill-region beg end))
+                                  ((eq action 'yank)
+                                   `(funcall-interactively 'copy-region-as-kill beg end)))))))
+                    (old-avy-resume (symbol-function 'avy-resume)))
+               (unwind-protect
+                   (save-excursion
+                     (save-selected-window
+                       ,(when save-current-p
+                          `(let* ((range ,range-fun)
+                                  (beg (car range))
+                                  (end (cdr range)))
+                             (if (and beg end)
+                               (setq back-string (buffer-substring-no-properties beg end)
+                                     back-beg beg
+                                     back-end end)
+                               (user-error "Not word at point."))))
+                       (call-interactively ',(or avy-cmd 'avy-goto-char))))
+                 ,(when save-current-p
+                    `(let* ((offset (- (point) back-point))
+                            (beg (+ offset back-beg))
+                            (end (+ offset back-end)))
+                       (goto-char beg)
+                       ,(cond ((eq action 'swap)
+                               `(delete-region beg end))
+                              ((commandp avy-back-action)
+                               `(funcall-interactively ',avy-back-action beg end))
+                              ((functionp avy-back-action)
+                               `(funcall ',avy-back-action beg end)))))
+                 ,(when (memq action '(swap copy cut))
+                    '(when (and (not buffer-read-only) (stringp goto-string))
+                       (insert goto-string)))
+                 (setf (symbol-function 'avy-resume)
+                       old-avy-resume)))))))
+
+    (evil-define-key* 'normal 'global
+      "zic" (lmm/avy-action-thing-def evil evilnc-comment-operator)
+
+      "zio" (lmm/avy-action-thing-def symbol copy)
+      "ziw" (lmm/avy-action-thing-def word copy)
+      "zif" (lmm/avy-action-thing-def defun copy)
+      "ziv" (lmm/avy-action-thing-def evil copy)
+      "zIo" (lmm/avy-action-thing-def symbol cut)
+      "zIw" (lmm/avy-action-thing-def word cut)
+      "zIf" (lmm/avy-action-thing-def defun cut)
+      "zIv" (lmm/avy-action-thing-def evil cut)
+
+
+      "zdo" (lmm/avy-action-thing-def symbol kill)
+      "zdw" (lmm/avy-action-thing-def word kill)
+      "zdf" (lmm/avy-action-thing-def defun kill)
+      "zdv" (lmm/avy-action-thing-def evil kill)
+      "zDo" (lmm/avy-action-thing-def symbol del)
+      "zDw" (lmm/avy-action-thing-def word del)
+      "zDf" (lmm/avy-action-thing-def defun del)
+      "zDv" (lmm/avy-action-thing-def evil del)
+
+      "zso" (lmm/avy-action-thing-def symbol swap)
+      "zsw" (lmm/avy-action-thing-def word swap)
+      "zsf" (lmm/avy-action-thing-def defun swap)
+      "zsv" (lmm/avy-action-thing-def evil swap))
+
     (lmm/evil-space-leader-def
       "aml" 'avy-move-line
       "amr" 'avy-move-region
