@@ -7,8 +7,74 @@
 ;;; EmacsConfig.el -*- lexical-binding: t; -*-
 #+END_SRC
 
-* BOOT CONFIG
-** Clean
+* CORE SETTINGS
+** Config Manage
+#+BEGIN_SRC emacs-lisp
+  (defun lmm/open-init-file()
+    (interactive)
+    (find-file (concat user-emacs-directory "init.el")))
+  (defun lmm/open-config-org-file()
+    (interactive)
+    (find-file (concat user-emacs-directory "EmacsConfig.org")))
+  (global-set-key (kbd "<f2>") 'open-config-org-file)
+
+  (defun lmm/open-config-file (file)
+    "Open user config FILE."
+    (interactive (list (read-file-name "Emacs Config: " user-emacs-directory)))
+    (when file (find-file file)))
+#+END_SRC
+
+** Server Mode
+#+BEGIN_SRC emacs-lisp
+  (add-hook 'after-init-hook (lambda ()
+                               "Start server"
+                               (require 'server)
+                               (unless (server-running-p)
+                                 (server-start))))
+#+END_SRC
+
+** Native Comp Support
+#+BEGIN_SRC emacs-lisp
+  ;; 判断是否支持native-comp
+  (when (featurep 'native-compile)
+    ;; 关闭native-comp 生成的警告
+    (setq native-comp-async-report-warnings-errors nil
+          ;; 同步编译
+          native-comp-deferred-compilation t
+          package-native-compile t))
+#+END_SRC
+
+** Yes Or No
+#+BEGIN_SRC emacs-lisp
+  (setq use-short-answers t)
+  (unless (>= emacs-major-version 28)
+    (fset 'yes-or-no-p 'y-or-n-p))
+  (setq y-or-n-p-use-read-key t
+        ;;禁止切换从选择中出来
+        read-char-choice-use-read-key t)
+  ;; 更多的选项
+  (defmacro lmm/read-char-choice (format choices)
+    "More option to question. CHOICES is a list
+     exp:
+     (lmm/read-char-choice format ((?a (body)) (?b (body)) ...))"
+    (declare (indent 1) (debug t))
+    (let ((ch-list (mapcar (lambda (l)(car l)) choices)))
+      `(let ((ch (read-char-choice ,format ',ch-list)))
+         (cond ,@(mapcar (lambda (c) (let ((c (car c))
+                                           (body (cdr c)))
+                                       (cons (list '= c 'ch) body))) choices)))))
+#+END_SRC
+
+** System Clipboard
+#+BEGIN_SRC emacs-lisp
+  ;; 当变量为 t 时，evil 粘贴失效
+  (setq select-enable-primary nil)
+  ;; 开启系统剪贴板
+  (setq select-enable-clipboard t)
+#+END_SRC
+
+* PACKAGE MANAGEMENT
+** No Littering
 #+BEGIN_SRC emacs-lisp
   ;; copy from https://github.com/emacscollective/no-littering
 
@@ -328,82 +394,6 @@
         x86-lookup-cache-directory       (lmm/no-littering-expand-var "x86-lookup/cache/"))
 #+END_SRC
 
-* CORE SETTINGS
-** Open Config file
-#+BEGIN_SRC emacs-lisp
-  (defun open-init-file()
-    (interactive)
-    (find-file (concat user-emacs-directory "init.el")))
-  (defun open-config-org-file()
-    (interactive)
-    (find-file (concat user-emacs-directory "EmacsConfig.org")))
-  (global-set-key (kbd "<f2>") 'open-config-org-file)
-
-  (defun lmm/open-config-file (file)
-    "Open user config FILE."
-    (interactive (list (read-file-name "Emacs Config: " user-emacs-directory)))
-    (when file (find-file file)))
-#+END_SRC
-
-** Server Mode
-#+BEGIN_SRC emacs-lisp
-  (add-hook 'after-init-hook (lambda ()
-                               "Start server"
-                               (require 'server)
-                               (unless (server-running-p)
-                                 (server-start))))
-#+END_SRC
-
-** Native Comp Support
-#+BEGIN_SRC emacs-lisp
-  ;; 判断是否支持native-comp
-  (when (featurep 'native-compile)
-    ;; 关闭native-comp 生成的警告
-    (setq native-comp-async-report-warnings-errors nil)
-    ;; 同步编译
-    (setq native-comp-deferred-compilation t)
-    ;; 自定义 native comp 缓存生成路径
-    (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
-    (setq package-native-compile t))
-#+END_SRC
-
-** Yes Or No
-#+BEGIN_SRC emacs-lisp
-  (setq use-short-answers t)
-  (unless (>= emacs-major-version 28)
-    (fset 'yes-or-no-p 'y-or-n-p))
-  (setq y-or-n-p-use-read-key t
-        ;;禁止切换从选择中出来
-        read-char-choice-use-read-key t)
-  ;; 更多的选项
-  (defmacro lmm/read-char-choice (format choices)
-    "More option to question. CHOICES is a list
-     exp:
-     (lmm/read-char-choice format ((?a (body)) (?b (body)) ...))"
-            (declare (indent 1) (debug t))
-            (let ((ch-list (mapcar (lambda (l)(car l)) choices)))
-              `(let ((ch (read-char-choice ,format ',ch-list)))
-                 (cond ,@(mapcar (lambda (c) (let ((c (car c))
-                                            (body (cdr c)))
-                                        (cons (list '= c 'ch) body))) choices)))))
-#+END_SRC
-
-** System Clipboard
-#+BEGIN_SRC emacs-lisp
-  ;; 当变量为 t 时，evil 粘贴失效
-  (setq select-enable-primary nil)
-  ;; 开启系统剪贴板
-  (setq select-enable-clipboard t)
-#+END_SRC
-
-** Enable Narrow Commands -- 只对目标进行编辑
-#+BEGIN_SRC emacs-lisp
-  (put 'narrow-to-defun  'disabled nil)
-  (put 'narrow-to-page   'disabled nil)
-  (put 'narrow-to-region 'disabled nil)
-#+END_SRC
-
-* PACKAGE MANAGEMENT
 ** Setup package.el to work with MELPA.
 修改国内镜像源
 #+BEGIN_SRC emacs-lisp
@@ -413,10 +403,9 @@
                            ("org" . "https://elpa.zilongshanren.com/org/")))
   ;; 合并 autoload io 快速启动，如果新安装包了之后需要执行 package-quickstart-refresh
   (setq package-quickstart t)
-  ;; (package-refresh-contents)
 #+END_SRC
 
-** Straight -- git package manager
+** Straight -- git package download manager
 #+BEGIN_SRC emacs-lisp
   (setq straight-check-for-modifications 'never)
   (defvar bootstrap-version)
@@ -434,7 +423,7 @@
   (add-to-list 'straight-built-in-pseudo-packages 'org)
 #+END_SRC
 
-** Installing use-package
+** Package Config Manager -- use-package
 包管理器
 #+BEGIN_SRC emacs-lisp
   (straight-use-package 'use-package)
@@ -447,30 +436,29 @@
   ;; ;; (setq use-package-verbose t)
   (eval-when-compile
     (require 'use-package))
-#+END_SRC
 
-** COMMENT Use-Package Man
-#+BEGIN_SRC emacs-lisp
+  ;; how to use use-package.
   (use-package some-package-name
-    :disabled ;;停止加载不使用的内容
-    :no-require t; 不加载
+    :disabled ;;不安装加载该包
+    :no-require t; 不引入
     :ensure t ;;确保软件包会自动安装
     :defer t ;;延迟t秒加载包（require 'some-package-name)
-    :init () ;;加载包之前执行的代码
-    :config () ;;加载包之后执行的代码
-    :hook () ;;钩子, 默认启用 defer t
-    :commands command-example ;;延迟加载，命令触发
+    :init  ;;加载包之前执行的代码
+    :config  ;;加载包之后执行的代码
+    :hook  ;;钩子, 默认启用 defer t
+    :commands ;;延迟加载，命令触发
+    :if       ;;条件返回 non-nil 加载
     )
-#+END_SRC
 
-** Install diminish, bind-key, gcmh
-#+BEGIN_SRC emacs-lisp
+  ;; dependencies
   (use-package diminish
-    :straight t
-    )
+    :straight t)
   (use-package bind-key
     :straight t)
+#+END_SRC
 
+* Garbage Collection
+#+BEGIN_SRC emacs-lisp
   ;; 垃圾回收
   (use-package gcmh
     :straight t
@@ -2330,6 +2318,13 @@
 #+END_SRC
 
 * EDIT
+** Enable Narrow Commands -- 只对目标进行编辑
+#+BEGIN_SRC emacs-lisp
+  (put 'narrow-to-defun  'disabled nil)
+  (put 'narrow-to-page   'disabled nil)
+  (put 'narrow-to-region 'disabled nil)
+#+END_SRC
+
 ** Default Coding System
 #+BEGIN_SRC emacs-lisp
   (set-language-environment "UTF-8")
