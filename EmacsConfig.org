@@ -2901,7 +2901,6 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
           ("M-h" . corfu-popupinfo-documentation)
           ("M-t" . corfu-popupinfo-toggle)
           ("M-." . corfu-popupinfo-location)
-          :map corfu-popupinfo-map
           ("M-n" . corfu-popupinfo-scroll-up)
           ("M-p" . corfu-popupinfo-scroll-down)))
 #+END_SRC
