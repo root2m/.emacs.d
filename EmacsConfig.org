@@ -2,14 +2,9 @@
 #+AUTHOR: Lmm
 #+STARTUP: content indent
 
-* TANGLE CONFIG
+* LEXICAL-BINDING
 #+BEGIN_SRC emacs-lisp
 ;;; EmacsConfig.el -*- lexical-binding: t; -*-
-#+END_SRC
-
-* COMMENT OPEN DEBUG
-#+BEGIN_SRC emacs-lisp
-(setq debug-on-error t)
 #+END_SRC
 
 * BOOT CONFIG
