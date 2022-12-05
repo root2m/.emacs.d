@@ -3672,6 +3672,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
 ** Install
 #+BEGIN_SRC emacs-lisp
   (use-package vterm
+    :if (memq system-type '(gnu gnu/linux))
     :straight t
     :bind
     ("<f12>" . vterm)
