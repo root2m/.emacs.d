@@ -3162,7 +3162,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     )
 #+END_SRC
 
-** Tree Sitter
+** COMMENT Tree Sitter
 #+BEGIN_SRC emacs-lisp
   (use-package tree-sitter
     :straight t
