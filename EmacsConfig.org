@@ -345,12 +345,6 @@
     (when file (find-file file)))
 #+END_SRC
 
-** Default Coding System
-#+BEGIN_SRC emacs-lisp
-  (set-language-environment "UTF-8")
-  (set-default-coding-systems 'utf-8)
-#+END_SRC
-
 ** Server Mode
 #+BEGIN_SRC emacs-lisp
   (add-hook 'after-init-hook (lambda ()
@@ -2335,7 +2329,13 @@
     (set-face-attribute 'denote-faces-date nil :inherit 'shadow))
 #+END_SRC
 
-* EDIT SETTINGS
+* EDIT
+** Default Coding System
+#+BEGIN_SRC emacs-lisp
+  (set-language-environment "UTF-8")
+  (set-default-coding-systems 'utf-8)
+#+END_SRC
+
 ** Newline
 #+BEGIN_SRC emacs-lisp
   (defun lmm/newline()
