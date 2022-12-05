@@ -2000,7 +2000,14 @@
       "s.W" 'lmm/consult-word-at-point-multi
       "s.n" 'lmm/consult-number-at-point
       "s.N" 'lmm/consult-number-at-point-multi
-      "si" (lambda ()(interactive) (if (eq major-mode 'org-mode)(consult-org-heading)(consult-imenu)))
+      "si" (defun +consult-imenu-or-org-heading ()
+             (interactive)
+             (if (eq major-mode 'org-mode)
+                 (progn
+                   (setq this-command 'consult-org-heading)
+                   (call-interactively #'consult-org-heading))
+               (setq this-command 'consult-imenu)
+               (call-interactively #'consult-imenu)))
       "sI" 'consult-imenu-multi
       "fr" 'consult-recent-file
       "sr" 'consult-ripgrep
@@ -2160,6 +2167,8 @@
       "y" (embark-consult-search-def consult-yank-from-kill-ring)
       "l" (embark-consult-search-def consult-line)
       "L" (embark-consult-search-def consult-line-multi)
+      "b" (embark-consult-search-def consult-line)
+      "B" (embark-consult-search-def consult-line-multi)
       "i" (embark-consult-search-def consult-imenu)
       "I" (embark-consult-search-def consult-imenu-multi)
       "h" (embark-consult-search-def consult-org-heading)
@@ -2178,6 +2187,7 @@
     :init
     (setq org-src-window-setup 'plain
           org-src-tab-acts-natively nil
+          org-imenu-depth 3
 
           ;; 启用todo层级关系
           org-enforce-todo-dependencies t
