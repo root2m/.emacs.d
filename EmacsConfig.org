@@ -16,7 +16,7 @@
   (defun lmm/open-config-org-file()
     (interactive)
     (find-file (concat user-emacs-directory "EmacsConfig.org")))
-  (global-set-key (kbd "<f2>") 'open-config-org-file)
+  (global-set-key (kbd "<f2>") 'lmm/open-config-org-file)
 
   (defun lmm/open-config-file (file)
     "Open user config FILE."
