@@ -533,6 +533,16 @@
     (add-hook 'after-init-hook 'pixel-scroll-precision-mode))
 #+END_SRC
 
+** Which Key
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :straight t
+    :hook
+    (after-init-hook . which-key-mode)
+    :diminish which-key-mode
+    )
+#+END_SRC
+
 ** Utils
 #+BEGIN_SRC emacs-lisp
   (defmacro lmm/key-dispath-command-def (callback
@@ -948,6 +958,13 @@
     :straight t
     :hook
     (after-init-hook . global-hl-todo-mode))
+#+END_SRC
+
+** Popup
+#+BEGIN_SRC emacs-lisp
+  (use-package popup
+    :straight t
+    :no-require t)
 #+END_SRC
 
 * EVIL MODE
@@ -1720,16 +1737,6 @@
     (window-setup-hook . desktop-save-mode))
 #+END_SRC
 
-* WHICH KEY
-#+BEGIN_SRC emacs-lisp
-  (use-package which-key
-    :straight t
-    :hook
-    (after-init-hook . which-key-mode)
-    :diminish which-key-mode
-    )
-#+END_SRC
-
 * MINIBUFFER
 ** Minibuffer
 #+BEGIN_SRC emacs-lisp
@@ -2328,7 +2335,7 @@
     (org-mode-hook . evil-org-mode))
 #+END_SRC
 
-* Notes
+* NOTES
 #+BEGIN_SRC emacs-lisp
   (use-package denote
     :straight t
@@ -2963,6 +2970,27 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     (kbd "C-t") #'lmm/conver-thing-word)
 #+END_SRC
 
+** Save File Place
+保存打开过的文件的光标位置
+#+BEGIN_SRC emacs-lisp
+  (use-package saveplace
+    :hook
+    (after-init-hook . save-place-mode))
+#+END_SRC
+
+** Recent File
+保存打开过的文件
+#+BEGIN_SRC emacs-lisp
+  (use-package recentf
+    :hook
+    (after-init-hook . recentf-mode)
+    :init
+    (setq recentf-max-saved-items 100
+          recentf-auto-cleanup 'never)
+    :config
+    (recentf-load-list))
+#+END_SRC
+
 * LANG CONFIG
 ** Complete Config
 *** Corfu -- other completion tool
@@ -3505,8 +3533,8 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
      )
 #+END_SRC
 
-* PROJECT CONFIG
-** Projectile Config
+* WORKSPACE
+** Projectile
 #+BEGIN_SRC emacs-lisp
   (use-package projectile
     :straight t
@@ -3529,139 +3557,6 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     :after projectile)
 #+END_SRC
 
-* DIRED CONFIG
-避免在 dired 中前进和后退新建 buffer
-#+BEGIN_SRC emacs-lisp
-  (put 'dired-find-alternate-file 'disabled nil)
-  (use-package dired
-    :init
-    (setq dired-listing-switches "-alh")
-    :commands (dired dired-jump)
-    :config
-    (defun +dired-up-alternate()
-      "Dired up directory -- alternate"
-      (interactive)
-      (if (equal major-mode 'dired-mode)
-          (find-alternate-file "..")
-        (message "You not in dired-mode")))
-
-    (defun +dired-find-alternate-file-if-directory()
-      "dired-mode:
-    dired-find-alternate-file if you select is a directory"
-      (interactive)
-      (if (equal major-mode 'dired-mode)
-          (if (file-directory-p (dired-get-filename))
-              (dired-find-alternate-file)
-            (when (yes-or-no-p "This is a file, you sure open this file?")
-              (dired-find-file)))
-        (message "You not in dired-mode")))
-
-    (defvar +dired-recent-dir-list nil)
-    (defun +dired-push-dir()
-      (when dired-directory
-        (add-to-list '+dired-recent-dir-list dired-directory)))
-
-    (defun +dired-goto-recent-dir(path)
-      "Dired goto recent directory."
-      (interactive (list (completing-read "Goto recent path: "
-                                          +dired-recent-dir-list)))
-      (when (and path (file-exists-p path))
-        (find-alternate-file path)))
-    (add-hook 'dired-after-readin-hook '+dired-push-dir)
-    (evil-define-key* 'normal dired-mode-map "gj" #'+dired-goto-recent-dir)
-
-    (general-define-key
-     :states '(normal motion)
-     :keymaps 'dired-mode-map
-     "h" '+dired-up-alternate
-     "l" '+dired-find-alternate-file-if-directory)
-
-    (lmm/evil-space-leader-def
-      "df" 'dired
-      "d." 'dired-at-point
-      "dj" 'dired-jump)
-    )
-
-#+END_SRC
-
-* WITH-EDITOR
-#+BEGIN_SRC emacs-lisp
-  ;; 导出环境变量 －－ EDITOR
-  (use-package with-editor
-    :straight t
-    :hook
-    (shell-mode-hook . with-editor-export-editor)
-    (eshell-mode-hook . with-editor-export-editor)
-    (term-exec-hook . with-editor-export-editor)
-    (vterm-mode-hook . with-editor-export-editor)
-    :config
-    ;; (shell-command-with-editor-mode)
-    ;; (define-key (current-global-map)
-    ;;             [remap async-shell-command] 'with-editor-async-shell-command)
-    ;; (define-key (current-global-map)
-    ;;             [remap shell-command] 'with-editor-shell-command)
-    )
-#+END_SRC
-
-* ENVIRONMENT SAVE
-保存打开过的光标位置
-#+BEGIN_SRC emacs-lisp
-  (use-package saveplace
-    :hook
-    (after-init-hook . save-place-mode))
-#+END_SRC
-保存打开过的文件
-#+BEGIN_SRC emacs-lisp
-  (use-package recentf
-    :hook
-    (after-init-hook . recentf-mode)
-    :init
-    (setq recentf-max-saved-items 100
-          recentf-auto-cleanup 'never)
-    :config
-    (recentf-load-list))
-#+END_SRC
-
-* GIT
-#+BEGIN_SRC emacs-lisp
-  (use-package magit
-    :straight t
-    :init
-    (setq-default magit-diff-refine-hunk t)
-    :commands magit-status magit-dispatch
-    :bind
-    (:map lmm/evil-space-leader-def-map
-          ("gi" . magit-dispatch)
-          ("g." . magit))
-    )
-#+END_SRC
-
-* DIFF
-#+BEGIN_SRC emacs-lisp
-  (use-package diff-hl
-    :straight t
-    :hook
-    (after-init-hook . global-diff-hl-mode)
-    (dired-mode-hook . diff-hl-dired-mode-unless-remote)
-    (magit-pre-refresh-hook . diff-hl-magit-pre-refresh)
-    (magit-post-refresh-hook . diff-hl-magit-post-refresh)
-    :config
-    (evil-define-key '(normal motion) diff-hl-show-hunk-map
-      "n" #'diff-hl-show-hunk-next
-      "p" #'diff-hl-show-hunk-previous
-      "r" #'diff-hl-revert-hunk
-      "c" #'diff-hl-show-hunk-copy-original-text
-      "q" 'diff-hl-inline-popup-hide
-      (kbd "<escape>") 'diff-hl-inline-popup-hide
-      "j" 'diff-hl-inline-popup--popup-down
-      "k" 'diff-hl-inline-popup--popup-up
-      (kbd "C-f") 'diff-hl-inline-popup--popup-pagedown
-      (kbd "C-b") 'diff-hl-inline-popup--popup-pageup)
-    (lmm/evil-space-leader-def
-      "gd" #'diff-hl-show-hunk))
-#+END_SRC
-
-* WORKSPACE
 ** Perspective
 #+BEGIN_SRC emacs-lisp
   (use-package perspective
@@ -3799,15 +3694,102 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     (dired-mode-hook . treemacs-icons-dired-enable-once))
 #+END_SRC
 
-* POPUP
+** Git
 #+BEGIN_SRC emacs-lisp
-  (use-package popup
+  (use-package magit
     :straight t
-    :no-require t)
+    :init
+    (setq-default magit-diff-refine-hunk t)
+    :commands magit-status magit-dispatch
+    :bind
+    (:map lmm/evil-space-leader-def-map
+          ("gi" . magit-dispatch)
+          ("g." . magit))
+    )
 #+END_SRC
 
-* TERM
-** Install
+** Dired
+避免在 dired 中前进和后退新建 buffer
+#+BEGIN_SRC emacs-lisp
+  (put 'dired-find-alternate-file 'disabled nil)
+  (use-package dired
+    :init
+    (setq dired-listing-switches "-alh")
+    :commands (dired dired-jump)
+    :config
+    (defun +dired-up-alternate()
+      "Dired up directory -- alternate"
+      (interactive)
+      (if (equal major-mode 'dired-mode)
+          (find-alternate-file "..")
+        (message "You not in dired-mode")))
+
+    (defun +dired-find-alternate-file-if-directory()
+      "dired-mode:
+    dired-find-alternate-file if you select is a directory"
+      (interactive)
+      (if (equal major-mode 'dired-mode)
+          (if (file-directory-p (dired-get-filename))
+              (dired-find-alternate-file)
+            (when (yes-or-no-p "This is a file, you sure open this file?")
+              (dired-find-file)))
+        (message "You not in dired-mode")))
+
+    (defvar +dired-recent-dir-list nil)
+    (defun +dired-push-dir()
+      (when dired-directory
+        (add-to-list '+dired-recent-dir-list dired-directory)))
+
+    (defun +dired-goto-recent-dir(path)
+      "Dired goto recent directory."
+      (interactive (list (completing-read "Goto recent path: "
+                                          +dired-recent-dir-list)))
+      (when (and path (file-exists-p path))
+        (find-alternate-file path)))
+    (add-hook 'dired-after-readin-hook '+dired-push-dir)
+    (evil-define-key* 'normal dired-mode-map "gj" #'+dired-goto-recent-dir)
+
+    (general-define-key
+     :states '(normal motion)
+     :keymaps 'dired-mode-map
+     "h" '+dired-up-alternate
+     "l" '+dired-find-alternate-file-if-directory)
+
+    (lmm/evil-space-leader-def
+      "df" 'dired
+      "d." 'dired-at-point
+      "dj" 'dired-jump)
+    )
+
+#+END_SRC
+
+** Diff
+#+BEGIN_SRC emacs-lisp
+  (use-package diff-hl
+    :straight t
+    :hook
+    (after-init-hook . global-diff-hl-mode)
+    (dired-mode-hook . diff-hl-dired-mode-unless-remote)
+    (magit-pre-refresh-hook . diff-hl-magit-pre-refresh)
+    (magit-post-refresh-hook . diff-hl-magit-post-refresh)
+    :config
+    (evil-define-key '(normal motion) diff-hl-show-hunk-map
+      "n" #'diff-hl-show-hunk-next
+      "p" #'diff-hl-show-hunk-previous
+      "r" #'diff-hl-revert-hunk
+      "c" #'diff-hl-show-hunk-copy-original-text
+      "q" 'diff-hl-inline-popup-hide
+      (kbd "<escape>") 'diff-hl-inline-popup-hide
+      "j" 'diff-hl-inline-popup--popup-down
+      "k" 'diff-hl-inline-popup--popup-up
+      (kbd "C-f") 'diff-hl-inline-popup--popup-pagedown
+      (kbd "C-b") 'diff-hl-inline-popup--popup-pageup)
+    (lmm/evil-space-leader-def
+      "gd" #'diff-hl-show-hunk))
+#+END_SRC
+
+* SYSTEM
+** Vterm
 #+BEGIN_SRC emacs-lisp
   (use-package vterm
     :if (memq system-type '(gnu gnu/linux))
@@ -3890,8 +3872,8 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     :commands vterm)
 #+END_SRC
 
-** COMMENT Zsh Needed Config
-#+BEGIN_SRC sh
+配合 vterm 的 shell 配置
+#+BEGIN_SRC sh :tangle no
   if [[ "$INSIDE_EMACS" = 'vterm' ]]; then
     function vterm_printf(){
       if [ -n "$TMUX" ] && ([ "${TERM%%-*}" = "tmux" ] || [ "${TERM%%-*}" = "screen" ] ); then
@@ -3929,7 +3911,26 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
   fi
 #+END_SRC
 
-* TRAMP
+** Open Emacs In Term
+#+BEGIN_SRC emacs-lisp
+  ;; 导出环境变量 －－ EDITOR
+  (use-package with-editor
+    :straight t
+    :hook
+    (shell-mode-hook . with-editor-export-editor)
+    (eshell-mode-hook . with-editor-export-editor)
+    (term-exec-hook . with-editor-export-editor)
+    (vterm-mode-hook . with-editor-export-editor)
+    :config
+    ;; (shell-command-with-editor-mode)
+    ;; (define-key (current-global-map)
+    ;;             [remap async-shell-command] 'with-editor-async-shell-command)
+    ;; (define-key (current-global-map)
+    ;;             [remap shell-command] 'with-editor-shell-command)
+    )
+#+END_SRC
+
+** Remote Dev -> Tramp
 #+BEGIN_SRC emacs-lisp
   (use-package tramp
     :init
@@ -3949,8 +3950,8 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     )
 #+END_SRC
 
-* UTILS
-** 翻译
+* OTHER UTILS
+** Word Translate
 #+BEGIN_SRC emacs-lisp
   (defun lmm/translate-word-at-point (p)
     (interactive "P")
@@ -4017,7 +4018,8 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
       "cf" 'lmm/rename-buffer-and-file-name))
 
 #+END_SRC
-*** google-translate
+
+** Google Translate
 #+BEGIN_SRC emacs-lisp
   (use-package google-translate
     :straight t
@@ -4164,4 +4166,13 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
               (fp (frame-parameter wf 'alpha-background)))
         (unless (= 100 fp)
           (set-frame-parameter wf 'alpha-background (1+ fp)))))
+
+  (defhydra lmm/hydra-set-alpha()
+      "Change font size"
+      ;; 增加透明度
+      ("k" lmm/alpha-increase "Alpha Scale Increase")
+      ;; 减小透明度
+      ("j" lmm/alpha-decrease "Alpha Scale Decrease")
+      ;; text-scale-adjust 按键监听，＋ － 或 0 重置，q 退出
+      ("q" nil "Quit ! ! !"))
 #+END_SRC
