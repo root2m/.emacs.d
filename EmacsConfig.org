@@ -426,7 +426,7 @@
 ** Package Config Manager -- use-package
 包管理器
 #+BEGIN_SRC emacs-lisp
-  (when (< emacs-major-version 29)
+  (unless (file-exists-p (concat "use-package" lisp-directory))
     (straight-use-package 'use-package))
   ;; (unless (package-installed-p 'use-package)
   ;;   (package-initialize)
