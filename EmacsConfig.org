@@ -426,7 +426,8 @@
 ** Package Config Manager -- use-package
 包管理器
 #+BEGIN_SRC emacs-lisp
-  (straight-use-package 'use-package)
+  (when (< emacs-major-version 29)
+    (straight-use-package 'use-package))
   ;; (unless (package-installed-p 'use-package)
   ;;   (package-initialize)
   ;;   (package-refresh-contents)
@@ -452,8 +453,6 @@
 
   ;; dependencies
   (use-package diminish
-    :straight t)
-  (use-package bind-key
     :straight t)
 #+END_SRC
 
@@ -539,7 +538,6 @@
     :straight t
     :hook
     (after-init-hook . which-key-mode)
-    :diminish which-key-mode
     )
 #+END_SRC
 
@@ -2554,7 +2552,6 @@
   (add-hook 'after-init-hook 'global-auto-revert-mode)
   (setq global-auto-revert-non-file-buffers t
         auto-revert-verbose nil)
-  (diminish 'auto-revert-mode)
 #+END_SRC
 
 *** 长行文件性能缓解
@@ -2737,7 +2734,6 @@
     :disabled
     :straight t
     :config
-    (diminish 'paredit-mode " Par")
     (dolist (binding '("C-<left>" "C-<right>" "C-M-<left>" "C-M-<right>" "M-s" "M-?"))
       (define-key paredit-mode-map (read-kbd-macro binding) nil))
     (paredit-mode)
