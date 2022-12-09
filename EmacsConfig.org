@@ -965,6 +965,36 @@
     :no-require t)
 #+END_SRC
 
+** Set alpha
+#+BEGIN_SRC emacs-lisp
+  (defun lmm/alpha-increase()
+    (interactive)
+    (when (>= emacs-major-version 29)
+      (let* ((wf (window-frame))
+             (fp (frame-parameter wf 'alpha-background)))
+        (if fp
+            (unless (= 0 fp)
+              (set-frame-parameter wf 'alpha-background (1- fp)))
+          (set-frame-parameter wf 'alpha-background 99)))))
+
+  (defun lmm/alpha-decrease()
+    (interactive)
+    (if-let* ((version (>= emacs-major-version 29))
+              (wf (window-frame))
+              (fp (frame-parameter wf 'alpha-background)))
+        (unless (= 100 fp)
+          (set-frame-parameter wf 'alpha-background (1+ fp)))))
+
+  (defhydra lmm/hydra-set-alpha()
+      "Change font size"
+      ;; 增加透明度
+      ("k" lmm/alpha-increase "Alpha Scale Increase")
+      ;; 减小透明度
+      ("j" lmm/alpha-decrease "Alpha Scale Decrease")
+      ;; text-scale-adjust 按键监听，＋ － 或 0 重置，q 退出
+      ("q" nil "Quit ! ! !"))
+#+END_SRC
+
 * EVIL MODE
 ** Evil Core
 #+BEGIN_SRC emacs-lisp
@@ -4141,34 +4171,4 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
                                                   "%c"
                                                   "%x")))
                         (mapcar (lambda(s)(format-time-string s time)) format-string-list)))))
-#+END_SRC
-
-** Set alpha
-#+BEGIN_SRC emacs-lisp
-  (defun lmm/alpha-increase()
-    (interactive)
-    (when (>= emacs-major-version 29)
-      (let* ((wf (window-frame))
-             (fp (frame-parameter wf 'alpha-background)))
-        (if fp
-            (unless (= 0 fp)
-              (set-frame-parameter wf 'alpha-background (1- fp)))
-          (set-frame-parameter wf 'alpha-background 99)))))
-
-  (defun lmm/alpha-decrease()
-    (interactive)
-    (if-let* ((version (>= emacs-major-version 29))
-              (wf (window-frame))
-              (fp (frame-parameter wf 'alpha-background)))
-        (unless (= 100 fp)
-          (set-frame-parameter wf 'alpha-background (1+ fp)))))
-
-  (defhydra lmm/hydra-set-alpha()
-      "Change font size"
-      ;; 增加透明度
-      ("k" lmm/alpha-increase "Alpha Scale Increase")
-      ;; 减小透明度
-      ("j" lmm/alpha-decrease "Alpha Scale Decrease")
-      ;; text-scale-adjust 按键监听，＋ － 或 0 重置，q 退出
-      ("q" nil "Quit ! ! !"))
 #+END_SRC
