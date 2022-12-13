@@ -2826,15 +2826,15 @@
     :straight t
     :hook
     (prog-mode-hook . yas-minor-mode)
+    :bind
+    (:map yas-keymap
+          ("C-o" . yas-prev-field))
     :config
     (set-face-attribute 'yas-field-highlight-face nil
                         :background "unspecified"
                         :underline '(:color "white" :position 0)
-                        :inherit nil))
-
-  (use-package yasnippet-snippets
-    :straight t
-    :after yasnippet)
+                        :inherit nil)
+    (yas--load-snippet-dirs))
 #+END_SRC
 
 ** Multiple Cursors -- 多光标编辑
