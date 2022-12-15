@@ -614,8 +614,8 @@
   (global-visual-line-mode t)
 
   (setq-default display-line-numbers-type 'relative
-        display-line-numbers-width 3
-        display-line-numbers-widen t)
+                display-line-numbers-width 3
+                display-line-numbers-widen t)
   ;; Enable line numbers for some modes
   ;; 开启行号显示
   (dolist (mode '(text-mode-hook
@@ -687,8 +687,9 @@
     ;; 居中对齐
     (setq dashboard-center-content t
           dashboard-set-footer nil
-          dashboard-startup-banner 'logl
-          dashboard-banner-logo-title nil)
+          dashboard-startup-banner (concat lmmv/no-littering-etc-directory "dashboard/banners/ue-colorful.png")
+          dashboard-banner-logo-title nil
+          dashboard-image-banner-max-height (/ (window-pixel-height) 2))
     ;;(setq dashboard-show-shortcuts nil)
     (setq dashboard-items '((projects . 5)
                             (bookmarks . 5)
@@ -706,8 +707,9 @@
               ""
               "Git Homepage"
               (lambda (&rest _) (if (string-match "WSL" operating-system-release)
-                                    (shell-command "/mnt/c/Windows/explorer.exe https://github.com/Littlemanman " nil nil)
-                                    (browse-url "https://github.com/Littlemanman"))))
+                                    (shell-command "/mnt/c/Windows/explorer.exe https://github.com/root2m " nil nil)
+                                  (browse-url "https://github.com/root2m")))
+                                  nil "" "")
              ;; ("★" "Star" "Show stars" (lambda (&rest _) (show-stars)) warning)
              ;; ("?" "" "?/h" #'show-help nil "<" ">")
              )
@@ -719,10 +721,79 @@
             ;;  ("⚑" nil "Show flags" (lambda (&rest _) (message "flag")) error))
             ))
     :config
+    (defun dashboard-open-projectile (list-size)
+      (insert (propertize "  " 'face '(:inherit dashboard-heading :height 1.2)))
+      (widget-create 'item
+                     :tag (propertize "Open Projectile" 'face '(:inherit dashboard-heading :weight 'bold)
+                                      'cursor-face '(:foreground "cyan" :height 1.2 :underline (:position 0))
+                                      )
+                     :action (lambda (&rest _) (call-interactively 'projectile-switch-project))
+                     ;; :button-face 'dashboard-heading
+                     :mouse-face 'highlight
+                     :format "%[%t%]"))
+
+    (defun dashboard-open-recentf (list-size)
+      (insert (propertize "  " 'face '(:inherit dashboard-heading :height 1.2)))
+      (widget-create 'item
+                     :tag (propertize "Open Recent File" 'face '(:inherit dashboard-heading :weight 'bold)
+                                      'cursor-face '(:foreground "cyan" :height 1.2 :underline (:position 0)))
+                     :action (lambda (&rest _) (call-interactively 'recentf-open))
+                     ;; :button-face 'dashboard-heading
+                     :mouse-face 'highlight
+                     :format "%[%t%]"))
+
+    (defun dashboard-open-bookmark (list-size)
+      (insert (propertize "  " 'face '(:inherit dashboard-heading :height 1.2)))
+      (widget-create 'item
+                     :tag (propertize "Open Bookmark" 'face '(:inherit dashboard-heading :weight 'bold)
+                                      'cursor-face '(:foreground "cyan" :height 1.2 :underline (:position 0)))
+                     :action (lambda (&rest _) (call-interactively 'bookmark-jump))
+                     ;; :button-face 'dashboard-heading
+                     :mouse-face 'highlight
+                     :format "%[%t%]"))
+
+    (defun dashboard-open-org-agenda (list-size)
+      (insert (propertize "  " 'face '(:inherit dashboard-heading :height 1.2)))
+      (widget-create 'item
+                     :tag (propertize "Open Org Agenda" 'face '(:inherit dashboard-heading :weight 'bold)
+                                      'cursor-face '(:foreground "cyan" :height 1.2 :underline (:position 0)))
+                     :action (lambda (&rest _) (call-interactively 'org-agenda-list))
+                     ;; :button-face 'dashboard-heading
+                     :mouse-face 'highlight
+                     :format "%[%t%]"))
+
+    (setq dashboard-items '((open-projectile . 0)
+                            (open-recentf . 0)
+                            (open-bookmark . 0)
+                            (open-org-agenda . 0)))
+
+    (setq dashboard-item-generators (append dashboard-item-generators '((open-projectile . dashboard-open-projectile)
+                                                                        (open-recentf . dashboard-open-recentf)
+                                                                        (open-bookmark . dashboard-open-bookmark)
+                                                                        (open-org-agenda . dashboard-open-org-agenda))))
+
+    (define-key dashboard-mode-map "j" 'widget-forward)
+    (define-key dashboard-mode-map "n" 'widget-forward)
+    (define-key dashboard-mode-map "l" 'widget-forward)
+    (define-key dashboard-mode-map "k" 'widget-backward)
+    (define-key dashboard-mode-map "p" 'widget-backward)
+    (define-key dashboard-mode-map "h" 'widget-backward)
     ;;启用dashboard
     (dashboard-setup-startup-hook)
     ;; emacsclient启动时为dashboard
     (setq initial-buffer-choice '(lambda () (get-buffer "*dashboard*")))
+    :hook
+    (dashboard-mode-hook . (lambda ()
+                             (cursor-face-highlight-mode t)
+                             (widget-forward 2)
+                             (when (featurep 'evil)
+                               (evil-define-key* 'normal dashboard-mode-map
+                                 "j" 'widget-forward
+                                 "l" 'widget-forward
+                                 "k" 'widget-backward
+                                 "h" 'widget-backward)
+                               (setq-local evil-normal-state-cursor '(bar . 0)
+                                           ))))
     )
 #+END_SRC
 
@@ -744,7 +815,7 @@
           doom-themes-enable-italic t) ; if nil, italics is universally disabled
     (load-theme 'doom-dracula t)
     ;; Treemacs hl-line-mode bug
-    (set-face-background 'line-number-current-line "#282a36")
+    (set-face-background 'line-number-current-line (face-background 'default))
     ;; (doom-themes-visual-bell-config)
    )
 #+END_SRC
@@ -1773,6 +1844,8 @@
   ;; 禁止光标移动到提示文本上
   (customize-set-variable 'minibuffer-prompt-properties '(read-only t cursor-intangible t face minibuffer-prompt))
 
+  (define-key minibuffer-local-map (kbd "C-w") #'backward-kill-word)
+
   (defun lmm/evil-minibuffer-insert()
     "Minibuffer evil insert state"
     (setq-local evil-echo-state nil)
@@ -2248,6 +2321,7 @@
                         :inherit nil
                         :background "unspecified"
                         :foreground "cyan"
+                        :italic t
                         :weight 'bold)
 
     (add-hook 'org-mode-hook 'org-indent-mode)

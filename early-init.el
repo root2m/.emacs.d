@@ -7,7 +7,7 @@
       gc-cons-threshold (* 100 1024 1024)
       gc-cons-percentage 0.6
 
-      default-frame-alist '((width . 200)
+      default-frame-alist '((width . 150)
                             (height . 50)
                             (left . 100)
                             (top . 50))
