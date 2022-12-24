@@ -485,7 +485,7 @@
     (:map help-map
           ("SPC" . helpful-at-point)
           ("f" . helpful-callable)
-          ("F" . helpful-function)
+          ("F" . describe-face)
           ("v" . helpful-variable)
           ("k" . helpful-key)
           ("C" . helpful-command))
@@ -699,7 +699,7 @@
     (setq dashboard-set-heading-icons t)
     (setq dashboard-set-file-icons t)
     ;; 主页设置
-    (setq dashboard-set-navigator t)
+    (setq dashboard-set-navigator nil)
     ;; Format: "(icon title help action face prefix suffix)"
     (setq dashboard-navigator-buttons
           `(;; line1
@@ -762,13 +762,13 @@
                      :mouse-face 'highlight
                      :format "%[%t%]"))
 
-    (setq dashboard-items '((open-projectile . 0)
-                            (open-recentf . 0)
+    (setq dashboard-items '((open-recentf . 0)
+                            (open-projectile . 0)
                             (open-bookmark . 0)
                             (open-org-agenda . 0)))
 
-    (setq dashboard-item-generators (append dashboard-item-generators '((open-projectile . dashboard-open-projectile)
-                                                                        (open-recentf . dashboard-open-recentf)
+    (setq dashboard-item-generators (append dashboard-item-generators '((open-recentf . dashboard-open-recentf)
+                                                                        (open-projectile . dashboard-open-projectile)
                                                                         (open-bookmark . dashboard-open-bookmark)
                                                                         (open-org-agenda . dashboard-open-org-agenda))))
 
@@ -785,7 +785,10 @@
     :hook
     (dashboard-mode-hook . (lambda ()
                              (cursor-face-highlight-mode t)
-                             (widget-forward 2)
+                             (widget-forward (1+ (or (and dashboard-set-navigator
+                                                          (length dashboard-navigator-buttons))
+                                                     0)))
+                             (setq-local cursor-type nil)
                              (when (featurep 'evil)
                                (evil-define-key* 'normal dashboard-mode-map
                                  "j" 'widget-forward
@@ -1905,6 +1908,7 @@
   (use-package savehist
     :config
     (add-to-list 'savehist-additional-variables 'url-proxy-services)
+    (add-to-list 'savehist-additional-variables '(kill-ring . 50))
     :hook
     (after-init-hook . savehist-mode))
   (use-package vertico  ;;命令补全
@@ -2316,7 +2320,8 @@
 
     :config
     (set-face-attribute 'org-block nil
-                        :foreground "unspecified")
+                        :foreground "unspecified"
+                        :background "unspecified")
     (set-face-attribute 'org-block-begin-line nil
                         :inherit nil
                         :background "unspecified"
@@ -2328,6 +2333,7 @@
     )
 
   (use-package org-agenda
+    :after org
     :config
     ;; all agenda files.
     (dolist (path '("~/.org/EveryDayTODO.org"))
@@ -2373,6 +2379,7 @@
     )
 
   (use-package org-tempo
+    :after org
     :config
     ;; copy from source file
     (defun org-tempo-add-block (entry)
