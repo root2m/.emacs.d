@@ -48,6 +48,7 @@
                (load-file init-file)
              (org-babel-load-file init-org-file)))
           (t
+           (require 'org)
            (org-babel-tangle-file init-org-file init-file)))
     (when lmmv/emacs-nox-p
       (advice-remove 'org-babel-get-src-block-info fun))))

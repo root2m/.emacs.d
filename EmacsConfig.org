@@ -2849,11 +2849,11 @@
     (paredit-mode)
     )
   (use-package elec-pair
+    :disabled
     :hook
     (after-init-hook . electric-pair-mode)
     ;; org-mode 中存在bug，故关闭
     (org-mode-hook . (lambda ()(electric-pair-local-mode -1)))
-    :config
     )
   (use-package smartparens
     :straight t
@@ -2862,7 +2862,13 @@
           sp-highlight-pair-overlay nil
           sp-highlight-wrap-tag-overlay nil)
     :hook
-    (org-mode-hook . smartparens-mode)
+    ((prog-mode-hook org-mode-hook) . smartparens-mode)
+    ((lisp-mode-hook emacs-lisp-mode-hook lisp-interaction-mode-hook) . (lambda ()
+                                    (evil-define-key* 'insert
+                                      lisp-interaction-mode-map
+                                      (kbd "DEL") #'sp-backward-delete-char
+                                      (kbd "C-<backspace>") #'sp-backward-delete-word
+                                      (kbd "C-w") #'sp-backward-delete-word)))
     :bind
     (:map evil-normal-state-map
           (")" . sp-up-sexp)
@@ -2878,7 +2884,6 @@
     :hook
     (after-init-hook . show-paren-mode)
     :config
-    (setq show-paren-delay 0)
     (set-face-attribute 'show-paren-match nil
                         :underline '(:color "red" :position 0)
                         :background "unspecified"
@@ -3974,6 +3979,9 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
         (vterm-send-string "TERM=xterm-256color exec $SHELL")
         (vterm-send-return)))
     (add-hook 'vterm-mode-hook '+tramp-vterm-set-prompt)
+
+    (add-hook 'vterm-mode-hook (lambda ()(setq-local evil-normal-state-cursor '(box "gold")
+                                                     evil-insert-state-cursor '(box "cyan"))))
     ;; (evil-make-intercept-map vterm-mode-map 'insert)
     :commands vterm)
 #+END_SRC
