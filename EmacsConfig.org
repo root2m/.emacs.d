@@ -1221,6 +1221,7 @@
       "fw" 'save-buffer
       "fs" 'save-buffer
       "fp" 'lmm/open-config-file
+      "fn" 'evil-buffer-new
       "qq" 'lmm/delete-frame-or-C-x-C-c
       "qs" 'evil-save-and-quit
       "es" 'eval-last-sexp
