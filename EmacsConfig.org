@@ -1992,7 +1992,7 @@
      consult-theme
      consult-bookmark consult-recent-file consult-xref
      consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-     :preview-key (kbd "M-."))
+     :preview-key "M-.")
     ;; 替换系统完成
     (setq completion-in-region-function
           (lambda (&rest args)
