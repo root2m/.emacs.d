@@ -1059,13 +1059,21 @@
         (unless (= 100 fp)
           (set-frame-parameter wf 'alpha-background (1+ fp)))))
 
-  (defhydra lmm/hydra-set-alpha()
-      "Change font size"
+  (defun lmm/fully-transparent()
+    (interactive)
+     (set-frame-parameter (window-frame) 'alpha-background 0))
+
+  (defun lmm/fully-opaque()
+    (interactive)
+     (set-frame-parameter (window-frame) 'alpha-background 100))
+
+  (defhydra lmm/hydra-set-alpha(:foreign-keys warn :hint nil)
       ;; 增加透明度
       ("k" lmm/alpha-increase "Alpha Scale Increase")
       ;; 减小透明度
       ("j" lmm/alpha-decrease "Alpha Scale Decrease")
-      ;; text-scale-adjust 按键监听，＋ － 或 0 重置，q 退出
+      ("0" lmm/fully-transparent "Fully Transparent")
+      ("1" lmm/fully-opaque "Fully Opaque")
       ("q" nil "Quit ! ! !"))
 #+END_SRC
 
