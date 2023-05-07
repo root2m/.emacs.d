@@ -2156,8 +2156,10 @@
      ("C-c C-o" . embark-export)
      :map help-map
      ("b" . embark-bindings))
-    :config
+    :commands (embark-act embark-prefix-help-command)
+    :init
     (setq prefix-help-command #'embark-prefix-help-command)
+    :config
     ;; embark menu with which key
     (defun embark-which-key-indicator ()
       "An embark indicator that displays keymaps using which-key.
