@@ -676,6 +676,8 @@
 #+BEGIN_SRC emacs-lisp
   (use-package all-the-icons
     :straight t)
+  (use-package nerd-icons
+    :straight t)
 #+END_SRC
 
 ** Dashboard
