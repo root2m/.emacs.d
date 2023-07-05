@@ -1107,16 +1107,16 @@
           evil-kill-on-visual-paste nil
           evil-echo-state nil
           evil-search-module 'evil-search
-          evil-visual-char-tag (propertize "" 'face '(:foreground "cyan"))
-          evil-normal-state-tag (propertize "" 'face '(:foreground "cyan"))
+          evil-visual-char-tag (propertize "󰒅" 'face '(:foreground "cyan"))
+          evil-normal-state-tag (propertize "󰇴" 'face '(:foreground "cyan"))
           evil-insert-state-tag (propertize "" 'face '(:foreground "cyan"))
-          evil-visual-line-tag (propertize "" 'face '(:foreground "cyan"))
-          evil-visual-block-tag (propertize "况" 'face '(:foreground "cyan"))
-          evil-motion-state-tag (propertize "" 'face '(:foreground "cyan"))
+          evil-visual-line-tag (propertize "󰉡" 'face '(:foreground "cyan"))
+          evil-visual-block-tag (propertize "󰣟" 'face '(:foreground "cyan"))
+          evil-motion-state-tag (propertize "󱙝" 'face '(:foreground "cyan"))
           evil-emacs-state-tag (propertize "" 'face '(:foreground "cyan"))
-          evil-operator-state-tag (propertize "" 'face '(:foreground "cyan"))
-          evil-replace-state-tag (propertize "" 'face '(:foreground "cyan"))
-          evil-visual-screen-line-tag (propertize "拓" 'face '(:foreground "cyan")))
+          evil-operator-state-tag (propertize "󱓁" 'face '(:foreground "cyan"))
+          evil-replace-state-tag (propertize "󰉼" 'face '(:foreground "cyan"))
+          evil-visual-screen-line-tag (propertize "󰒆" 'face '(:foreground "cyan")))
 
     :config
     (evil-set-command-property 'evil-upcase :move-point nil)
