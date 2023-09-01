@@ -3690,7 +3690,10 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     (setq persp-sort 'access
           ;; 是否在modeline中显示
           persp-show-modestring t
-          persp-suppress-no-prefix-key-warning t)
+          persp-suppress-no-prefix-key-warning t
+          persp-modestring-dividers `(,(propertize "[" 'face '(:foreground "yellow"))
+                                      ,(propertize "]" 'face '(:foreground "yellow"))
+                                      ,(propertize "|" 'face '(:foreground "yellow"))))
     :after consult
     :config
     (progn
@@ -3781,7 +3784,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
                                            :default ,(string= "main" p)
                                            :items
                                            ,(persp-get-buffer-names p)))
-                  (persp-names))
+                       (persp-names))
                :prompt "Persp All Buffer: "
                :history nil
                :sort nil
