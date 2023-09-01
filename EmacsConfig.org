@@ -839,7 +839,24 @@
     :init
     (setq doom-modeline-modal-icon nil)
     :hook
-    (after-init-hook . doom-modeline-mode))
+    (after-init-hook . doom-modeline-mode)
+    :config
+    (defvar moon-icons ["" "" "" "" "" "" "" "" "" "" "" "" "" ""
+                        "" "" "" "" "" "" "" "" "" "" "" "" "" ""])
+    (defvar moon-count (length moon-icons))
+    (defvar moon-current-index 0)
+    (defun moon-get-icon()
+      (when (>= moon-current-index moon-count)
+        (setq moon-current-index 0))
+      (prog1
+          (propertize (aref moon-icons moon-current-index)
+                      'face `(:foreground ,(doom-color 'orange)))
+        (setq moon-current-index (1+ moon-current-index))))
+
+    ;; look up doom-modeline-format--main
+    ;; look up doom-modeline-segment--misc-info
+    (add-to-list 'global-mode-string " ")
+    (add-to-list 'global-mode-string '(:eval (moon-get-icon))))
 
   (use-package moody
     :disabled
