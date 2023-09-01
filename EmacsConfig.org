@@ -781,22 +781,29 @@
     (define-key dashboard-mode-map "p" 'widget-backward)
     (define-key dashboard-mode-map "h" 'widget-backward)
     ;;启用dashboard
-    (dashboard-setup-startup-hook)
+    ;; (dashboard-setup-startup-hook)
     ;; emacsclient启动时为dashboard
-    (setq initial-buffer-choice '(lambda () (get-buffer "*dashboard*")))
+    ;; (setq initial-buffer-choice '(lambda () (get-buffer "*dashboard*")))
     :hook
+    (emacs-startup-hook . (lambda ()
+                            (when (< (length command-line-args) 2)
+                              (dashboard-open))
+                            (setq initial-buffer-choice 'dashboard-open)))
     (dashboard-mode-hook . (lambda ()
                              (cursor-face-highlight-mode t)
                              (widget-forward (1+ (or (and dashboard-set-navigator
                                                           (length dashboard-navigator-buttons))
                                                      0)))
-                             (setq-local cursor-type nil)
+                             (setq-local cursor-type nil
+                                         mode-line-format nil
+                                         doom-modeline-mode-alist nil)
                              (when (featurep 'evil)
                                (evil-define-key* 'normal dashboard-mode-map
                                  "j" 'widget-forward
                                  "l" 'widget-forward
                                  "k" 'widget-backward
                                  "h" 'widget-backward)
+                               (evil-normal-state)
                                (setq-local evil-normal-state-cursor '(bar . 0)
                                            ))))
     )
