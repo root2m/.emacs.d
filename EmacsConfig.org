@@ -3885,6 +3885,20 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
       "dj" 'dired-jump)
     )
 
+  (use-package dired-hacks
+    :straight t
+    :after dired
+    :bind
+    (:map dired-mode-map
+          ("C-c m" . dired-ranger-move)
+          ("C-c p" . dired-ranger-paste)
+          ("C-c c" . dired-ranger-copy)
+          ("C-c o" . dired-open)
+          ("C-c ;" . dired-collapse-mode)
+          ("C-c l f" . dired-list-find-file)
+          ("C-c l n" . dired-list-find-name)
+          ("C-c l g" . dired-list-git-ls-files)
+          ("C-c TAB" . dired-subtree-toggle)))
 #+END_SRC
 
 ** Diff
