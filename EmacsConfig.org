@@ -1857,9 +1857,12 @@
 #+BEGIN_SRC emacs-lisp
   (defun lmm/delete-frame-or-C-x-C-c(&optional arg)
     (interactive "P")
-      (if (delete-frame-enabled-p)
-          (delete-frame)
-        (save-buffers-kill-terminal arg)))
+    (cond (server-buffer-clients
+           (server-edit arg))
+          ((delete-frame-enabled-p)
+           (delete-frame))
+          (t
+           (save-buffers-kill-terminal arg))))
 #+END_SRC
 
 ** COMMENT Auto Save Window Size
@@ -2594,6 +2597,7 @@
     (put 'diff-hl-previous-hunk 'repeat-map 'lmmv/diff-hl-hunk-repeat-map)
 
     (put 'undo 'repeat-map nil)
+    (put 'dired-jump 'repeat-map nil)
     )
 #+END_SRC
 
@@ -3657,7 +3661,9 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
 #+BEGIN_SRC emacs-lisp
   (use-package json-mode
     :commands json-mode
-    :straight t)
+    :straight t
+    :config
+    (add-hook 'json-mode-hook (lambda ()(setq-local js-indent-level 2))))
 #+END_SRC
 
 *** web
