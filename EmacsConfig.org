@@ -2626,47 +2626,42 @@
 
 ** Keyboard Input -- 中文输入
 #+BEGIN_SRC emacs-lisp
-  (use-package pyim
+  (use-package rime
     :straight t
-    :commands toggle-input-method
+    :no-require t
     :init
-    (setq default-input-method "pyim")
-    (setq pyim-default-scheme 'quanpin)
-    (setq pyim-page-tooltip '(posframe minibuffer popup))
+    (setq default-input-method 'rime)
+    (straight-use-package '(rime-ice
+                            :build nil
+                            :type git
+                            :host github
+                            :repo "iDvel/rime-ice"
+                            :branch "main"))
+    (setq rime-share-data-dir (straight--repos-dir "rime-ice"))
     :config
-    (dolist (file (directory-files (expand-file-name  "etc/pyim/dicts/" user-emacs-directory)
-                                   t
-                                   directory-files-no-dot-files-regexp))
-      (add-to-list 'pyim-dicts `(:name ,(file-name-base file) :file ,file)))
+    (defun rime-evil-escape-advice (orig-fun key)
+      (if rime--preedit-overlay
+          ;; if `rime--preedit-overlay' is non-nil, then we are editing something, do not abort
+          (apply orig-fun (list key))
+        (let ((fkey ?j)
+              (skey ?k))
+          (if (char-equal key fkey)
+              (let ((evt (read-event nil nil 0.2)))
+                (cond
+                 ((and (characterp evt)
+                       (and (char-equal key fkey) (char-equal evt skey)))
+                  (evil-repeat-stop)
+                  (evil-normal-state))
+                 ((null evt) (apply orig-fun (list key)))
+                 (t
+                  (apply orig-fun (list key))
+                  (if (numberp evt)
+                      (apply orig-fun (list evt))
+                    (setq unread-command-events (append unread-command-events (list evt)))))))
+            (apply orig-fun (list key))))))
 
-    (general-define-key
-     :keymaps 'pyim-mode-map
-     "," 'pyim-previous-page
-     "." 'pyim-next-page
-     "j" (general-key-dispatch 'pyim-self-insert-command
-           :timeout 0.1
-           "k" (lambda ()(interactive)
-                 (funcall-interactively 'pyim-quit-clear)
-                 (funcall-interactively 'evil-normal-state))
-           "l" 'toggle-input-method))
-    (defun +pyim-probe-program-comment-mode ()
-      "激活这个 pyim 探针函数后，comment 中输入中文。
-  注：仅仅影响 `prog-mode' 衍生的 mode 。
-
-  用于：`pyim-english-input-switch-functions' 。"
-      (interactive)
-      (and (derived-mode-p 'prog-mode)
-           (not (nth 4 (syntax-ppss)))))
-
-    ;; 断言函数表，任意结果 non nil 切换至英文。
-    (setq pyim-english-input-switch-functions '(+pyim-probe-program-comment-mode
-                                                ))
-    ;; 断言函数表，任意结果 non nil 切换至半角标点。
-    (setq pyim-punctuation-half-width-functions
-          '(pyim-probe-punctuation-line-beginning ;；行首半角
-            pyim-probe-punctuation-after-punctuation ;半角后半角
-            ))
-    )
+    (advice-add 'rime-input-method :around #'rime-evil-escape-advice)
+  )
 #+END_SRC
 
 ** Default Variable -- 系统默认变量
