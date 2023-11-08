@@ -426,17 +426,11 @@
 ** Package Config Manager -- use-package
 包管理器
 #+BEGIN_SRC emacs-lisp
-  (unless (file-exists-p (concat lisp-directory "use-package"))
-    (straight-use-package 'use-package))
-  ;; (unless (package-installed-p 'use-package)
-  ;;   (package-initialize)
-  ;;   (package-refresh-contents)
-  ;;   (package-install 'use-package))
+  (when (< emacs-major-version 29)
+    (straight-use-package 'use-package)
+    (eval-when-compile
+      (require 'use-package)))
   (setq use-package-hook-name-suffix nil) ;;停止在:hook 当中添加-hook后缀
-  ;; ;; 启动时显示包加载信息至 *Message*
-  ;; ;; (setq use-package-verbose t)
-  (eval-when-compile
-    (require 'use-package))
 
   ;; how to use use-package.
   (use-package some-package-name
