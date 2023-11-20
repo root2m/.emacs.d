@@ -2591,7 +2591,6 @@
     (put 'diff-hl-previous-hunk 'repeat-map 'lmmv/diff-hl-hunk-repeat-map)
 
     (put 'undo 'repeat-map nil)
-    (put 'dired-jump 'repeat-map nil)
     )
 #+END_SRC
 
@@ -3905,6 +3904,8 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
       "df" 'dired
       "d." 'dired-at-point
       "dj" 'dired-jump)
+
+    (put 'dired-jump 'repeat-map nil)
     )
 
   (use-package dired-hacks
@@ -3920,7 +3921,8 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
           ("C-c l f" . dired-list-find-file)
           ("C-c l n" . dired-list-find-name)
           ("C-c l g" . dired-list-git-ls-files)
-          ("C-c TAB" . dired-subtree-toggle)))
+          ("C-c TAB" . dired-subtree-toggle)
+          ([remap evil-toggle-fold] . dired-subtree-toggle)))
 #+END_SRC
 
 ** Diff
