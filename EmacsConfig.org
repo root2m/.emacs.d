@@ -2891,7 +2891,7 @@
           sp-highlight-pair-overlay nil
           sp-highlight-wrap-tag-overlay nil)
     :hook
-    ((prog-mode-hook org-mode-hook) . smartparens-mode)
+    ((prog-mode-hook org-mode-hook conf-mode-hook) . smartparens-mode)
     ((lisp-mode-hook emacs-lisp-mode-hook lisp-interaction-mode-hook) . (lambda ()
                                     (evil-define-key* 'insert
                                       lisp-interaction-mode-map
