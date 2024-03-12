@@ -3676,6 +3676,13 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
      )
 #+END_SRC
 
+*** go
+#+BEGIN_SRC emacs-lisp
+  (use-package go-mode
+    :straight t
+    :commands go-mode)
+#+END_SRC
+
 * WORKSPACE
 ** Projectile
 #+BEGIN_SRC emacs-lisp
