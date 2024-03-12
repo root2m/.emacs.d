@@ -3175,7 +3175,8 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
           ("C-g" . corfu-quit))
     :config
     ;; insert模式下按键失效，需此设置
-    (general-add-advice '(corfu--setup corfu--teardown) :after 'evil-normalize-keymaps)
+    (advice-add 'corfu--setup :after (lambda (&rest _) (evil-normalize-keymaps)))
+    (advice-add 'corfu--teardown :after (lambda (&rest _) (evil-normalize-keymaps)))
     (evil-make-overriding-map corfu-map)
     (setq lsp-completion-provider :none)
     (defun lmm/lsp-mode-setup-completion()
