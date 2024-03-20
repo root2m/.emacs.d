@@ -1963,7 +1963,8 @@
           ("C-u" . evil-delete-back-to-indentation))
     :config
     (lmm/evil-space-leader-def
-      "X" 'vertico-repeat))
+      "x" #'vertico-repeat
+      "X" #'vertico-repeat-select))
   (use-package orderless  ;;搜索排序
     :straight t
     :after vertico
