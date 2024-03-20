@@ -1976,28 +1976,6 @@
     (set-face-background 'orderless-match-face-1 "unspecified")
     (set-face-background 'orderless-match-face-2 "unspecified")
     (set-face-background 'orderless-match-face-3 "unspecified")
-
-    (defun lmm/orderless-dispatch (pattern _index _total)
-      (cond
-       ;; 排除项
-       ;; !word
-       ((equal "!" pattern)
-        '(orderless-literal . ""))
-       ((string-prefix-p "!" pattern)
-        `(orderless-without-literal . ,(substring pattern 1)))
-       ;; 散列
-       ;; word~
-       ;; thws-os-wor-isd
-       ((string-suffix-p "~" pattern)
-        `(orderless-flex . ,(substring pattern 0 -1)))
-       ;; 前缀
-       ;; `word
-       ;; wordsub
-       ((string-prefix-p "`" pattern)
-        `(orderless-prefixes . ,(substring pattern 1)))))
-
-    ;; (setq orderless-style-dispatchers '(lmm/orderless-dispatch-without-if-bang
-    ;;                                     lmm/orderless-dispatch-flex))
     )
   (use-package marginalia  ;;命令注释
     :straight t
