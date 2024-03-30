@@ -2784,6 +2784,29 @@
                  (setf (symbol-function 'avy-resume)
                        old-avy-resume)))))))
 
+    (defun avy-goto-ex-search ()
+      "Jump to one of the current evil search candidates."
+      (interactive)
+      (run-at-time 0 nil (lambda ()
+                           (if evil-ex-search-pattern
+                               (avy-with avy-goto-ex-search
+                                 (let ((avy-background nil)
+                                       (avy-all-windows nil)
+                                       (avy-case-fold-search case-fold-search)
+                                       (evil-hl-p evil-ex-active-highlights-alist))
+                                   (evil-ex-nohighlight)
+                                   (prog1
+                                       (avy-process
+                                        (avy--regex-candidates (regexp-quote (car evil-ex-search-pattern))))
+                                     (when evil-hl-p
+                                       (evil-ex-search-activate-highlight evil-ex-search-pattern))
+                                     nil)))
+                             (user-error "No search pattern"))))
+      (when (minibufferp)
+        (call-interactively 'exit-minibuffer)))
+    (evil-define-avy-motion avy-goto-ex-search inclusive)
+
+
     (evil-define-key* 'normal 'global
       "zic" (lmm/avy-action-thing-def evil evilnc-comment-operator)
 
@@ -2811,6 +2834,8 @@
       "zsf" (lmm/avy-action-thing-def defun swap)
       "zsv" (lmm/avy-action-thing-def evil swap))
 
+    (define-key evil-ex-search-keymap (kbd "C-.") #'evil-avy-goto-ex-search)
+
     (lmm/evil-space-leader-def
       "aml" 'avy-move-line
       "amr" 'avy-move-region
@@ -2821,7 +2846,8 @@
       "akr" 'avy-kill-region
       "ayl" 'avy-kill-ring-save-whole-line
       "ayr" 'avy-kill-ring-save-region
-      "as" 'avy-isearch
+      "a/" 'evil-avy-goto-ex-search
+      "aS" 'avy-isearch
       "ar" 'avy-resume
       "ab" 'avy-pop-mark))
 #+END_SRC
