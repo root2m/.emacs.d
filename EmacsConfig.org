@@ -3656,6 +3656,9 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
   (use-package json-mode
     :commands json-mode
     :straight t
+    :init
+    (setq lsp-json-schemas `[(:fileMatch ["*.schema.json"]
+                                               :url "https://json-schema.org/draft/2020-12/schema")])
     :config
     (add-hook 'json-mode-hook (lambda ()(setq-local js-indent-level 2))))
 #+END_SRC
