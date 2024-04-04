@@ -4213,6 +4213,14 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
           ("t." . google-translate-at-point)))
 #+END_SRC
 
+** AI
+#+BEGIN_SRC emacs-lisp
+  (use-package gptel
+    :straight t
+    :commands gptel-send
+    :config
+    (add-to-list 'gptel-directives '(translator . "你现在是一个翻译官，我提供给你的任何内容都翻译成中文，你只需要提供翻译后的内容即可。")))
+#+END_SRC
 ** 文件操作
 #+BEGIN_SRC emacs-lisp
   (defun lmm/open-file-in-remote-sudo(file)
