@@ -2114,6 +2114,8 @@
     (lmm/evil-space-leader-def
       "sb" 'consult-line
       "sB" 'consult-line-multi
+      "/" 'consult-line
+      "?" 'consult-line-multi
       "sf" 'consult-focus-lines
       "sd" 'consult-find
       "sF" 'consult-find
