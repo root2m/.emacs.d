@@ -1773,11 +1773,6 @@
 
 ** Buffers Config
 #+BEGIN_SRC emacs-lisp
-  (use-package fullframe
-    :disabled
-    :no-require t
-    :after
-    (fullframe ibuffer ibuffer-quit))
   (use-package ibuffer
     :init
     (setq ibuffer-formats
