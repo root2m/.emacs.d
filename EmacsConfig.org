@@ -1816,19 +1816,6 @@
     )
 #+END_SRC
 
-** COMMENT POPUP WINDOW MANAGER
-#+BEGIN_SRC emacs-lisp
-  (use-package popwin
-    :straight t
-    :hook
-    (after-init-hook . popwin-mode)
-    :config
-    (push '("^\\*cargo-run.*\\*$" :regexp t :position bottom) popwin:special-display-config)
-    (push '("^\\*cargo-clippy.*\\*$" :regexp t :position bottom) popwin:special-display-config)
-    (push '("^\\*Help.*\\*$" :regexp t :position bottom) popwin:special-display-config)
-    )
-#+END_SRC
-
 ** Frame Config
 #+BEGIN_SRC emacs-lisp
   (defun lmm/delete-frame-or-C-x-C-c(&optional arg)
