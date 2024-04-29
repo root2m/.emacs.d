@@ -1720,7 +1720,6 @@
   (use-package ace-window
     :straight t
     :init
-    ;; (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
     (setq aw-background nil)
     :hook
     (after-init-hook . ace-window-display-mode)
