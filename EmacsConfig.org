@@ -1033,19 +1033,6 @@
 #+END_SRC
 
 ** Beautiful Code
-*** COMMENT svg-tag-mode
-#+BEGIN_SRC emacs-lisp
-  (use-package svg-tag-mode
-    :disabled
-    :no-require t
-    :straight t
-    :config
-    (setq svg-tag-tags
-          '(
-            (":TODO:" . ((lambda (tag) (svg-tag-make tag :beg 1 :end -1))))
-            )))
-#+END_SRC
-
 *** hl-todo
 #+BEGIN_SRC emacs-lisp
   (use-package hl-todo
