@@ -391,7 +391,9 @@
         undo-tree-history-directory-alist (list (cons "." (lmm/no-littering-expand-var "undo-tree-hist/")))
         user-emacs-ensime-directory      (lmm/no-littering-expand-var "ensime/")
         vimish-fold-dir                  (lmm/no-littering-expand-var "vimish-fold/")
-        x86-lookup-cache-directory       (lmm/no-littering-expand-var "x86-lookup/cache/"))
+        x86-lookup-cache-directory       (lmm/no-littering-expand-var "x86-lookup/cache/")
+        treesit--install-language-grammar-out-dir-history (list (lmm/no-littering-expand-var "tree-sitter"))
+        treesit-extra-load-path (list (lmm/no-littering-expand-var "tree-sitter")))
 #+END_SRC
 
 ** Setup package.el to work with MELPA.
