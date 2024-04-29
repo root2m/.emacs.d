@@ -1270,7 +1270,6 @@
       "U" #'evil-redo
       "t" #'repeat
       "z/" #'evil-ex-nohighlight
-      "g/" #'evil-ex-nohighlight
       "g'" #'evil-avy-goto-char-2
       "z." #'evil-toggle-fold
       )
