@@ -1733,9 +1733,9 @@
 #+BEGIN_SRC emacs-lisp
   (use-package ace-window
     :straight t
-    :custom
-    ;; (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
-    (aw-background nil)
+    :init
+    ;; (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+    (setq aw-background nil)
     :hook
     (after-init-hook . ace-window-display-mode)
     :config
@@ -3209,8 +3209,8 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
 
   ;; built in corfu
   (use-package corfu-popupinfo
-    :custom
-    (corfu-popupinfo-delay nil)
+    :init
+    (setq corfu-popupinfo-delay nil)
     :hook
     (corfu-mode-hook . corfu-popupinfo-mode)
     :bind
