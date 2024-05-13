@@ -671,9 +671,11 @@
 ** Icon Display
 #+BEGIN_SRC emacs-lisp
   (use-package all-the-icons
-    :straight t)
+    :straight t
+    :defer t)
   (use-package nerd-icons
-    :straight t)
+    :straight t
+    :defer t)
 #+END_SRC
 
 ** Dashboard
@@ -1774,6 +1776,7 @@
 ** Buffers Config
 #+BEGIN_SRC emacs-lisp
   (use-package ibuffer
+    :defer t
     :init
     (setq ibuffer-formats
           '((mark modified read-only vc-status-mini " "
@@ -2279,7 +2282,7 @@
 #+BEGIN_SRC emacs-lisp
   (use-package org
     :straight (:type built-in)
-    :commands org-mode
+    :defer t
     :init
     (setq org-src-window-setup 'plain
           org-src-tab-acts-natively nil
@@ -4085,6 +4088,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
 ** Remote Dev -> Tramp
 #+BEGIN_SRC emacs-lisp
   (use-package tramp
+    :defer t
     :init
     (setq tramp-terminal-type "dumb")
     :config
@@ -4098,7 +4102,6 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     ;; 或者 zsh:
     ;; [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
     ;; TERM 值应与 tramp-terminal-type 相同
-    :commands tramp
     )
 #+END_SRC
 
