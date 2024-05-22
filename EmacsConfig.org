@@ -3415,96 +3415,12 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     )
 #+END_SRC
 
-** COMMENT Tree Sitter
+** Tree Sitter
 #+BEGIN_SRC emacs-lisp
-  (use-package tree-sitter
-    :straight t
-    :commands (tree-sitter-mode tree-sitter-hl-mode)
-    :hook (rust-mode-hook . tree-sitter-hl-mode)
-    )
-
-  ;; 1. git clone https://github.com/Wilfred/tree-sitter-elisp
-  ;; 2. gcc path/src/parser.c -fPIC -I path/ --shared -o elisp.so
-  ;; 3. cp path/elisp.so path/.tree-sitter-langs/bin (path/.tree-sitter-langs/bin is path of your tree-sitter-langs repo)
-
-  (use-package tree-sitter-langs
-    :straight t
-    :commands tree-sitter-mode
-    :config
-    (when (file-exists-p (concat tree-sitter-langs--dir "bin/elisp.so"))
-      (add-to-list 'tree-sitter-major-mode-language-alist '(emacs-lisp-mode . elisp))
-      (add-to-list 'tree-sitter-major-mode-language-alist '(lisp-interaction-mode . elisp))))
-
-  (use-package evil-textobj-tree-sitter
-    :straight t
-    :after tree-sitter
-    :config
-
-    ;; 代码块
-    ;; block.inner
-    ;; block.outer
-    ;; 函数调用
-    ;; call.inner
-    ;; call.outer
-    ;; 对象块
-    ;; class.inner
-    ;; class.outer
-    ;; 注释
-    ;; comment.outer
-    ;; 条件表达时
-    ;; conditional.inner
-    ;; conditional.outer
-    ;; 函数
-    ;; function.inner
-    ;; function.outer
-    ;; 循环
-    ;; loop.inner
-    ;; loop.outer
-    ;; 参数
-    ;; parameter.inner
-    ;; 语句行
-    ;; statement.outer
-    (evil-define-key nil evil-inner-text-objects-map
-      "f" (evil-textobj-tree-sitter-get-textobj "function.inner")
-      "p" (evil-textobj-tree-sitter-get-textobj "parameter.inner")
-      "c" (evil-textobj-tree-sitter-get-textobj "class.inner")
-      "?" (evil-textobj-tree-sitter-get-textobj "conditional.inner")
-      "r" (evil-textobj-tree-sitter-get-textobj "call.inner")
-      ";" (evil-textobj-tree-sitter-get-textobj "statement.outer")
-      "/" (evil-textobj-tree-sitter-get-textobj "comment.outer")
-      "0" (evil-textobj-tree-sitter-get-textobj "loop.inner")
-      "b" (evil-textobj-tree-sitter-get-textobj "block.inner"))
-    (evil-define-key nil evil-outer-text-objects-map
-      "f" (evil-textobj-tree-sitter-get-textobj "function.outer")
-      "p" (evil-textobj-tree-sitter-get-textobj "parameter.outer")
-      "c" (evil-textobj-tree-sitter-get-textobj "class.outer")
-      "?" (evil-textobj-tree-sitter-get-textobj "conditional.outer")
-      "r" (evil-textobj-tree-sitter-get-textobj "call.outer")
-      ";" (evil-textobj-tree-sitter-get-textobj "statement.outer")
-      "/" (evil-textobj-tree-sitter-get-textobj "comment.outer")
-      "0" (evil-textobj-tree-sitter-get-textobj "loop.outer")
-      "b" (evil-textobj-tree-sitter-get-textobj "block.outer"))
-
-    (defvar lmm/tree-sitter-mode-map (make-sparse-keymap)
-      "Tree sitter mode map.")
-
-    (evil-define-key '(normal motion visual) lmm/tree-sitter-mode-map
-      "L" (lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "parameter.inner"))
-      "H" (lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "parameter.inner" t))
-      "]f"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer"))
-      "[f"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer" t))
-      "]F"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer" nil t))
-      "[F"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "function.outer" t t))
-      "]r"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "call.outer"))
-      "[r"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "call.outer" t))
-      "]/"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "comment.outer"))
-      "[/"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "comment.outer" t))
-      "];"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "statement.outer"))
-      "[;"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "statement.outer" t))
-      "]0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer"))
-      "[0"(lambda()(interactive)(evil-textobj-tree-sitter-goto-textobj "loop.outer" t)))
-
-    (add-hook 'tree-sitter-mode-hook (lambda ()(use-local-map lmm/tree-sitter-mode-map))))
+  (use-package treesit
+    :defer t
+    :init
+    (setq treesit-font-lock-level 4))
 #+END_SRC
 
 ** Format Code
