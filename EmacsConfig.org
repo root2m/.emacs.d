@@ -1025,7 +1025,7 @@
                      "Enable highlight whitespace"
                      (setq-local whitespace-style '(face trailing lines-tail)
                                  whitespace-line-column 80)
-                       (whitespace-mode t))))
+                     (whitespace-mode t))))
 
   (dolist (hook '(org-mode-hook text-mode-hook))
     (add-hook hook (lambda()
