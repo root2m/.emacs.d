@@ -1128,44 +1128,26 @@
           evil-visual-screen-line-tag (propertize "󰒆" 'face '(:foreground "cyan")))
 
     :config
+    (setq evil-goto-definition-functions '(evil-goto-definition-xref
+                                           evil-goto-definition-imenu
+                                           evil-goto-definition-semantic
+                                           evil-goto-definition-search))
     (evil-set-command-property 'evil-upcase :move-point nil)
 
-    (evil-define-key* nil evil-ex-completion-map
-      (kbd "C-a") 'beginning-of-line
-      (kbd "C-b") 'backward-char
-      (kbd "C-c") 'abort-recursive-edit
-      (kbd "C-d") 'delete-char
-      (kbd "C-f") 'forward-char
-      (kbd "C-k") 'kill-line
-      (kbd "C-v") 'evil-ex-command-window
-      (kbd "M-n") 'next-complete-history-element
-      (kbd "M-p") 'previous-complete-history-element)
-    (evil-define-key* nil evil-ex-search-keymap
-      (kbd "C-a") 'beginning-of-line
-      (kbd "C-b") 'backward-char
-      (kbd "C-c") 'abort-recursive-edit
-      (kbd "C-d") 'delete-char
-      (kbd "C-f") 'forward-char
-      (kbd "C-k") 'kill-line
-      (kbd "C-v") 'evil-ex-command-window
-      (kbd "M-n") 'next-complete-history-element
-      (kbd "M-p") 'previous-complete-history-element)
-    (evil-define-key* nil evil-eval-map
-      (kbd "C-a") 'beginning-of-line
-      (kbd "C-b") 'backward-char
-      (kbd "C-c") 'abort-recursive-edit
-      (kbd "C-d") 'delete-char
-      (kbd "C-f") 'forward-char
-      (kbd "C-k") 'kill-line
-      (kbd "C-v") 'evil-ex-command-window
-      (kbd "M-n") 'next-complete-history-element
-      (kbd "M-p") 'previous-complete-history-element)
-    ;; (general-define-key
-    ;;  :states 'insert
-    ;;  "j" (general-key-dispatch 'self-insert-command
-    ;;        :timeout 0.1
-    ;;        "k" 'evil-normal-state
-    ;;        "l" 'toggle-input-method))
+    (dolist (map '(evil-eval-map
+                   evil-ex-search-keymap
+                   evil-ex-completion-map))
+      (define-keymap
+        :keymap (symbol-value map)
+        "C-a" 'beginning-of-line
+        "C-b" 'backward-char
+        "C-c" 'abort-recursive-edit
+        "C-d" 'delete-char
+        "C-f" 'forward-char
+        "C-k" 'kill-line
+        "C-v" 'evil-ex-command-window
+        "M-n" 'next-complete-history-element
+        "M-p" 'previous-complete-history-element))
     (defun backward-symbol (count)
       "Move point to the previous position that is the start of a symbol.
   A symbol is any sequence of characters that are in either the
