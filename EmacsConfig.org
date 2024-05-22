@@ -1815,16 +1815,13 @@
            (save-buffers-kill-terminal arg))))
 #+END_SRC
 
-** COMMENT Auto Save Window Size
-自动保存窗口尺寸
+** Auto Save Window Size
+保存工作区
 #+BEGIN_SRC emacs-lisp
   (use-package desktop
     :defer t
     :init
-    (setq desktop-path (list user-emacs-directory)
-          desktop-auto-save-timeout 600)
-    :hook
-    (window-setup-hook . desktop-save-mode))
+    (setq desktop-auto-save-timeout 600))
 #+END_SRC
 
 * MINIBUFFER
