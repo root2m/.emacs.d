@@ -3206,26 +3206,10 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
                               (append completion-at-point-functions '(cape-dabbrev cape-file)))))))
 #+END_SRC
 
-**** COMMENT kind-icon
-#+BEGIN_SRC emacs-lisp
-  (use-package kind-icon
-    :straight t
-    :after corfu
-    :custom
-    (kind-icon-default-face 'corfu-default)
-    ;; (kind-icon-blend-frac 0.0)
-    (kind-icon-blend-background nil)
-    :config
-    (custom-set-variables
-     '(kind-icon-default-style
-       '(:padding 0.3 :stroke 3 :margin 0 :radius 5 :height 0.9 :scale 1.0)))
-    (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
-#+END_SRC
-
 **** nerd-icons-corfu
 #+BEGIN_SRC emacs-lisp
   (use-package corfu
-    :no-require t
+    :defer t
     :config
     (defvar +nerd-icons-corfu-cache nil
       "The cache of styled and padded label (text or icon).
