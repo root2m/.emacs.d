@@ -703,7 +703,7 @@
     ;; Format: "(icon title help action face prefix suffix)"
     (setq dashboard-navigator-buttons
           `(;; line1
-            ((,(all-the-icons-octicon "mark-github" :height 1.1 :v-adjust 0.0)
+            ((" "
               ""
               "Git Homepage"
               (lambda (&rest _) (if (string-match "WSL" operating-system-release)
