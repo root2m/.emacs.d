@@ -2551,11 +2551,11 @@
     )
 #+END_SRC
 
-** Keyboard Input -- 中文输入
+** Chinese Input -- 中文输入
 #+BEGIN_SRC emacs-lisp
   (use-package rime
     :straight t
-    :no-require t
+    :defer t
     :init
     (setq default-input-method 'rime)
     (straight-use-package '(rime-ice
@@ -2566,19 +2566,21 @@
                             :branch "main"))
     (setq rime-share-data-dir (straight--repos-dir "rime-ice"))
     :config
-    (defun rime-evil-escape-advice (orig-fun key)
+    (defvar +rime-evil-escape-bindings-alist `((?j . ((?k . ,(lambda ()
+                                                               (evil-repeat-stop)
+                                                               (evil-normal-state)))
+                                                      (?l . toggle-input-method)))))
+    (defun +rime-evil-escape-advice (orig-fun key)
       (if rime--preedit-overlay
           ;; if `rime--preedit-overlay' is non-nil, then we are editing something, do not abort
           (apply orig-fun (list key))
-        (let ((fkey ?j)
-              (skey ?k))
-          (if (char-equal key fkey)
-              (let ((evt (read-event nil nil 0.2)))
+        (let ((keybinds (cdr (assq key +rime-evil-escape-bindings-alist))))
+          (if keybinds
+              (let ((evt (read-event nil nil 0.2))
+                    command)
                 (cond
-                 ((and (characterp evt)
-                       (and (char-equal key fkey) (char-equal evt skey)))
-                  (evil-repeat-stop)
-                  (evil-normal-state))
+                 ((setq command (cdr (assq evt keybinds)))
+                  (funcall command))
                  ((null evt) (apply orig-fun (list key)))
                  (t
                   (apply orig-fun (list key))
@@ -2587,7 +2589,7 @@
                     (setq unread-command-events (append unread-command-events (list evt)))))))
             (apply orig-fun (list key))))))
 
-    (advice-add 'rime-input-method :around #'rime-evil-escape-advice)
+    (advice-add 'rime-input-method :around #'+rime-evil-escape-advice)
   )
 #+END_SRC
 
