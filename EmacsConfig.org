@@ -4103,7 +4103,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     "Conver FILE to sudo path"
     (concat lmmv/sudo-localhost (expand-file-name file)))
 
-;;;###autoload
+  ;;;###autoload
   (defun lmm/sudo-find-file (file)
     "Open FILE as root."
     (interactive "FOpen file as root: ")
@@ -4151,6 +4151,15 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
        ;; 如果该文件不存在
        (t nil)
        )))
+  (defun +sudo-reopen-this-buffer ()
+    "Open this buffer file in sudo."
+    (interactive)
+    (if-let* ((current-buffer (current-buffer))
+              (file (buffer-file-name current-buffer)))
+        (when-let ((file-buffer (find-file-noselect (concat "/sudo::" file))))
+          (switch-to-buffer file-buffer)
+          (kill-buffer current-buffer))
+      (user-error "The current buffer does not come from an existing file.")))
 #+END_SRC
 
 ** News
