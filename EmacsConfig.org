@@ -687,7 +687,8 @@
     ;; 居中对齐
     (setq dashboard-center-content t
           dashboard-set-footer nil
-          dashboard-startup-banner (concat lmmv/no-littering-etc-directory "dashboard/banners/ue-colorful.png")
+          dashboard-startup-banner (cons (concat lmmv/no-littering-etc-directory "dashboard/banners/lemacs_logo.png")
+                                         (concat lmmv/no-littering-etc-directory "dashboard/banners/lemacs_logo.txt"))
           dashboard-banner-logo-title nil
           dashboard-image-banner-max-height (/ (window-pixel-height) 2))
     ;;(setq dashboard-show-shortcuts nil)
