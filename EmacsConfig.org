@@ -537,20 +537,22 @@
     )
 #+END_SRC
 
-** Utils
+** COMMENT Utils
 #+BEGIN_SRC emacs-lisp
   (defmacro lmm/key-dispath-command-def (callback
                                          delay
                                          put-overlay
                                          &rest keybinds)
-    "CALLBACK: if key not matched, call CALLBACK.
-      DELAY: If the optional argument SECONDS is non-nil, it should be a number
-      specifying the maximum number of seconds to wait for input.  If no
-      input arrives in that time, return nil.  SECONDS may be a floating-point value.
-      PUT-OVERLAY: if is function, call function, function need return overlay.
-      nil is close display overlay.
-      KEYBINDS: is binds."
-    (let ((ov-name (make-symbol (format "lmm/key-dispath-overlay-%d" gensym-counter))))
+  "CALLBACK: 当用户在指定时间内没有输入或输入无效字符时，将调用的函数。
+  DELAY: 等待用户输入的时间，单位为秒。
+  PUT-OVERLAY: 可选参数，用于控制是否以及如何显示一个覆盖层，指示用户输入的字符。可以是以下值之一：
+       - nil: 不显示覆盖层。
+       - override-char: 在光标位置显示一个覆盖层，覆盖当前字符。
+       - after-char: 在光标位置后显示一个覆盖层。
+       - function：调用该函数来创建和放置覆盖层。
+       - overlay object：使用该覆盖层对象。
+  KEYBINDS: 一个由键绑定组成的列表，每个键绑定都是一个列表，格式为 (key command)，其中 key 是一个字符，command 是一个要执行的命令。"
+  (let ((ov-name (intern (format "lmm/key-dispath-overlay-%d" gensym-counter))))
       `(progn
          ,(when put-overlay `(defvar ,ov-name (make-overlay 0 0)))
          (defun ,(gensym "lmm/key-dispath-") ()
@@ -604,56 +606,108 @@
                           (append unread-command-events (list evt))))))))))
 #+END_SRC
 
+** Utils
+#+BEGIN_SRC emacs-lisp
+  (defmacro +key-dispath-command-def (name callback delay put-overlay &rest keybinds)
+    "NAME: 函数名称。
+  CALLBACK: 当用户在指定时间内没有输入或输入无效字符时，将调用的函数。
+  DELAY: 等待用户输入的时间，单位为秒。
+  PUT-OVERLAY: 可选参数，用于控制是否以及如何显示一个覆盖层，指示用户输入的字符。可以是以下值之一：
+       - nil: 不显示覆盖层。
+       - override-char: 在光标位置显示一个覆盖层，覆盖当前字符。
+       - after-char: 在光标位置后显示一个覆盖层。
+       - function：调用该函数来创建和放置覆盖层。
+       - overlay object：使用该覆盖层对象。
+  KEYBINDS: 一个由键绑定组成的列表，每个键绑定都是一个列表，格式为 (key command)，其中 key 是一个字符，command 是一个要执行的命令。"
+    (declare (indent 1))
+    (let ((ov-name (intern (format "%s-overlay" name)))
+          (map-name (intern (format "%s-map" name))))
+      `(progn
+         ,(when put-overlay `(defvar ,ov-name (make-overlay 0 0)))
+         (defvar-keymap ,map-name ,@keybinds)
+         (defun ,name ()
+           (interactive)
+           (let* ((this-key (this-command-keys))
+                  (p (point))
+                  (overlay
+                   ,(let ((o (eval put-overlay)))
+                      (cond ((null o) nil)
+                            ((eq o 'override-char)
+                             `(cond (executing-kbd-macro nil)
+                                    (buffer-read-only nil)
+                                    ((and (eobp) (bolp))
+                                     (overlay-put ,ov-name 'display (concat "\n" this-key))
+                                     (move-overlay ,ov-name (1- p) p))
+                                    ((eolp)
+                                     (overlay-put ,ov-name 'display (concat this-key "\n"))
+                                     (move-overlay ,ov-name p (1+ p)))
+                                    (t
+                                     (overlay-put ,ov-name 'display this-key)
+                                     (move-overlay ,ov-name p (1+ p)))))
+                            ((eq o 'after-char)
+                             `(cond (executing-kbd-macro nil)
+                                    (buffer-read-only nil)
+                                    (t
+                                     (overlay-put ,ov-name 'after-string this-key)
+                                     (move-overlay ,ov-name p p))))
+                            ((functionp o)
+                             `(funcall ,put-overlay))
+                            ((overlayp o)
+                             `(cond (executing-kbd-macro nil)
+                                    (buffer-read-only nil)
+                                    (t
+                                     (move-overlay ,put-overlay p (1+ p))))))))
+                  ;; if use read-event delay, this-command-keys can't read read-event keys.
+                  (evt (with-timeout (,delay nil)
+                         (read-event)))
+                  command)
+             ,(when put-overlay '(and overlay (delete-overlay overlay)))
+             (cond ((and (characterp evt)
+                         (setq command (lookup-key ,map-name (char-to-string evt))))
+                    (let ((this-command command))
+                     (call-interactively command)))
+                   ((null evt)
+                    (let ((this-command ,callback))
+                      (call-interactively ,callback)))
+                   (t
+                    (let ((this-command ,callback))
+                      (call-interactively ,callback))
+                    (setq unread-command-events
+                          (append unread-command-events (list evt))))))))))
+#+END_SRC
+
 * UI
 ** Display Line Numbers and Truncated Lines
 #+BEGIN_SRC emacs-lisp
-  (global-visual-line-mode t)
+  (use-package simple
+    :hook
+    (after-init-hook . global-visual-line-mode))
 
-  (setq-default display-line-numbers-type 'relative
-                display-line-numbers-width 3
-                display-line-numbers-widen t)
-  ;; Enable line numbers for some modes
+  (use-package hl-line
+    :defer t)
+
   ;; 开启行号显示
-  (dolist (mode '(text-mode-hook
-                  prog-mode-hook
-                  conf-mode-hook))
-    (add-hook mode (lambda () (display-line-numbers-mode 1))))
-
-  ;; Override some modes which derive from the above
-  (dolist (mode '(org-mode-hook))
-    (add-hook mode (lambda () (display-line-numbers-mode 0))))
-  ;; 设置相对行号
-
-
-  ;; (use-package simple
-  ;;   :config
-  ;;   (progn
-  ;;     ;; 关闭当前行高亮
-  ;;     (global-hl-line-mode -1)))
+  (use-package display-line-numbers
+    :init
+    (setq display-line-numbers-type 'relative
+          display-line-numbers-width 3
+          display-line-numbers-widen t)
+    :hook
+    (text-mode-hook . display-line-numbers-mode)
+    (prog-mode-hook . display-line-numbers-mode)
+    (conf-mode-hook . display-line-numbers-mode)
+    (org-mode-hook . +display-line-numbers-turn-off-mode)
+    :config
+    (defun +display-line-numbers-turn-off-mode ()
+        (display-line-numbers-mode -1)))
    #+END_SRC
 
 ** Cursor Face
 #+BEGIN_SRC emacs-lisp
   (blink-cursor-mode -1)
-  (defun lmm/cursor-I-am-here ()
-    "cursor, where are you ???"
-    (interactive)
-    )
 #+END_SRC
 
 ** Bell
-*** COMMENT bell modeline color
-#+BEGIN_SRC emacs-lisp
-  (setq ring-bell-function
-        (lambda ()
-          (let ((orig-fg (face-background 'mode-line)))
-            (set-face-background 'mode-line "#a8910f")
-            (run-with-idle-timer 0.1 nil
-                                 (lambda (fg) (set-face-background 'mode-line fg))
-                                 orig-fg))))
-#+END_SRC
-
-*** visible bell
 #+BEGIN_SRC emacs-lisp
   (setq visible-bell nil)
   (setq ring-bell-function 'ignore)
