@@ -4069,9 +4069,19 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
 #+BEGIN_SRC emacs-lisp
   (use-package gptel
     :straight t
-    :commands gptel-send
+    :defer t
     :config
-    (add-to-list 'gptel-directives '(translator . "你现在是一个翻译官，我提供给你的任何内容都翻译成中文，你只需要提供翻译后的内容即可。")))
+    (setq
+     gptel-model "gemini-1.5-pro-latest"
+     gptel-backend (gptel-make-gemini "Gemini"
+                     :key 'gptel-api-key-from-auth-source
+                     :stream t)
+     gptel-proxy (when-let ((proxy (alist-get "http" url-proxy-services nil nil 'equal)))
+                   (concat "http://" proxy))
+     gptel-default-mode #'text-mode)
+    (add-to-list 'gptel-directives '(translator . "你现在是一个翻译官，我提供给你的任何内容都翻译成中文，你只需要提供翻译后的内容即可。"))
+    (add-to-list 'gptel-directives '(default . ""))
+    (setq gptel--system-message (alist-get 'default gptel-directives)))
 #+END_SRC
 ** 文件操作
 #+BEGIN_SRC emacs-lisp
