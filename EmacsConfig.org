@@ -1235,23 +1235,6 @@
     (evil-ex-define-cmd "q" 'kill-this-buffer)
     ;; (evil-set-leader 'normal (kbd "<SPC>"))
 
-
-
-    (general-define-key
-     :states '(normal motion)
-     "gh" 'beginning-of-line-text
-     "gl" 'end-of-line
-     "," evil-window-map
-     )
-
-    (defmacro lmm/create-translate-key-map(from to)
-      "Translate key"
-      (declare (indent 1) (debug 1))
-      (let ((name (intern (concat "lmm/" from "-to-" to "-map"))))
-        `(progn
-           (defvar ,name (make-sparse-keymap)
-             ,(concat "Translate key " from " -> " to)))))
-
     (general-create-definer lmm/evil-space-leader-def
       :states '(normal motion insert)
       :keymaps 'override
@@ -1302,69 +1285,21 @@
       ("q" nil "Quit"))
 
     (evil-define-key '(normal motion) 'global
-      ;; "f" #'evil-avy-goto-char-timer
-      ;; "F" #'evil-avy-goto-word-1
       "q" #'evil-execute-macro
       "Q" #'evil-record-macro
       "'" #'evil-goto-mark
       "`" #'evil-goto-mark-line
       "U" #'evil-redo
+      "," #'evil-window-map
       "t" #'repeat
       "z/" #'evil-ex-nohighlight
-      "g'" #'evil-avy-goto-char-2
       "z." #'evil-toggle-fold
       )
-
-    (defvar lmm/goto-next-object-map (make-sparse-keymap))
-    (defvar lmm/goto-preview-object-map (make-sparse-keymap))
-    (general-define-key
-     :keymaps 'lmm/goto-preview-object-map
-     "SPC" #'evil-collection-unimpaired-insert-newline-above
-     "L" #'evil-collection-unimpaired-first-error
-     "P" #'evil-collection-unimpaired-paste-above
-     "Q" #'evil-collection-unimpaired-first-error
-     "b" #'evil-prev-buffer
-     "e" #'evil-collection-unimpaired-move-text-up
-     "l" #'evil-collection-unimpaired-previous-error
-     "n" #'evil-collection-unimpaired-previous-SCM-conflict-marker
-     "p" #'evil-collection-unimpaired-paste-above
-     "q" #'evil-collection-unimpaired-previous-error
-     "6" #'evil-collection-unimpaired-b64-encode
-     "u" #'evil-collection-unimpaired-url-encode
-     "'" #'evil-previous-mark-line
-     "(" #'evil-previous-open-paren
-     "[" #'evil-backward-section-begin
-     "]" #'evil-backward-section-end
-     "`" #'evil-previous-mark
-     "s" #'evil-prev-flyspell-error
-     "{" #'evil-previous-open-brace
-     "f" #'beginning-of-defun)
-
-    (general-define-key
-     :keymaps 'lmm/goto-next-object-map
-     "SPC" #'evil-collection-unimpaired-insert-newline-below
-     "L" #'evil-collection-unimpaired-last-error
-     "Q" #'evil-collection-unimpaired-last-error
-     "b" #'evil-next-buffer
-     "l" #'evil-collection-unimpaired-next-error
-     "e" #'evil-collection-unimpaired-move-text-down
-     "n" #'evil-collection-unimpaired-next-SCM-conflict-marker
-     "P" #'evil-collection-unimpaired-paste-below
-     "p" #'evil-collection-unimpaired-paste-below
-     "q" #'evil-collection-unimpaired-next-error
-     "6" #'evil-collection-unimpaired-b64-decode
-     "u" #'evil-collection-unimpaired-url-decode
-     "'" #'evil-next-mark-line
-     ")" #'evil-next-close-paren
-     "[" #'evil-forward-section-end
-     "]" #'evil-forward-section-begin
-     "`" #'evil-next-mark
-     "s" #'evil-next-flyspell-error
-     "}" #'evil-next-close-brace
-     "f" #'end-of-defun)
     (evil-define-key '(normal motion visual) 'global
-      ;; ";" lmm/goto-next-object-map
-      ;; "," lmm/goto-preview-object-map
+      "gh" #'evil-first-non-blank
+      "H" #'evil-first-non-blank
+      "gl" #'evil-last-non-blank
+      "L" #'evil-last-non-blank
       "f" 'evil-avy-goto-word-1
       "F" 'evil-avy-goto-char)
 
@@ -1399,10 +1334,11 @@
           :map evil-window-map
           ("d" . kill-buffer-and-window)
           ("x" . kill-current-buffer)
-          ("n" . evil-next-buffer)
+          ("n" . evil-buffer-new)
           ("p" . evil-prev-buffer)
           ("w" . nil)
           ("W" . evil-window-next)
+          ("C-h" . nil)
           ("." . evil-switch-to-windows-last-buffer)))
 #+END_SRC
 
@@ -2168,7 +2104,6 @@
      ("C-c C-o" . embark-export)
      :map help-map
      ("b" . embark-bindings))
-    :commands (embark-act embark-prefix-help-command)
     :init
     (setq prefix-help-command #'embark-prefix-help-command)
     :config
