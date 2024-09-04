@@ -1216,7 +1216,7 @@
       (forward-symbol (- 0 (or count 1))))
 
     (evil-define-key* 'insert 'global
-      "j" (lmm/key-dispath-command-def 'self-insert-command 0.2 'after-char
+      "j" (+key-dispath-command-def +evil-key-dispath-j 'self-insert-command 0.2 'after-char
                                        "k" 'evil-normal-state
                                        "l" 'toggle-input-method
                                        "w" 'forward-symbol
