@@ -3671,10 +3671,15 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
                :sort nil
                ))))
 
-      (general-define-key
-       :keymaps 'perspective-map
-       "<tab>" 'persp-switch
-       "d" (lambda ()(interactive)(persp-kill (persp-current-name))))
+      (define-keymap
+        :keymap perspective-map
+        "<tab>" 'persp-switch
+        "j" #'persp-next
+        "k" #'persp-prev
+        "d" (defun +persp-kill-current ()
+              "Kill current perspective"
+              (interactive)
+              (persp-kill (persp-current-name))))
       (lmm/evil-space-leader-def
         "," #'consult-buffer
         "<" #'lmm/persp-consult-all-buffer
