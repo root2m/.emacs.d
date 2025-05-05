@@ -3432,13 +3432,27 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
 *** json-mode
 #+BEGIN_SRC emacs-lisp
   (use-package json-mode
-    :commands json-mode
+    :mode ("\\.jsonc\\'" . jsonc-mode)
     :straight t
+    :defer t
     :init
     (setq lsp-json-schemas `[(:fileMatch ["*.schema.json"]
-                                               :url "https://json-schema.org/draft/2020-12/schema")])
+                                         :url "https://json-schema.org/draft/2020-12/schema")])
     :config
-    (add-hook 'json-mode-hook (lambda ()(setq-local js-indent-level 2))))
+    (add-hook 'json-mode-hook (lambda ()(setq-local js-indent-level 2)))
+    (when (featurep 'flycheck)
+      (add-to-list 'flycheck-checkers 'json5 t)
+      (flycheck-define-checker json5
+        "A JSON syntax checker using json5.
+
+  support json comment. please run cmd: npm install -g json5."
+        :command ("json5" "-v" source)
+        :error-patterns
+        ((error line-start
+                (message)
+                "at " line
+                ":" column line-end))
+        :modes (jsonc-mode json-ts-mode))))
 #+END_SRC
 
 *** web
