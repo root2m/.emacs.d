@@ -4017,14 +4017,14 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     :defer t
     :config
     (setq
-     gptel-model "gemini-1.5-pro-latest"
+     gptel-model "gemini-2.0-flash"
      gptel-backend (gptel-make-gemini "Gemini"
                      :key 'gptel-api-key-from-auth-source
                      :stream t)
-     gptel-proxy (when-let ((proxy (alist-get "http" url-proxy-services nil nil 'equal)))
-                   (concat "http://" proxy))
-     gptel-default-mode #'text-mode)
-    (add-to-list 'gptel-directives '(translator . "你现在是一个翻译官，我提供给你的任何内容都翻译成中文，你只需要提供翻译后的内容即可。"))
+     gptel-proxy (when-let* ((addr (alist-get "http" url-proxy-services nil nil 'equal)))
+                   (concat "http://" addr))
+     gptel-default-mode #'markdown-mode)
+    (add-to-list 'gptel-directives '(translator . "你是一个好用的翻译助手。请将我的英文翻译成中文，将所有非中文的翻译成中文。我发给你所有的话都是需要翻译的内容，你只需要回答翻译结果。翻译结果请符合中文的语言习惯。"))
     (add-to-list 'gptel-directives '(default . ""))
     (setq gptel--system-message (alist-get 'default gptel-directives)))
 #+END_SRC
