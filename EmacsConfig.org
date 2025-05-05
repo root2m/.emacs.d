@@ -630,8 +630,8 @@
     (org-mode-hook . +display-line-numbers-turn-off-mode)
     :config
     (defun +display-line-numbers-turn-off-mode ()
-        (display-line-numbers-mode -1)))
-   #+END_SRC
+      (display-line-numbers-mode -1)))
+#+END_SRC
 
 ** Cursor Face
 #+BEGIN_SRC emacs-lisp
@@ -975,16 +975,16 @@
 
 #+END_SRC
 
-*** COMMENT other config options
+*** other config options
 #+BEGIN_SRC emacs-lisp
   ;; 字符集配置
-  (set-fontset-font t 'han "font family name")
+  ;; (set-fontset-font t 'han "font family name")
 
   ;; 字体缩放配置
-  (add-to-list 'face-font-rescale-alist '("font family name" . 1.2))
+  ;; (add-to-list 'face-font-rescale-alist '("font family name" . 1.2))
 
   ;; 行距配置
-  (setq-default line-spacing 1)
+  ;; (setq-default line-spacing 1)
 #+END_SRC
 
 *** utils
@@ -2026,11 +2026,10 @@
     :bind
     (("C-;" . embark-act)
      :map minibuffer-local-map
-     ("C-." . (lambda ()(interactive)
-                (let ((embark-quit-after-action nil))
-                  (embark-act))))
+     ("C-." . +embark-act-more)
      ("C-;" . embark-act)
      ("C-t" . embark-become)
+     ("C-," . embark-select)
      ;; 导出当前列表到额外buffer，然后执行各种操作
      ("C-c C-o" . embark-export)
      :map help-map
@@ -2038,6 +2037,10 @@
     :init
     (setq prefix-help-command #'embark-prefix-help-command)
     :config
+    (defun +embark-act-more ()
+      (interactive)
+      (let ((embark-quit-after-action nil))
+        (embark-act)))
     ;; embark menu with which key
     (defun embark-which-key-indicator ()
       "An embark indicator that displays keymaps using which-key.
@@ -2271,19 +2274,19 @@
     :after org
     :config
     ;; copy from source file
-    (defun org-tempo-add-block (entry)
-      "Add block entry from `org-structure-template-alist'."
-      (let* ((key (format "<%s" (car entry)))
-             (name (cdr entry))
-             (special (member name '("SRC" "EXPORT"))))
-        (tempo-define-template (format "org-%s" (replace-regexp-in-string " " "-" name))
-                               `(,(format "#+BEGIN_%s%s" name (if special " " ""))
-                                 ,(when special 'p) '> n ,(unless special 'p) n
-                                 ,(format "#+END_%s" (car (split-string name " ")))
-                                 >)
-                               key
-                               (format "Insert a %s block" name)
-                               'org-tempo-tags)))
+    ;; (defun org-tempo-add-block (entry)
+    ;;   "Add block entry from `org-structure-template-alist'."
+    ;;   (let* ((key (format "<%s" (car entry)))
+    ;;          (name (cdr entry))
+    ;;          (special (member name '("SRC" "EXPORT"))))
+    ;;     (tempo-define-template (format "org-%s" (replace-regexp-in-string " " "-" name))
+    ;;                            `(,(format "#+BEGIN_%s%s" name (if special " " ""))
+    ;;                              ,(when special 'p) '> n ,(unless special 'p) n
+    ;;                              ,(format "#+END_%s" (car (split-string name " ")))
+    ;;                              >)
+    ;;                            key
+    ;;                            (format "Insert a %s block" name)
+    ;;                            'org-tempo-tags)))
     (setq org-structure-template-alist
           '(("a" . "EXPORT ascii")
             ("c" . "CENTER")
@@ -3353,10 +3356,6 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
 #+END_SRC
 
 ** LANG
-*** javascript
-#+BEGIN_SRC
-#+END_SRC
-
 *** rust
 #+BEGIN_SRC emacs-lisp
   (use-package rust-mode
