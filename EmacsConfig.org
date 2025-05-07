@@ -2208,21 +2208,7 @@
     (setq org-todo-keywords
           '((sequence "TODO(t)" "|" "DONE(d)")
             (sequence "REPORT(r)" "BUG(b)" "KNOWNCAUSE(k)" "|" "FIXED(f)")
-            (sequence "|" "CANCELED(c)")))
-
-    :config
-    (set-face-attribute 'org-block nil
-                        :foreground "unspecified"
-                        :background "unspecified")
-    (set-face-attribute 'org-block-begin-line nil
-                        :inherit nil
-                        :background "unspecified"
-                        :foreground "cyan"
-                        :italic t
-                        :weight 'bold)
-
-    (add-hook 'org-mode-hook 'org-indent-mode)
-    )
+            (sequence "|" "CANCELED(c)"))))
 
   (use-package org-agenda
     :after org
