@@ -409,7 +409,7 @@
 
 ** Straight -- git package download manager
 #+BEGIN_SRC emacs-lisp
-  (setq straight-check-for-modifications 'never)
+  (setq straight-check-for-modifications nil)
   (defvar bootstrap-version)
   (let ((bootstrap-file
          (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -1168,7 +1168,7 @@
     (defun lmm/SPC-SPC()
       "Select active minibuffer window, or call execute-extended-command if nil"
       (interactive)
-      (if-let* (window (active-minibuffer-window))
+      (if-let* ((window (active-minibuffer-window)))
           (select-window window)
           (setq this-command 'execute-extended-command)
         (call-interactively #'execute-extended-command)))
