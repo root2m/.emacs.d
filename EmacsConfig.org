@@ -452,15 +452,6 @@
     :straight t)
 #+END_SRC
 
-* Garbage Collection
-#+BEGIN_SRC emacs-lisp
-  ;; 垃圾回收
-  (use-package gcmh
-    :straight t
-    :config
-    (gcmh-mode))
-#+END_SRC
-
 * HELP
 ** Default Help System
 #+BEGIN_SRC emacs-lisp
