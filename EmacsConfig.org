@@ -1168,7 +1168,7 @@
     (defun lmm/SPC-SPC()
       "Select active minibuffer window, or call execute-extended-command if nil"
       (interactive)
-      (if-let (window (active-minibuffer-window))
+      (if-let* (window (active-minibuffer-window))
           (select-window window)
           (setq this-command 'execute-extended-command)
         (call-interactively #'execute-extended-command)))
@@ -1453,7 +1453,7 @@
 
     (evil-define-operator lmm/evil-replace-paste (beg end)
       "Select and replace from kill ring"
-      (when-let ((text (current-kill 0)))
+      (when-let* ((text (current-kill 0)))
         (delete-region beg end)
         (insert-for-yank text)))
 
@@ -1558,7 +1558,7 @@
   (defun lmm/split-window-right-select-buffer(&optional arg)
     "VSplit this buffer, switch to select buffer"
     (interactive "P")
-    (if-let ((buffer (read-buffer-to-switch "Switch to Buffer: ")))
+    (if-let* ((buffer (read-buffer-to-switch "Switch to Buffer: ")))
         (let ((target-window (split-window-right)))
           (set-window-buffer target-window buffer)
           (unless arg
@@ -1567,7 +1567,7 @@
   (defun lmm/split-window-below-select-buffer(&optional arg)
     "Split this buffer, switch to select buffer"
     (interactive "P")
-    (if-let ((buffer (read-buffer-to-switch "Switch to Buffer: ")))
+    (if-let* ((buffer (read-buffer-to-switch "Switch to Buffer: ")))
         (let ((target-window (split-window-below)))
           (set-window-buffer target-window buffer)
           (unless arg
@@ -1903,13 +1903,13 @@
     (defun lmm/consult-number-at-point (&optional n)
       "get number at current point, search geted number at consult-line"
       (interactive)
-      (consult-line (if-let ((n (number-at-point)))
+      (consult-line (if-let* ((n (number-at-point)))
                         (number-to-string n)
                       nil)))
     (defun lmm/consult-number-at-point-multi (&optional n)
       "get number at current point, search geted number at consult-line-multi"
       (interactive)
-      (consult-line-multi nil (if-let ((n (number-at-point)))
+      (consult-line-multi nil (if-let* ((n (number-at-point)))
                                   (number-to-string n)
                                 nil)))
 
@@ -1939,7 +1939,7 @@
       (defun +consult-ace-switch-buffer-other-window ()
         "Switch buffer in other window."
         (interactive)
-        (when-let ((window (aw-select nil)))
+        (when-let* ((window (aw-select nil)))
           (save-selected-window
             (aw-switch-to-window window)
             (setq this-command 'consult-buffer)
@@ -2106,7 +2106,7 @@
                '(()(interactive)))
          (minibuffer-with-setup-hook
              (:append (lambda ()
-                        (when-let ((contents (minibuffer-contents))
+                        (when-let* ((contents (minibuffer-contents))
                                    (initial (consult--async-split-initial ""))
                                    (beg (minibuffer-prompt-end)))
                           ,(if async
@@ -3180,7 +3180,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
 
   It receives METADATA and outputs a function that takes a candidate and returns
   the icon."
-      (when-let ((kindfunc (or (plist-get completion-extra-properties :company-kind)
+      (when-let* ((kindfunc (or (plist-get completion-extra-properties :company-kind)
                                (assq 'company-kind metadata))))
         (lambda (cand)
           (let ((kind (or (funcall kindfunc cand) t)))
@@ -3943,7 +3943,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     (if (and buffer file newfile)
         ;; 如果新文件名为文件夹则放弃
         (if (not (directory-name-p newfile))
-            (if-let ((newfile-dir (file-name-directory newfile)))
+            (if-let* ((newfile-dir (file-name-directory newfile)))
                 ;; 判断新文件名所在文件夹是否存在
                 (if (file-directory-p newfile-dir)
                     (progn
@@ -4082,7 +4082,7 @@ doc -> [[https://www.emacswiki.org/emacs/HideShow][HideShow]]
     (interactive)
     (if-let* ((current-buffer (current-buffer))
               (file (buffer-file-name current-buffer)))
-        (when-let ((file-buffer (find-file-noselect (concat "/sudo::" file))))
+        (when-let* ((file-buffer (find-file-noselect (concat "/sudo::" file))))
           (switch-to-buffer file-buffer)
           (kill-buffer current-buffer))
       (user-error "The current buffer does not come from an existing file.")))
