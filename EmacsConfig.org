@@ -1278,7 +1278,8 @@
   ;; 注释
   (use-package evil-nerd-commenter
     :straight t
-    :after evil
+    :defer t
+    ;; :after evil
     ;; :bind
     ;; (:map lmm/leader-comma-map
     ;;       (";" . evilnc-comment-operator)
@@ -2818,6 +2819,7 @@
 #+BEGIN_SRC emacs-lisp
   (use-package multiple-cursors
     :straight t
+    :defer t
     :config
     (defhydra hydra-multiple-cursors(:foreign-keys warn
                                                    :hint nil)
